@@ -82,3 +82,29 @@ testing with the networking layer (which sucks because that feature
 would help test the network layer...sigh).
 
 Joel Bender
+
+Frequently Asked Questions (FAQ)
+--------------------------------
+Q-1: Is the ObjectName the same as Device Name?
+
+A-1: Yes, more formally it is the object name of the device object.  BACnet
+devices have one and only one instance of a device object, so that can
+be considered the device name.
+
+Q-2: What is the Address format?
+
+A-2: It is address/mask:port, so your address should be 192.268.1.100/24
+because your network mask is probably 255.255.255.0 and the port
+defaults to 47808.
+
+It uses the "/24" part to create an appropriate broadcast address (in
+this case it will be 129.168.1.255) and open an additional socket
+listening for similar broadcasts from other devices.
+
+Q-3: Is the ObjectIdentifier the same as the Device Instance Number? or
+is it a MAC Address or something?
+
+A-3: Yes, the objectIdentifier is the device instance number.  To be
+consistent it should have been (device, 12345) but in the case of the
+BACpypes.ini file it only has properties of the device object, and then
+some other stuff got added.
