@@ -1,7 +1,9 @@
 
 import sys
+import logging
 
 from Exceptions import *
+from Debugging import DebugContents, Logging
 
 from PDU import *
 from PrimativeData import *
@@ -9,7 +11,7 @@ from ConstructedData import *
 from BaseTypes import *
 
 # some debuging
-_debug = ('--debugAPDU' in sys.argv)
+_log = logging.getLogger(__name__)
 
 # a dictionary of message type values and classes
 APDUTypes = {}
@@ -67,8 +69,13 @@ def MaxAPDUResponseDecode(arg):
 #   APCI
 #
 
-class APCI(PCI):
+class APCI(PCI, DebugContents, Logging):
 
+    _debugContents = ('apduType', 'apduSeg', 'apduMor', 'apduSA', 'apduSrv'
+        , 'apduNak', 'apduSeq', 'apduWin', 'apduMaxSegs', 'apduMaxResp'
+        , 'apduService', 'apduInvokeID', 'apduAbortRejectReason'
+        )
+        
     def __init__(self):
         PCI.__init__(self)
         self.apduType = None
@@ -120,15 +127,11 @@ class APCI(PCI):
 
     def Encode(self, pdu):
         """Encode the contents of the APCI into the PDU."""
-        if _debug:
-            print "APCI.Encode", pdu
+        APCI._debug("Encode %r", pdu)
 
         PCI.update(pdu, self)
 
         if (self.apduType == ConfirmedRequestPDU.pduType):
-            if _debug:
-                print "    - confirmed request"
-
             # PDU type
             buff = self.apduType << 4
             if self.apduSeg:
@@ -146,24 +149,15 @@ class APCI(PCI):
             pdu.Put(self.apduService)
 
         elif (self.apduType == UnconfirmedRequestPDU.pduType):
-            if _debug:
-                print "    - unconfirmed request"
-
             pdu.Put(self.apduType << 4)
             pdu.Put(self.apduService)
 
         elif (self.apduType == SimpleAckPDU.pduType):
-            if _debug:
-                print "    - simple ack"
-
             pdu.Put(self.apduType << 4)
             pdu.Put(self.apduInvokeID)
             pdu.Put(self.apduService)
 
         elif (self.apduType == ComplexAckPDU.pduType):
-            if _debug:
-                print "    - complex ack"
-
             # PDU type
             buff = self.apduType << 4
             if self.apduSeg:
@@ -178,9 +172,6 @@ class APCI(PCI):
             pdu.Put(self.apduService)
 
         elif (self.apduType == SegmentAckPDU.pduType):
-            if _debug:
-                print "    - segment ack"
-
             # PDU type
             buff = self.apduType << 4
             if self.apduNak:
@@ -193,25 +184,16 @@ class APCI(PCI):
             pdu.Put(self.apduWin)
 
         elif (self.apduType == ErrorPDU.pduType):
-            if _debug:
-                print "    - error"
-
             pdu.Put(self.apduType << 4)
             pdu.Put(self.apduInvokeID)
             pdu.Put(self.apduService)
 
         elif (self.apduType == RejectPDU.pduType):
-            if _debug:
-                print "    - reject"
-
             pdu.Put(self.apduType << 4)
             pdu.Put(self.apduInvokeID)
             pdu.Put(self.apduAbortRejectReason)
 
         elif (self.apduType == AbortPDU.pduType):
-            if _debug:
-                print "    - abort"
-
             # PDU type
             buff = self.apduType << 4
             if self.apduSrv:
@@ -225,8 +207,7 @@ class APCI(PCI):
 
     def Decode(self, pdu):
         """Decode the contents of the PDU into the APCI."""
-        if _debug:
-            print "APCI._Decode", pdu
+        APCI._debug("Decode %r", pdu)
 
         PCI.update(self, pdu)
 
@@ -237,9 +218,6 @@ class APCI(PCI):
         self.apduType = (buff >> 4) & 0x0F
 
         if (self.apduType == ConfirmedRequestPDU.pduType):
-            if _debug:
-                print "    - confirmed request"
-
             self.apduSeg = ((buff & 0x08) != 0)
             self.apduMor = ((buff & 0x04) != 0)
             self.apduSA  = ((buff & 0x02) != 0)
@@ -254,23 +232,14 @@ class APCI(PCI):
             self.pduData = pdu.pduData
 
         elif (self.apduType == UnconfirmedRequestPDU.pduType):
-            if _debug:
-                print "    - unconfirmed request"
-
             self.apduService = pdu.Get()
             self.pduData = pdu.pduData
 
         elif (self.apduType == SimpleAckPDU.pduType):
-            if _debug:
-                print "    - simple ack"
-
             self.apduInvokeID = pdu.Get()
             self.apduService = pdu.Get()
 
         elif (self.apduType == ComplexAckPDU.pduType):
-            if _debug:
-                print "    - complex ack"
-
             self.apduSeg = ((buff & 0x08) != 0)
             self.apduMor = ((buff & 0x04) != 0)
             self.apduInvokeID = pdu.Get()
@@ -281,9 +250,6 @@ class APCI(PCI):
             self.pduData = pdu.pduData
 
         elif (self.apduType == SegmentAckPDU.pduType):
-            if _debug:
-                print "    - segment ack"
-
             self.apduNak = ((buff & 0x02) != 0)
             self.apduSrv = ((buff & 0x01) != 0)
             self.apduInvokeID = pdu.Get()
@@ -291,24 +257,15 @@ class APCI(PCI):
             self.apduWin = pdu.Get()
 
         elif (self.apduType == ErrorPDU.pduType):
-            if _debug:
-                print "    - error"
-
             self.apduInvokeID = pdu.Get()
             self.apduService = pdu.Get()
             self.pduData = pdu.pduData
 
         elif (self.apduType == RejectPDU.pduType):
-            if _debug:
-                print "    - reject"
-
             self.apduInvokeID = pdu.Get()
             self.apduAbortRejectReason = pdu.Get()
 
         elif (self.apduType == AbortPDU.pduType):
-            if _debug:
-                print "    - abort"
-
             self.apduSrv = ((buff & 0x01) != 0)
             self.apduInvokeID = pdu.Get()
             self.apduAbortRejectReason = pdu.Get()
@@ -316,40 +273,6 @@ class APCI(PCI):
 
         else:
             raise DecodingError, "invalid APDU type"
-
-    def DebugContents(self, indent=1):
-        PCI.DebugContents(self)
-        if self.apduType is not None:
-            print "%s%s =" % ("    " * indent, 'apduType'), self.apduType, APDUTypes.get(self.apduType)
-        if self.apduSeg is not None:
-            print "%s%s =" % ("    " * indent, 'apduSeg'), self.apduSeg
-        if self.apduMor is not None:
-            print "%s%s =" % ("    " * indent, 'apduMor'), self.apduMor
-        if self.apduSA is not None:
-            print "%s%s =" % ("    " * indent, 'apduSA'), self.apduSA
-        if self.apduSrv is not None:
-            print "%s%s =" % ("    " * indent, 'apduSrv'), self.apduSrv
-        if self.apduNak is not None:
-            print "%s%s =" % ("    " * indent, 'apduNak'), self.apduNak
-        if self.apduSeq is not None:
-            print "%s%s =" % ("    " * indent, 'apduSeq'), self.apduSeq
-        if self.apduWin is not None:
-            print "%s%s =" % ("    " * indent, 'apduWin'), self.apduWin
-        if self.apduMaxSegs is not None:
-            print "%s%s =" % ("    " * indent, 'apduMaxSegs'), self.apduMaxSegs
-        if self.apduMaxResp is not None:
-            print "%s%s =" % ("    " * indent, 'apduMaxResp'), self.apduMaxResp
-        if self.apduService is not None:
-            if self.apduType == ConfirmedRequestPDU.pduType:
-                print "%s%s =" % ("    " * indent, 'apduService'), self.apduService, ConfirmedRequestTypes.get(self.apduService, '?')
-            elif self.apduType == UnconfirmedRequestPDU.pduType:
-                print "%s%s =" % ("    " * indent, 'apduService'), self.apduService, UnconfirmedRequestTypes.get(self.apduService, '?')
-            else:
-                print "%s%s =" % ("    " * indent, 'apduService'), self.apduService
-        if self.apduInvokeID is not None:
-            print "%s%s =" % ("    " * indent, 'apduInvokeID'), self.apduInvokeID
-        if self.apduAbortRejectReason is not None:
-            print "%s%s =" % ("    " * indent, 'apduAbortRejectReason'), self.apduAbortRejectReason
 
 #
 #   APDU
@@ -368,10 +291,6 @@ class APDU(APCI, PDUData):
     def Decode(self, pdu):
         APCI.Decode(self, pdu)
         self.pduData = pdu.GetData(len(pdu.pduData))
-
-    def DebugContents(self):
-        APCI.DebugContents(self)
-        PDUData.DebugContents(self)
 
 #------------------------------
 
@@ -653,17 +572,20 @@ class AbortPDU(_APDU):
             self.pduNetworkPriority = context.pduNetworkPriority
             self.apduInvokeID = context.apduInvokeID
             
+    def __str__(self):
+        try:
+            reason = BACnetAbortReason._xlateTable[self.apduAbortRejectReason]
+        except:
+            reason = str(self.apduAbortRejectReason) + '?'
+        return reason
+
     def __repr__(self):
         xid = id(self)
         if (xid < 0): xid += (1L << 32)
 
         sname = self.__module__ + '.' + self.__class__.__name__
         stype = '%s,%s' % (self.apduInvokeID, self.apduAbortRejectReason)
-
-        try:
-            reason = BACnetAbortReason._xlateTable[self.apduAbortRejectReason]
-        except:
-            reason = str(self.apduAbortRejectReason) + '?'
+        reason = self.__str__()
 
         return '<' + sname + '(%s,%s) instance at 0x%08x' % (self.apduInvokeID, reason, xid) + '>'
 
@@ -675,7 +597,7 @@ RegisterAPDUType(AbortPDU)
 #   APCISequence
 #
 
-class APCISequence(APCI, Sequence):
+class APCISequence(APCI, Sequence, Logging):
 
     def __init__(self, **kwargs):
         APCI.__init__(self)
@@ -683,40 +605,30 @@ class APCISequence(APCI, Sequence):
         self._tagList = None
 
     def Encode(self, apdu):
-        if _debug:
-            print "APCISequence.Encode", apdu
-            
+        APCISequence._debug("Encode %r", apdu)
+        
         # copy the header fields
         apdu.update(self)
         
         # create a tag list
         self._tagList = TagList()
         Sequence.Encode(self, self._tagList)
-        if _debug:
-            self._tagList.DebugContents()
 
         # encode the tag list
         self._tagList.Encode(apdu)
 
     def Decode(self, apdu):
-        if _debug:
-            print "APCISequence.Decode", apdu
-            
+        APCISequence._debug("Decode %r", apdu)
+        
         # copy the header fields
         self.update(apdu)
         
         # create a tag list and decode the rest of the data
         self._tagList = TagList()
         self._tagList.Decode(apdu)
-        if _debug:
-            self._tagList.DebugContents()
 
         # pass the taglist to the Sequence for additional decoding
         Sequence.Decode(self, self._tagList)
-
-    def DebugContents(self, indent=1):
-        APCI.DebugContents(self, indent)
-        Sequence.DebugContents(self, indent)
 
 #
 #   ConfirmedRequestSequence
@@ -838,6 +750,9 @@ class ErrorType(Sequence):
 class Error(ErrorSequence, ErrorType):
     sequenceElements = ErrorType.sequenceElements
     
+    def __str__(self):
+        return str(self.errorClass) + ": " + str(self.errorCode)
+        
 ErrorTypes[12] = Error
 
 class ChangeListError(ErrorSequence):
@@ -846,6 +761,9 @@ class ChangeListError(ErrorSequence):
         , Element('firstFailedElementNumber', Unsigned, 1)
         ]
 
+    def __str__(self):
+        return "change list error, first failed element number " + str(self.firstFailedElementNumber)
+        
 ErrorTypes[8] = ChangeListError
 ErrorTypes[9] = ChangeListError
 
@@ -855,6 +773,9 @@ class CreateObjectError(ErrorSequence):
         , Element('firstFailedElementNumber', Unsigned, 1)
         ]
 
+    def __str__(self):
+        return "create object error, first failed element number " + str(self.firstFailedElementNumber)
+        
 ErrorTypes[10] = CreateObjectError
 
 class ConfirmedPrivateTransferError(ErrorSequence):
@@ -908,6 +829,101 @@ RegisterComplexAckType(ReadPropertyACK)
 
 #-----
 
+class ReadAccessSpecification(Sequence):
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('listOfPropertyReferences', SequenceOf(BACnetPropertyReference), 1)
+        ]
+
+class ReadPropertyMultipleRequest(ConfirmedRequestSequence):
+    serviceChoice = 14
+    sequenceElements = \
+        [ Element('listOfReadAccessSpecs', SequenceOf(ReadAccessSpecification))
+        ]
+
+RegisterConfirmedRequestType(ReadPropertyMultipleRequest)
+
+class ReadAccessResultElementChoice(Choice):
+    choiceElements = \
+        [ Element('propertyValue', Any, 4)
+        , Element('propertyAccessError', Error, 5)
+        ]
+
+class ReadAccessResultElement(Sequence):
+    sequenceElements = \
+        [ Element('propertyIdentifier', BACnetPropertyIdentifier, 2)
+        , Element('propertyArrayIndex', Unsigned, 3, True)
+        , Element('readResult', ReadAccessResultElementChoice)
+        ]
+
+class ReadAccessResult(Sequence):
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('listOfResults', SequenceOf(ReadAccessResultElement), 1)
+        ]
+
+class ReadPropertyMultipleACK(ComplexAckSequence):
+    serviceChoice = 14
+    sequenceElements = \
+        [ Element('listOfReadAccessResults', SequenceOf(ReadAccessResult))
+        ]
+
+RegisterComplexAckType(ReadPropertyMultipleACK)
+
+#-----
+
+class RangeByPosition(Sequence):
+    sequenceElements = \
+        [ Element('referenceIndex', Unsigned)
+        , Element('count', Integer)
+        ]
+
+class RangeBySequenceNumber(Sequence):
+    sequenceElements = \
+        [ Element('referenceIndex', Unsigned)
+        , Element('count', Integer)
+        ]
+
+class RangeByTime(Sequence):
+    sequenceElements = \
+        [ Element('referenceTime', BACnetDateTime)
+        , Element('count', Integer)
+        ]
+
+class Range(Choice):
+    choiceElements = \
+        [ Element('byPosition', RangeByPosition, 3)
+        , Element('bySequenceNumber', RangeBySequenceNumber, 6)
+        , Element('byTime', RangeByTime, 7)
+        ]
+
+class ReadRangeRequest(ConfirmedRequestSequence):
+    serviceChoice = 26
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('propertyIdentifier', BACnetPropertyIdentifier, 1)
+        , Element('propertyArrayIndex', Unsigned, 2, True)
+        , Element('range', Range, optional=True)
+        ]
+
+RegisterConfirmedRequestType(ReadPropertyRequest)
+
+class ReadRangeACK(ComplexAckSequence):
+    serviceChoice = 26
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('propertyIdentifier', BACnetPropertyIdentifier, 1)
+        , Element('propertyArrayIndex', Unsigned, 2, True)
+        , Element('resultFlags', BACnetResultFlags, 3)
+        , Element('itemCount', Unsigned, 4)
+        , Element('itemData', SequenceOf(Any), 5)
+        , Element('firstSequenceNumber', Unsigned, 6, True)
+        ]
+
+RegisterComplexAckType(ReadPropertyACK)
+
+#-----
+
 class WritePropertyRequest(ConfirmedRequestSequence):
     serviceChoice = 15
     sequenceElements = \
@@ -919,6 +935,22 @@ class WritePropertyRequest(ConfirmedRequestSequence):
         ]
 
 RegisterConfirmedRequestType(WritePropertyRequest)
+
+#-----
+
+class WriteAccessSpecification(Sequence):
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('listOfProperties', SequenceOf(BACnetPropertyValue), 1)
+        ]
+
+class WritePropertyMultipleRequest(ConfirmedRequestSequence):
+    serviceChoice = 16
+    sequenceElements = \
+        [ Element('listOfWriteAccessSpecs', SequenceOf(WriteAccessSpecification))
+        ]
+
+RegisterConfirmedRequestType(WritePropertyMultipleRequest)
 
 #-----
 
@@ -1017,3 +1049,4 @@ class UnconfirmedCOVNotificationRequest(UnconfirmedRequestSequence):
 RegisterUnconfirmedRequestType(UnconfirmedCOVNotificationRequest)
         
 #-----
+
