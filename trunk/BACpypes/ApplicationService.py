@@ -1,28 +1,33 @@
+#!/bin/python
 
-import sys
-import traceback
+"""
+Application Layer
+"""
+
+from time import time as _time
+import logging
 
 from Exceptions import *
+from Debugging import DebugContents, Logging
 
-from copy import copy as _copy
-from time import time as _time
-
-from CommunicationsCore import Client, Server, Bind, \
-    ServiceAccessPoint, ApplicationServiceElement
+from CommunicationsCore import Client, ServiceAccessPoint, ApplicationServiceElement
 from Task import OneShotTask
 
 from APDU import *
 
 # some debuging
-_debug = ('--debugApplicationService' in sys.argv)
-_debugSegmentation = _debug or ('--debugSegmentation' in sys.argv)
+_log = logging.getLogger(__name__)
 
 #
 #   DeviceInfo
 #
 
-class DeviceInfo:
+class DeviceInfo(DebugContents):
 
+    _debugContents = ('address', 'segmentationSupported'
+        , 'maxApduLengthAccepted', 'maxSegmentsAccepted'
+        )
+    
     def __init__(self, address=None, segmentationSupported='no-segmentation', maxApduLengthAccepted=1024, maxSegmentsAccepted=None):
         if address is None:
             pass
@@ -40,12 +45,6 @@ class DeviceInfo:
         self.maxApduLengthAccepted = maxApduLengthAccepted  # how big to divide up apdu's
         self.maxSegmentsAccepted = maxSegmentsAccepted      # limit on how many segments to recieve
 
-    def DebugContents(self):
-        print "    address =", self.address
-        print "    segmentationSupported =", self.segmentationSupported
-        print "    maxApduLengthAccepted =", self.maxApduLengthAccepted
-        print "    maxSegmentsAccepted =", self.maxSegmentsAccepted
-    
 #----------------------------------------------------------------------
 
 #
@@ -62,15 +61,22 @@ SEGMENTED_CONFIRMATION = 5
 COMPLETED = 6
 ABORTED = 7
 
-class SSM(OneShotTask):
+class SSM(OneShotTask, DebugContents, Logging):
 
     transactionLabels = ['IDLE'
         , 'SEGMENTED_REQUEST', 'AWAIT_CONFIRMATION', 'AWAIT_RESPONSE'
         , 'SEGMENTED_RESPONSE', 'SEGMENTED_CONFIRMATION', 'COMPLETED', 'ABORTED'
         ]
 
+    _debugContents = ('ssmSAP', 'remoteDevice', 'invokeID'
+        , 'state', 'segmentAPDU', 'segmentSize', 'segmentCount', 'maxSegmentsAccepted'
+        , 'retryCount', 'segmentRetryCount', 'sentAllSegments', 'lastSequenceNumber'
+        , 'initialSequenceNumber', 'actualWindowSize', 'proposedWindowSize'
+        )
+        
     def __init__(self, sap):
         """Common parts for client and server segmentation."""
+        SSM._debug("__init__ %r", sap)
         OneShotTask.__init__(self)
 
         self.ssmSAP = sap                   # reference to the service access point
@@ -92,8 +98,7 @@ class SSM(OneShotTask):
         self.proposedWindowSize = None
 
     def StartTimer(self, msecs):
-        if _debugSegmentation:
-            print self, "SSM.StartTimer", msecs
+        SSM._debug("StartTimer %r", msecs)
 
         # if this is active, pull it
         if self.isScheduled:
@@ -103,14 +108,12 @@ class SSM(OneShotTask):
         self.InstallTask(_time() + (msecs / 1000.0))
 
     def StopTimer(self):
-        if _debugSegmentation:
-            print self, "SSM.StopTimer"
+        SSM._debug("StopTimer")
 
         self.SuspendTask()
 
     def RestartTimer(self, msecs):
-        if _debugSegmentation:
-            print self, "SSM.RestartTimer", msecs
+        SSM._debug("RestartTimer %r", msecs)
 
         # if this is active, pull it
         if self.isScheduled:
@@ -120,16 +123,14 @@ class SSM(OneShotTask):
         self.InstallTask(_time() + (msecs / 1000.0))
 
     def SetState(self, newState, timer=0):
-        """This function is called when the derived class wants to change
-        state."""
-        if _debugSegmentation:
-            print self, "SSM.SetState", SSM.transactionLabels[newState]
+        """This function is called when the derived class wants to change state."""
+        SSM._debug("SetState %r (%s) timer=%r", newState, SSM.transactionLabels[newState], timer)
 
         # make sure we have a correct transition
         if (self.state == COMPLETED) or (self.state == ABORTED):
-            raise RuntimeError, "invalid state transition from %s to %s" % (SSM.transactionLabels[self.state], SSM.transactionLabels[newState])
-
-        self.state = newState
+            e = RuntimeError("invalid state transition from %s to %s" % (SSM.transactionLabels[self.state], SSM.transactionLabels[newState]))
+            SSM._exception(e)
+            raise e
 
         # stop any current timer
         self.StopTimer()
@@ -143,8 +144,7 @@ class SSM(OneShotTask):
 
     def SetSegmentationContext(self, apdu):
         """This function is called to set the segmentation context."""
-        if _debugSegmentation:
-            print self, "SSM.SetSegmentationContext", apdu
+        SSM._debug("SetSegmentationContext %s", repr(apdu))
 
         # set the context
         self.segmentAPDU = apdu
@@ -153,8 +153,7 @@ class SSM(OneShotTask):
         """This function returns an APDU coorisponding to a particular
         segment of a confirmed request or complex ack.  The segmentAPDU
         is the context."""
-        if _debugSegmentation:
-            print self, "SSM.GetSegment", indx
+        SSM._debug("GetSegment %r", indx)
 
         # check for no context
         if not self.segmentAPDU:
@@ -165,8 +164,7 @@ class SSM(OneShotTask):
             raise RuntimeError, "invalid segment number %d, APDU has %d segments" % (indx, self.segmentCount)
 
         if self.segmentAPDU.apduType == ConfirmedRequestPDU.pduType:
-            if _debugSegmentation:
-                print "    - confirmed request context"
+            SSM._debug("    - confirmed request context")
 
             segAPDU = ConfirmedRequestPDU(self.segmentAPDU.apduService)
 
@@ -177,13 +175,11 @@ class SSM(OneShotTask):
             # segmented response accepted?
             segAPDU.apduSA = ((self.ssmSAP.segmentationSupported == 'segmented-both') \
                     or (self.ssmSAP.segmentationSupported == 'segmented-receive'))
-            if _debugSegmentation:
-                print "    - segmented response accepted:", segAPDU.apduSA
-                print "        - self.ssmSAP.segmentationSupported", self.ssmSAP.segmentationSupported
+            SSM._debug("    - segmented response accepted: %r", segAPDU.apduSA)
+            SSM._debug("        - self.ssmSAP.segmentationSupported: %r", self.ssmSAP.segmentationSupported)
 
         elif self.segmentAPDU.apduType == ComplexAckPDU.pduType:
-            if _debugSegmentation:
-                print "    - complex ack context"
+            SSM._debug("    - complex ack context")
 
             segAPDU = ComplexAckPDU(self.segmentAPDU.apduService, self.segmentAPDU.apduInvokeID)
         else:
@@ -206,20 +202,13 @@ class SSM(OneShotTask):
         offset = indx * self.segmentSize
         segAPDU.PutData( self.segmentAPDU.pduData[offset:offset+self.segmentSize] )
 
-        if _debugSegmentation:
-            print "-segAPDU-"
-            segAPDU.DebugContents()
-            
         # success
         return segAPDU
 
     def AppendSegment(self, apdu):
         """This function appends the apdu content to the end of the current
         APDU being built.  The segmentAPDU is the context."""
-        if _debugSegmentation:
-            print self, "SSM.AppendSegment"
-            print "-apdu-"
-            apdu.DebugContents()
+        SSM._debug("AppendSegment %r", apdu)
 
         # check for no context
         if not self.segmentAPDU:
@@ -229,22 +218,17 @@ class SSM(OneShotTask):
         self.segmentAPDU.PutData(apdu.pduData)
 
     def InWindow(self, seqA, seqB):
-        if _debugSegmentation:
-            print self, "SSM.InWindow", seqA, seqB
-            print "    - actualWindowSize", self.actualWindowSize
+        SSM._debug("InWindow %r %r", seqA, seqB)
 
         rslt = ((seqA - seqB + 256) % 256) < self.actualWindowSize
-        if _debugSegmentation:
-            print "    - rslt", rslt
+        SSM._debug("    - rslt: %r", rslt)
 
         return rslt
 
     def FillWindow(self, seqNum):
         """This function sends all of the packets necessary to fill
         out the segmentation window."""
-        if _debugSegmentation:
-            print self, "SSM.FillWindow", seqNum
-            print "    - actualWindowSize", self.actualWindowSize
+        SSM._debug("FillWindow %r", seqNum)
 
         for ix in range(self.actualWindowSize):
             apdu = self.GetSegment(seqNum + ix)
@@ -257,27 +241,11 @@ class SSM(OneShotTask):
                 self.sentAllSegments = True
                 break
 
-    def DebugContents(self, indent=1):
-        print "%s%s =" % ("    " * indent, 'state'), self.state, SSM.transactionLabels[self.state]
-        print "%s%s =" % ("    " * indent, 'segmentSize'), self.segmentSize
-        print "%s%s =" % ("    " * indent, 'segmentCount'), self.segmentCount
-        print "%s%s =" % ("    " * indent, 'maxSegmentsAccepted'), self.maxSegmentsAccepted
-        print "%s%s =" % ("    " * indent, 'retryCount'), self.retryCount
-        print "%s%s =" % ("    " * indent, 'segmentRetryCount'), self.segmentRetryCount
-        print "%s%s =" % ("    " * indent, 'sentAllSegments'), self.sentAllSegments
-        print "%s%s =" % ("    " * indent, 'lastSequenceNumber'), self.lastSequenceNumber
-        print "%s%s =" % ("    " * indent, 'initialSequenceNumber'), self.initialSequenceNumber
-        print "%s%s =" % ("    " * indent, 'actualWindowSize'), self.actualWindowSize
-        print "%s%s =" % ("    " * indent, 'proposedWindowSize'), self.proposedWindowSize
-        print "%s%s =" % ("    " * indent, 'segmentAPDU'), self.segmentAPDU
-        if self.segmentAPDU:
-            self.segmentAPDU.DebugContents()
-    
 #
 #   ClientSSM - Client Segmentation State Machine
 #
 
-class ClientSSM(SSM):
+class ClientSSM(SSM, Logging):
 
     def __init__(self, sap):
         SSM.__init__(self, sap)
@@ -287,8 +255,7 @@ class ClientSSM(SSM):
 
     def SetState(self, newState, timer=0):
         """This function is called when the client wants to change state."""
-        if _debugSegmentation:
-            print self, "ClientSSM.SetState"
+        ClientSSM._debug("SetState %r (%s) timer=%r", newState, SSM.transactionLabels[newState], timer)
 
         # pass the change down
         SSM.SetState(self, newState, timer)
@@ -300,8 +267,7 @@ class ClientSSM(SSM):
     def Request(self, apdu):
         """This function is called by client transaction functions when it wants
         to send a message to the device."""
-        if _debugSegmentation:
-            print self, "ClientSSM.Request", apdu
+        ClientSSM._debug("Request %r", apdu)
 
         # make sure it has a good source and destination
         apdu.pduSource = None
@@ -313,9 +279,7 @@ class ClientSSM(SSM):
     def Indication(self, apdu):
         """This function is called after the device has bound a new transaction
         and wants to start the process rolling."""
-        if _debugSegmentation:
-            print self, "ClientSSM.Indication", apdu
-            self.DebugContents()
+        ClientSSM._debug("Indication %r", apdu)
 
         # make sure we're getting confirmed requests
         if (apdu.apduType != ConfirmedRequestPDU.pduType):
@@ -334,38 +298,31 @@ class ClientSSM(SSM):
 
         # save the invoke ID
         self.invokeID = apdu.apduInvokeID
-        if _debugSegmentation:
-            print "    - invoke ID", self.invokeID
+        ClientSSM._debug("    - invoke ID: %r", self.invokeID)
 
         # get information about the device
         self.remoteDevice = self.ssmSAP.GetDeviceInfo(apdu.pduDestination)
-        if _debugSegmentation:
-            self.remoteDevice.DebugContents()
 
         # the segment size is the minimum of what I want to transmit and
         # what the device can receive
         self.segmentSize = min(self.ssmSAP.maxApduLengthAccepted, self.remoteDevice.maxApduLengthAccepted)
-        if _debugSegmentation:
-            print "    - segment size =", self.segmentSize
+        ClientSSM._debug("    - segment size: %r", self.segmentSize)
 
         # compute the segment count ### minus the header?
         self.segmentCount, more = divmod(len(apdu.pduData), self.segmentSize)
         if more:
             self.segmentCount += 1
-        if _debugSegmentation:
-            print "    - segment count =", self.segmentCount
+        ClientSSM._debug("    - segment count: %r", self.segmentCount)
 
         # make sure we support segmented transmit if we need to
         if self.segmentCount > 1:
             if (self.ssmSAP.segmentationSupported != 'segmented-transmit') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
-                if _debugSegmentation:
-                    print "    - local device can't send segmented messages"
+                ClientSSM._debug("    - local device can't send segmented messages")
                 abort = self.Abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.Response(abort)
                 return
             if (self.remoteDevice.segmentationSupported != 'segmented-receive') and (self.remoteDevice.segmentationSupported != 'segmented-both'):
-                if _debugSegmentation:
-                    print "    - remote device can't receive segmented messages"
+                ClientSSM._debug("    - remote device can't receive segmented messages")
                 abort = self.Abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.Response(abort)
                 return
@@ -392,8 +349,7 @@ class ClientSSM(SSM):
     def Response(self, apdu):
         """This function is called by client transaction functions when they want
         to send a message to the application."""
-        if _debugSegmentation:
-            print self, "ClientSSM.Response", apdu
+        ClientSSM._debug("Response %r", apdu)
 
         # make sure it has a good source and destination
         apdu.pduSource = self.remoteDevice.address
@@ -405,9 +361,7 @@ class ClientSSM(SSM):
     def Confirmation(self, apdu):
         """This function is called by the device for all upstream messages related
         to the transaction."""
-        if _debugSegmentation:
-            print self, "ClientSSM.Confirmation", apdu
-            self.DebugContents()
+        ClientSSM._debug("Confirmation %r", apdu)
 
         if self.state == SEGMENTED_REQUEST:
             self.SegmentedRequest(apdu)
@@ -420,9 +374,7 @@ class ClientSSM(SSM):
 
     def ProcessTask(self):
         """This function is called when something has taken too long."""
-        if _debugSegmentation:
-            print self, "ClientSSM.ProcessTask"
-            self.DebugContents()
+        ClientSSM._debug("ProcessTask")
 
         if self.state == SEGMENTED_REQUEST:
             self.SegmentedRequestTimeout()
@@ -435,13 +387,13 @@ class ClientSSM(SSM):
         elif self.state == ABORTED:
             pass
         else:
-            raise RuntimeError, "invalid state"
-
+            e = RuntimeError("invalid state")
+            ClientSSM._exception("exception: %r", e)
+            raise e
+            
     def Abort(self, reason):
         """This function is called when the transaction should be aborted."""
-        if _debugSegmentation:
-            print "=" * 20, "ABORT", reason, "=" * 20
-            print self, "ClientSSM.Abort", reason
+        ClientSSM._debug("Abort %r", reason)
 
         # change the state to aborted
         self.SetState(ABORTED)
@@ -452,32 +404,25 @@ class ClientSSM(SSM):
     def SegmentedRequest(self, apdu):
         """This function is called when the client is sending a segmented request
         and receives an apdu."""
-        if _debugSegmentation:
-            print self, "ClientSSM.SegmentedRequest", apdu
+        ClientSSM._debug("SegmentedRequest %r", apdu)
 
         # client is ready for the next segment
         if apdu.apduType == SegmentAckPDU.pduType:
-            if _debugSegmentation:
-                print "    - segment ack"
-                print "        - apdu.apduSeq", apdu.apduSeq
-                print "        - apdu.apduNak", apdu.apduNak
+            ClientSSM._debug("    - segment ack")
 
             # duplicate ack received?
             if not self.InWindow(apdu.apduSeq, self.initialSequenceNumber):
-                if _debugSegmentation:
-                    print "    - not in window"
+                ClientSSM._debug("    - not in window")
                 self.RestartTimer(self.ssmSAP.segmentTimeout)
 
             # final ack received?
             elif self.sentAllSegments:
-                if _debugSegmentation:
-                    print "    - all done sending request"
+                ClientSSM._debug("    - all done sending request")
                 self.SetState(AWAIT_CONFIRMATION, self.ssmSAP.retryTimeout)
 
             # more segments to send
             else:
-                if _debugSegmentation:
-                    print "    - more segments to send"
+                ClientSSM._debug("    - more segments to send")
 
                 self.initialSequenceNumber = (apdu.apduSeq + 1) % 256
                 self.actualWindowSize = apdu.apduWin
@@ -487,8 +432,7 @@ class ClientSSM(SSM):
 
         # simple ack
         elif (apdu.apduType == SimpleAckPDU.pduType):
-            if _debugSegmentation:
-                print "    - simple ack"
+            ClientSSM._debug("    - simple ack")
 
             if not self.sentAllSegments:
                 abort = self.Abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
@@ -499,8 +443,7 @@ class ClientSSM(SSM):
                 self.Response(apdu)
 
         elif (apdu.apduType == ComplexAckPDU.pduType):
-            if _debugSegmentation:
-                print "    - complex ack"
+            ClientSSM._debug("    - complex ack")
 
             if not self.sentAllSegments:
                 abort = self.Abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
@@ -522,8 +465,7 @@ class ClientSSM(SSM):
 
         # some kind of problem
         elif (apdu.apduType == ErrorPDU.pduType) or (apdu.apduType == RejectPDU.pduType) or (apdu.apduType == AbortPDU.pduType):
-            if _debugSegmentation:
-                print "    - error/reject/abort"
+            ClientSSM._debug("    - error/reject/abort")
 
             self.SetState(COMPLETED)
             self.response = apdu
@@ -533,63 +475,53 @@ class ClientSSM(SSM):
             raise RuntimeError, "invalid APDU (2)"
 
     def SegmentedRequestTimeout(self):
-        if _debugSegmentation:
-            print self, "ClientSSM.SegmentedRequestTimeout"
+        ClientSSM._debug("SegmentedRequestTimeout")
 
         # try again
         if self.segmentRetryCount < self.ssmSAP.retryCount:
-            if _debugSegmentation:
-                print "    - retry segmented request"
+            ClientSSM._debug("    - retry segmented request")
 
             self.segmentRetryCount += 1
             self.StartTimer(self.ssmSAP.segmentTimeout)
             self.FillWindow(self.initialSequenceNumber)
         else:
-            if _debugSegmentation:
-                print "    - abort, no response from the device"
+            ClientSSM._debug("    - abort, no response from the device")
 
             abort = self.Abort(BACnetAbortReason.NORESPONSE)
             self.Response(abort)
 
     def AwaitConfirmation(self, apdu):
-        if _debugSegmentation:
-            print self, "ClientSSM.AwaitConfirmation", apdu
+        ClientSSM._debug("AwaitConfirmation %r", apdu)
 
         if (apdu.apduType == AbortPDU.pduType):
-            if _debugSegmentation:
-                print "    - server aborted"
+            ClientSSM._debug("    - server aborted")
 
             self.SetState(ABORTED)
             self.Response(apdu)
 
         elif (apdu.apduType == SimpleAckPDU.pduType) or (apdu.apduType == ErrorPDU.pduType) or (apdu.apduType == RejectPDU.pduType):
-            if _debugSegmentation:
-                print "    - simple ack, error, or reject"
+            ClientSSM._debug("    - simple ack, error, or reject")
 
             self.SetState(COMPLETED)
             self.Response(apdu)
 
         elif (apdu.apduType == ComplexAckPDU.pduType):
-            if _debugSegmentation:
-                print "    - complex ack"
+            ClientSSM._debug("    - complex ack")
 
             # if the response is not segmented, we're done
             if not apdu.apduSeg:
-                if _debugSegmentation:
-                    print "    - unsegmented"
+                ClientSSM._debug("    - unsegmented")
 
                 self.SetState(COMPLETED)
                 self.Response(apdu)
 
             elif (self.ssmSAP.segmentationSupported != 'segmented-receive') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
-                if _debugSegmentation:
-                    print "    - local device can't receive segmented messages"
+                ClientSSM._debug("    - local device can't receive segmented messages")
                 abort = self.Abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.Response(abort)
 
             elif apdu.apduSeq == 0:
-                if _debugSegmentation:
-                    print "    - segmented response"
+                ClientSSM._debug("    - segmented response")
 
                 # set the segmented response context
                 self.SetSegmentationContext(apdu)
@@ -604,16 +536,14 @@ class ClientSSM(SSM):
                 self.Request(segack)
 
             else:
-                if _debugSegmentation:
-                    print "    - invalid APDU in this state"
+                ClientSSM._debug("    - invalid APDU in this state")
 
                 abort = self.Abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
                 self.Request(abort) # send it to the device
                 self.Response(abort) # send it to the application
 
         elif (apdu.apduType == SegmentAckPDU.pduType):
-            if _debugSegmentation:
-                print "    - segment ack(!?)"
+            ClientSSM._debug("    - segment ack(!?)")
 
             self.RestartTimer(self.ssmSAP.segmentTimeout)
 
@@ -621,13 +551,11 @@ class ClientSSM(SSM):
             raise RuntimeError, "invalid APDU (3)"
 
     def AwaitConfirmationTimeout(self):
-        if _debugSegmentation:
-            print self, "ClientSSM.AwaitConfirmationTimeout"
+        ClientSSM._debug("AwaitConfirmationTimeout")
 
         self.retryCount += 1
         if self.retryCount < self.ssmSAP.retryCount:
-            if _debugSegmentation:
-                print "    - no response, try again (%d < %d)" % (self.retryCount, self.ssmSAP.retryCount)
+            ClientSSM._debug("    - no response, try again (%d < %d)", self.retryCount, self.ssmSAP.retryCount)
 
             # save the retry count, Indication acts like the request is coming
             # from the application so the retryCount gets re-initialized.
@@ -635,19 +563,16 @@ class ClientSSM(SSM):
             self.Indication(self.segmentAPDU)
             self.retryCount = saveCount
         else:
-            if _debugSegmentation:
-                print "    - retry count exceeded"
+            ClientSSM._debug("    - retry count exceeded")
             abort = self.Abort(BACnetAbortReason.NORESPONSE)
             self.Response(abort)
 
     def SegmentedConfirmation(self, apdu):
-        if _debugSegmentation:
-            print self, "ClientSSM.SegmentedConfirmation", apdu
+        ClientSSM._debug("SegmentedConfirmation %r", apdu)
 
         # the only messages we should be getting are complex acks
         if (apdu.apduType != ComplexAckPDU.pduType):
-            if _debugSegmentation:
-                print "    - complex ack required"
+            ClientSSM._debug("    - complex ack required")
 
             abort = self.Abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
             self.Request(abort) # send it to the device
@@ -656,8 +581,7 @@ class ClientSSM(SSM):
 
         # it must be segmented
         if not apdu.apduSeg:
-            if _debugSegmentation:
-                print "    - must be segmented"
+            ClientSSM._debug("    - must be segmented")
 
             abort = self.Abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
             self.Request(abort) # send it to the device
@@ -666,8 +590,7 @@ class ClientSSM(SSM):
 
         # proper segment number
         if apdu.apduSeq != (self.lastSequenceNumber + 1) % 256:
-            if _debugSegmentation:
-                print "    - segment", apdu.apduSeq, "received out of order, should be", (self.lastSequenceNumber + 1) % 256
+            ClientSSM._debug("    - segment %s received out of order, should be %s", apdu.apduSeq, (self.lastSequenceNumber + 1) % 256)
 
             # segment received out of order
             self.RestartTimer(self.ssmSAP.segmentTimeout)
@@ -683,8 +606,7 @@ class ClientSSM(SSM):
 
         # last segment received
         if not apdu.apduMor:
-            if _debugSegmentation:
-                print "    - no more follows"
+            ClientSSM._debug("    - no more follows")
 
             # send a final ack
             segack = SegmentAckPDU( 0, 0, self.invokeID, self.lastSequenceNumber, self.actualWindowSize )
@@ -694,8 +616,7 @@ class ClientSSM(SSM):
             self.Response(self.segmentAPDU)
 
         elif apdu.apduSeq == ((self.initialSequenceNumber + self.actualWindowSize) % 256):
-            if _debugSegmentation:
-                print "    - last segment in the group"
+            ClientSSM._debug("    - last segment in the group")
 
             self.initialSequenceNumber = self.lastSequenceNumber
             self.RestartTimer(self.ssmSAP.segmentTimeout)
@@ -704,14 +625,12 @@ class ClientSSM(SSM):
 
         else:
             # wait for more segments
-            if _debugSegmentation:
-                print "    - wait for more segments"
+            ClientSSM._debug("    - wait for more segments")
 
             self.RestartTimer(self.ssmSAP.segmentTimeout)
 
     def SegmentedConfirmationTimeout(self):
-        if _debugSegmentation:
-            print self, "ClientSSM.SegmentedConfirmationTimeout"
+        ClientSSM._debug("SegmentedConfirmationTimeout")
 
         abort = self.Abort(BACnetAbortReason.NORESPONSE)
         self.Response(abort)
@@ -727,8 +646,7 @@ class ServerSSM(SSM):
 
     def SetState(self, newState, timer=0):
         """This function is called when the client wants to change state."""
-        if _debugSegmentation:
-            print self, "ServerSSM.SetState"
+        ServerSSM._debug("SetState %r (%s) timer=%r", newState, SSM.transactionLabels[newState], timer)
 
         # pass the change down
         SSM.SetState(self, newState, timer)
@@ -740,8 +658,7 @@ class ServerSSM(SSM):
     def Request(self, apdu):
         """This function is called by transaction functions to send
         to the application."""
-        if _debugSegmentation:
-            print self, "ServerSSM.Request", apdu
+        ServerSSM._debug("Request %r", apdu)
 
         # make sure it has a good source and destination
         apdu.pduSource = self.remoteDevice.address
@@ -753,9 +670,7 @@ class ServerSSM(SSM):
     def Indication(self, apdu):
         """This function is called for each downstream packet related to
         the transaction."""
-        if _debugSegmentation:
-            print self, "ServerSSM.Indication", apdu
-            self.DebugContents()
+        ServerSSM._debug("Indication %r", apdu)
 
         if self.state == IDLE:
             self.Idle(apdu)
@@ -766,16 +681,12 @@ class ServerSSM(SSM):
         elif self.state == SEGMENTED_RESPONSE:
             self.SegmentedResponse(apdu)
         else:
-            print "RuntimeError - invalid state"
-            self.DebugContents()
-            apdu.DebugContents()
-            print
+            ServerSSM._debug("    - invalid state")
 
     def Response(self, apdu):
         """This function is called by transaction functions when they want
         to send a message to the device."""
-        if _debugSegmentation:
-            print self, "ServerSSM.Response", apdu
+        ServerSSM._debug("Response %r", apdu)
 
         # make sure it has a good source and destination
         apdu.pduSource = None
@@ -787,13 +698,10 @@ class ServerSSM(SSM):
     def Confirmation(self, apdu):
         """This function is called when the application has provided a response
         and needs it to be sent to the client."""
-        if _debugSegmentation:
-            print self, "ServerSSM.Confirmation", apdu
-            self.DebugContents()
+        ServerSSM._debug("Confirmation %r", apdu)
 
         if (apdu.apduType == AbortPDU.pduType):
-            if _debugSegmentation:
-                print "    - abort"
+            ServerSSM._debug("    - abort")
 
             self.SetState(ABORTED)
 
@@ -802,13 +710,11 @@ class ServerSSM(SSM):
             return
 
         if self.state != AWAIT_RESPONSE:
-            if _debugSegmentation:
-                print "    - warning: not expecting a response"
+            ServerSSM._debug("    - warning: not expecting a response")
 
         # simple response
         if (apdu.apduType == SimpleAckPDU.pduType) or (apdu.apduType == ErrorPDU.pduType) or (apdu.apduType == RejectPDU.pduType):
-            if _debugSegmentation:
-                print "    - simple ack, error, or reject"
+            ServerSSM._debug("    - simple ack, error, or reject")
 
             # transaction completed
             self.SetState(COMPLETED)
@@ -818,8 +724,7 @@ class ServerSSM(SSM):
             return
 
         if (apdu.apduType == ComplexAckPDU.pduType):
-            if _debugSegmentation:
-                print "    - complex ack"
+            ServerSSM._debug("    - complex ack")
 
             # save the response and set the segmentation context
             self.SetSegmentationContext(apdu)
@@ -827,20 +732,17 @@ class ServerSSM(SSM):
             # the segment size is the minimum of what I want to transmit and
             # what the device can receive
             self.segmentSize = min(self.ssmSAP.maxApduLengthAccepted, self.remoteDevice.maxApduLengthAccepted)
-            if _debugSegmentation:
-                print "    - segment size =", self.segmentSize
+            ServerSSM._debug("    - segment size: %r", self.segmentSize)
 
             # compute the segment count ### minus the header?
             self.segmentCount, more = divmod(len(apdu.pduData), self.segmentSize)
             if more:
                 self.segmentCount += 1
-            if _debugSegmentation:
-                print "    - segment count =", self.segmentCount
+            ServerSSM._debug("    - segment count: %r", self.segmentCount)
 
             # make sure we support segmented transmit if we need to
             if self.segmentCount > 1:
-                if _debugSegmentation:
-                    print "    - segmentation required,", self.segmentCount, "segments"
+                ServerSSM._debug("    - segmentation required, %d segemnts", self.segmentCount)
 
                 if (self.ssmSAP.segmentationSupported != 'segmented-transmit') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
                     abort = self.Abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
@@ -876,9 +778,7 @@ class ServerSSM(SSM):
         segments of a segmented request, the application has taken too long to
         complete the request, or the client failed to ack the segments of a
         segmented response."""
-        if _debugSegmentation:
-            print self, "ServerSSM.ProcessTask"
-            self.DebugContents()
+        ServerSSM._debug("ProcessTask")
 
         if self.state == SEGMENTED_REQUEST:
             self.SegmentedRequestTimeout()
@@ -891,14 +791,13 @@ class ServerSSM(SSM):
         elif self.state == ABORTED:
             pass
         else:
+            ServerSSM._debug("invalid state")
             raise RuntimeError, "invalid state"
-
+            
     def Abort(self, reason):
         """This function is called when the application would like to abort the
         transaction.  There is no notification back to the application."""
-        if _debugSegmentation:
-            print "=" * 20, "ABORT", reason, "=" * 20
-            print self, "ServerSSM.Abort", reason
+        ServerSSM._debug("Abort %r", reason)
 
         # change the state to aborted
         self.SetState(ABORTED)
@@ -907,8 +806,7 @@ class ServerSSM(SSM):
         return AbortPDU(True, self.invokeID, reason)
 
     def Idle(self, apdu):
-        if _debugSegmentation:
-            print self, "ServerSSM.Idle", apdu
+        ServerSSM._debug("Idle %r", apdu)
 
         # make sure we're getting confirmed requests
         if not isinstance(apdu, ConfirmedRequestPDU):
@@ -916,13 +814,10 @@ class ServerSSM(SSM):
 
         # save the invoke ID
         self.invokeID = apdu.apduInvokeID
-        if _debugSegmentation:
-            print "    - invoke ID", self.invokeID
+        ServerSSM._debug("    - invoke ID: %r", self.invokeID)
 
         # get information about the device
         self.remoteDevice = self.ssmSAP.GetDeviceInfo(apdu.pduSource)
-        if _debugSegmentation:
-            self.remoteDevice.DebugContents()
 
         # save the number of segments the client is willing to accept in the ack
         self.maxSegmentsAccepted = apdu.apduMaxSegs
@@ -953,35 +848,22 @@ class ServerSSM(SSM):
 
         # send back a segment ack
         segack = SegmentAckPDU( 0, 1, self.invokeID, self.initialSequenceNumber, self.actualWindowSize )
-        if _debugSegmentation:
-            print "-segack-"
-            segack.DebugContents()
-            
+        ServerSSM._debug("    - segAck: %r", segack)
+
         self.Response(segack)
 
     def SegmentedRequest(self, apdu):
-        if _debugSegmentation:
-            print self, "ServerSSM.SegmentedRequest", apdu
+        ServerSSM._debug("SegmentedRequest %r", apdu)
 
         # some kind of problem
         if (apdu.apduType == AbortPDU.pduType):
-            if _debugSegmentation:
-                print "    - abort"
-
             self.SetState(COMPLETED)
             self.Response(apdu)
             return
 
         # the only messages we should be getting are confirmed requests
         elif (apdu.apduType != ConfirmedRequestPDU.pduType):
-            if _debugSegmentation:
-                print "    - confirmed request required"
-
             abort = self.Abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
-            if _debugSegmentation:
-                print "-abort-"
-                abort.DebugContents()
-                
             self.Request(abort) # send it to the device
             self.Response(abort) # send it to the application
             return
@@ -989,27 +871,19 @@ class ServerSSM(SSM):
         # it must be segmented
         elif not apdu.apduSeg:
             abort = self.Abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
-            if _debugSegmentation:
-                print "-abort-"
-                abort.DebugContents()
-                
             self.Request(abort) # send it to the application
             self.Response(abort) # send it to the device
             return
 
         # proper segment number
         if apdu.apduSeq != (self.lastSequenceNumber + 1) % 256:
-            if _debugSegmentation:
-                print "    - segment", apdu.apduSeq, "received out of order, should be", (self.lastSequenceNumber + 1) % 256
+            ServerSSM._debug("    - segment %d received out of order, should be %d", apdu.apduSeq, (self.lastSequenceNumber + 1) % 256)
 
             # segment received out of order
             self.RestartTimer(self.ssmSAP.segmentTimeout)
 
             # send back a segment ack
             segack = SegmentAckPDU( 1, 1, self.invokeID, self.initialSequenceNumber, self.actualWindowSize )
-            if _debugSegmentation:
-                print "-segack-"
-                segack.DebugContents()
                 
             self.Response(segack)
             return
@@ -1022,8 +896,7 @@ class ServerSSM(SSM):
 
         # last segment?
         if not apdu.apduMor:
-            if _debugSegmentation:
-                print "    - no more follows"
+            ServerSSM._debug("    - no more follows")
 
             # send back a final segment ack
             segack = SegmentAckPDU( 0, 1, self.invokeID, self.lastSequenceNumber, self.actualWindowSize )
@@ -1034,8 +907,7 @@ class ServerSSM(SSM):
             self.Request(self.segmentAPDU)
 
         elif apdu.apduSeq == ((self.initialSequenceNumber + self.actualWindowSize) % 256):
-                if _debugSegmentation:
-                    print "    - last segment in the group"
+                ServerSSM._debug("    - last segment in the group")
 
                 self.initialSequenceNumber = self.lastSequenceNumber
                 self.RestartTimer(self.ssmSAP.segmentTimeout)
@@ -1046,29 +918,24 @@ class ServerSSM(SSM):
 
         else:
             # wait for more segments
-            if _debugSegmentation:
-                print "    - wait for more segments"
+            ServerSSM._debug("    - wait for more segments")
 
             self.RestartTimer(self.ssmSAP.segmentTimeout)
 
     def SegmentedRequestTimeout(self):
-        if _debugSegmentation:
-            print self, "ServerSSM.SegmentedRequestTimeout"
+        ServerSSM._debug("SegmentedRequestTimeout")
 
         # give up
         self.SetState(ABORTED)
 
     def AwaitResponse(self, apdu):
-        if _debugSegmentation:
-            print self, "ServerSSM.AwaitResponse", apdu
+        ServerSSM._debug("AwaitResponse %r", apdu)
 
         if isinstance(apdu, ConfirmedRequestPDU):
-            if _debugSegmentation:
-                print "    - client is trying this request again"
+            ServerSSM._debug("    - client is trying this request again")
 
         elif isinstance(apdu, AbortPDU):
-            if _debugSegmentation:
-                print "    - client aborting this request"
+            ServerSSM._debug("    - client aborting this request")
 
             # forward abort to the application
             self.SetState(ABORTED)
@@ -1081,38 +948,30 @@ class ServerSSM(SSM):
         """This function is called when the application has taken too long
         to respond to a clients request.  The client has probably long since
         given up."""
-        if _debugSegmentation:
-            print self, "ServerSSM.AwaitResponseTimeout"
+        ServerSSM._debug("AwaitResponseTimeout")
 
         abort = self.Abort(BACnetAbortReason.SERVERTIMEOUT)
         self.Request(abort)
 
     def SegmentedResponse(self, apdu):
-        if _debugSegmentation:
-            print self, "ServerSSM.SegmentedResponse", apdu
+        ServerSSM._debug("SegmentedResponse %r", apdu)
 
         # client is ready for the next segment
         if (apdu.apduType == SegmentAckPDU.pduType):
-            if _debugSegmentation:
-                print "    - segment ack"
-                print "        - apdu.apduSeq", apdu.apduSeq
-                print "        - apdu.apduNak", apdu.apduNak
+            ServerSSM._debug("    - segment ack")
 
             # duplicate ack received?
             if not self.InWindow(apdu.apduSeq, self.initialSequenceNumber):
-                if _debugSegmentation:
-                    print "    - not in window"
+                ServerSSM._debug("    - not in window")
                 self.RestartTimer(self.ssmSAP.segmentTimeout)
 
             # final ack received?
             elif self.sentAllSegments:
-                if _debugSegmentation:
-                    print "    - all done sending response"
+                ServerSSM._debug("    - all done sending response")
                 self.SetState(COMPLETED)
 
             else:
-                if _debugSegmentation:
-                    print "    - more segments to send"
+                ServerSSM._debug("    - more segments to send")
 
                 self.initialSequenceNumber = (apdu.apduSeq + 1) % 256
                 self.actualWindowSize = apdu.apduWin
@@ -1129,8 +988,7 @@ class ServerSSM(SSM):
             raise RuntimeError, "invalid APDU (7)"
 
     def SegmentedResponseTimeout(self):
-        if _debugSegmentation:
-            print self, "ServerSSM.SegmentedResponseTimeout"
+        ServerSSM._debug("SegmentedResponseTimeout")
 
         # try again
         if self.segmentRetryCount < self.ssmSAP.retryCount:
@@ -1145,11 +1003,10 @@ class ServerSSM(SSM):
 #   StateMachineAccessPoint
 #
 
-class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
+class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
 
     def __init__(self, device, sap=None, cid=None):
-        if _debug:
-            print "StateMachineAccessPoint.__init__", device, sap, cid
+        StateMachineAccessPoint._debug("__init__ %r sap=%r cid=%r", device, sap, cid)
             
         # basic initialization
         DeviceInfo.__init__(self)
@@ -1174,8 +1031,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
 
     def GetNextInvokeID(self):
         """Called by clients to get an unused invoke ID."""
-        if _debug:
-            print "StateMachineAccessPoint.GetNextInvokeID"
+        StateMachineAccessPoint._debug("GetNextInvokeID")
             
         initialID = self.nextInvokeID
         while 1:
@@ -1196,42 +1052,29 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
 
     def GetDeviceInfo(self, addr):
         """Get the segmentation supported and max APDU length accepted for a device."""
-        if _debug:
-            print "StateMachineAccessPoint.GetDeviceInfo", addr
+        StateMachineAccessPoint._debug("GetDeviceInfo %r", addr)
     
         # return a generic info object
         return DeviceInfo(addr)
     
     def Confirmation(self, pdu):
         """Packets coming up the stack are APDU's."""
-        if _debug:
-            print "StateMachineAccessPoint.Confirmation"
-            print "-pdu-"
-            pdu.DebugContents()
+        StateMachineAccessPoint._debug("Confirmation %r", pdu)
 
         # make a more focused interpretation
         atype = APDUTypes.get(pdu.apduType)
         if not atype:
-            if _debug:
-                print "    - unknown apduType:", pdu.apduType
-            ### log this
+            StateMachineAccessPoint._warning("    - unknown apduType: %r", pdu.apduType)
             return
             
         # decode it
         apdu = atype()
         apdu.Decode(pdu)
-        if _debug:
-            print "-apdu-"
-            apdu.DebugContents()
+        StateMachineAccessPoint._debug("    - apdu: %r", apdu)
         
         if isinstance(apdu, ConfirmedRequestPDU):
-            if _debug:
-                print "    - confirmed request"
-
             # find duplicates of this request
             for tr in self.serverTransactions:
-                if _debug:
-                    print "        -", tr, tr.remoteDevice.address, tr.invokeID
                 if (apdu.pduSource == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
                     break
             else:
@@ -1240,14 +1083,11 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
 
                 # add it to our transactions to track it
                 self.serverTransactions.append(tr)
-
+                
             # let it run with the apdu
             tr.Indication(apdu)
 
         elif isinstance(apdu, UnconfirmedRequestPDU):
-            if _debug:
-                print "    - unconfirmed request"
-
             # deliver directly to the application
             self.SAPRequest(apdu)
 
@@ -1255,103 +1095,60 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
             or isinstance(apdu, ComplexAckPDU) \
             or isinstance(apdu, ErrorPDU) \
             or isinstance(apdu, RejectPDU):
-            if _debug:
-                print "    - ack/error/reject"
-
-            if _debug:
-                print "        - matching (client)", apdu.pduSource, apdu.apduInvokeID
+                
             # find the client transaction this is acking
             for tr in self.clientTransactions:
-                if _debug:
-                    print "        -", tr, tr.remoteDevice.address, tr.invokeID
                 if (apdu.apduInvokeID == tr.invokeID):
                     if not (apdu.pduSource == tr.remoteDevice.address):
-                        if _debug:
-                            print "    - warning, %s != %s" % (apdu.pduSource, tr.remoteDevice.address)
+                        StateMachineAccessPoint._warning("%s != %s (ack/error/reject)", apdu.pduSource, tr.remoteDevice.address)
                     break
             else:
-                if _debug:
-                    print "    - no matching client transaction"
                 return
-
+    
             # send the packet on to the transaction
             tr.Confirmation(apdu)
 
         elif isinstance(apdu, AbortPDU):
-            if _debug:
-                print "    - abort"
-
             # find the transaction being aborted
             if apdu.apduSrv:
-                if _debug:
-                    print "        - matching (client)", apdu.pduSource, apdu.apduInvokeID
                 for tr in self.clientTransactions:
-                    if _debug:
-                        print "        -", tr, tr.remoteDevice.address, tr.invokeID
                     if (apdu.apduInvokeID == tr.invokeID):
                         if not(apdu.pduSource == tr.remoteDevice.address):
-                            if _debug:
-                                print "    - warning, %s != %s" % (apdu.pduSource, tr.remoteDevice.address)
+                            StateMachineAccessPoint._warning("%s != %s (abort)", apdu.pduSource, tr.remoteDevice.address)
                         break
                 else:
-                    if _debug:
-                        print "    - no matching client transaction"
                     return
 
                 # send the packet on to the transaction
                 tr.Confirmation(apdu)
             else:
-                if _debug:
-                    print "        - matching (server)", apdu.pduSource, apdu.apduInvokeID
                 for tr in self.serverTransactions:
-                    if _debug:
-                        print "        -", tr, tr.remoteDevice.address, tr.invokeID
                     if (apdu.pduSource == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
                         break
                 else:
-                    if _debug:
-                        print "    - no matching server transaction (1)"
-                        print self.serverTransactions
                     return
-
+    
                 # send the packet on to the transaction
                 tr.Indication(apdu)
 
         elif isinstance(apdu, SegmentAckPDU):
-            if _debug:
-                print "    - segment ack"
-
             # find the transaction being aborted
             if apdu.apduSrv:
-                if _debug:
-                    print "        - matching (client)", apdu.pduSource, apdu.apduInvokeID
                 for tr in self.clientTransactions:
-                    if _debug:
-                        print "        -", tr, tr.remoteDevice.address, tr.invokeID
                     if (apdu.apduInvokeID == tr.invokeID):
                         if not(apdu.pduSource == tr.remoteDevice.address):
-                            if _debug:
-                                print "    - warning, %s != %s" % (apdu.pduSource, tr.remoteDevice.address)
+                            StateMachineAccessPoint._warning("%s != %s (segment ack)", apdu.pduSource, tr.remoteDevice.address)
                         break
                 else:
-                    if _debug:
-                        print "    - no matching client transaction"
                     return
 
                 # send the packet on to the transaction
                 tr.Confirmation(apdu)
             else:
-                if _debug:
-                    print "        - matching (server)", apdu.pduSource, apdu.apduInvokeID
                 for tr in self.serverTransactions:
-                    if _debug:
-                        print "        -", tr, tr.remoteDevice.address, tr.invokeID
                     if (apdu.pduSource == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
                         break
                 else:
-                    if _debug:
-                        print "    - no matching server transaction (2)"
-                        print self.serverTransactions
                     return
 
                 # send the packet on to the transaction
@@ -1359,26 +1156,17 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
 
         else:
             raise RuntimeError, "invalid APDU (8)"
-
+        
     def SAPIndication(self, apdu):
         """This function is called when the application is requesting
         a new transaction as a client."""
-        if _debug:
-            print "StateMachineAccessPoint.SAPIndication"
-            print "-apdu-"
-            apdu.DebugContents()
+        StateMachineAccessPoint._debug("SAPIndication %r", apdu)
 
         if isinstance(apdu, UnconfirmedRequestPDU):
-            if _debug:
-                print "    - unconfirmed request"
-
             # deliver to the device
             self.Request(apdu)
 
         elif isinstance(apdu, ConfirmedRequestPDU):
-            if _debug:
-                print "    - confirmed request"
-
             # make sure it has an invoke ID
             if apdu.apduInvokeID is None:
                 apdu.apduInvokeID = self.GetNextInvokeID()
@@ -1390,8 +1178,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
 
             # warning for bogus requests
             if (apdu.pduDestination.addrType != Address.localStationAddr) and (apdu.pduDestination.addrType != Address.remoteStationAddr):
-                if _debug:
-                    print "    - warning, %s is not a local or remote station" % (apdu.pduDestination,)
+                StateMachineAccessPoint._warning("%s is not a local or remote station", apdu.pduDestination)
 
             # create a client transaction state machine
             tr = ClientSSM(self)
@@ -1403,49 +1190,31 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
             tr.Indication(apdu)
 
         else:
-            print "StateMachineAccessPoint.SAPIndication"
-            print "-apdu-"
-            apdu.DebugContents()
-            traceback.print_exc(file=sys.stdout)
             raise RuntimeError, "invalid APDU (9)"
-
+        
     def SAPConfirmation(self, apdu):
         """This function is called when the application is responding
         to a request, the apdu may be a simple ack, complex ack, error, reject or abort."""
-        if _debug:
-            print "StateMachineAccessPoint.SAPConfirmation"
-            print "-apdu-"
-            apdu.DebugContents()
+        StateMachineAccessPoint._debug("SAPConfirmation %r", apdu)
 
         if isinstance(apdu, SimpleAckPDU) \
-            or isinstance(apdu, ComplexAckPDU) \
-            or isinstance(apdu, ErrorPDU) \
-            or isinstance(apdu, RejectPDU) \
-            or isinstance(apdu, AbortPDU):
+                or isinstance(apdu, ComplexAckPDU) \
+                or isinstance(apdu, ErrorPDU) \
+                or isinstance(apdu, RejectPDU) \
+                or isinstance(apdu, AbortPDU):
             # find the appropriate server transaction
-            if _debug:
-                print "        - matching", apdu.pduDestination, apdu.apduInvokeID
             for tr in self.serverTransactions:
-                if _debug:
-                    print "        -", tr, tr.remoteDevice.address, tr.invokeID
                 if (apdu.pduDestination == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
                     break
             else:
-                if _debug:
-                    print "    - no matching server transaction (3)"
-                    print self.serverTransactions
                 return
 
             # pass control to the transaction
             tr.Confirmation(apdu)
 
         else:
-            print "StateMachineAccessPoint.SAPConfirmation"
-            print "-apdu-"
-            apdu.DebugContents()
-            traceback.print_exc(file=sys.stdout)
             raise RuntimeError, "invalid APDU (10)"
-
+        
 #
 #   ApplicationServiceAccessPoint 
 #
@@ -1457,89 +1226,67 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
         ServiceAccessPoint.__init__(self, sapID)
 
     def Indication(self, apdu):
-        if _debug:
-            print "ApplicationServiceAccessPoint.Indication"
-            apdu.DebugContents()
+        ApplicationServiceAccessPoint._debug("Indication %r", apdu)
             
         if isinstance(apdu, ConfirmedRequestPDU):
             atype = ConfirmedRequestTypes.get(apdu.apduService)
             if not atype:
-                if _debug:
-                    print "    - no confirmed request decoder"
+                ApplicationServiceAccessPoint._debug("    - no confirmed request decoder")
                 return
                 
             try:
                 xpdu = atype()
                 xpdu.Decode(apdu)
             except Exception, e:
-                print "Confirmed Request Decoding Error:", e
-                print "    - atype:", atype
-                apdu.DebugContents()
-                print
+                ApplicationServiceAccessPoint._exception("confirmed request decoding error: %r", e)
                 return
             
         elif isinstance(apdu, UnconfirmedRequestPDU):
             atype = UnconfirmedRequestTypes.get(apdu.apduService)
             if not atype:
-                if _debug:
-                    print "    - no unconfirmed request decoder"
+                ApplicationServiceAccessPoint._debug("    - no unconfirmed request decoder")
                 return
                 
             try:
                 xpdu = atype()
                 xpdu.Decode(apdu)
             except Exception, e:
-                print "Unconfirmed Request Decoding Error:", e
-                print "    - atype:", atype
-                apdu.DebugContents()
-                print
+                ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", e)
                 return
                 
         else:
-            if _debug:
-                print "    - invalid APDU, should be a confirmed or unconfirmed request"
             return
         
         # forward the decoded packet
         self.SAPRequest(xpdu)
         
     def SAPIndication(self, apdu):
-        if _debug:
-            print "ApplicationServiceAccessPoint.SAPIndication"
-            apdu.DebugContents()
+        ApplicationServiceAccessPoint._debug("SAPIndication %r", apdu)
         
         if isinstance(apdu, ConfirmedRequestPDU):
             try:
                 xpdu = ConfirmedRequestPDU()
                 apdu.Encode(xpdu)
             except Exception, e:
-                print "Confirmed Request Encoding Error:", e
-                apdu.DebugContents()
-                print
-                return
+                ApplicationServiceAccessPoint._exception("confirmed request decoding error: %r", e)
+                raise e
             
         elif isinstance(apdu, UnconfirmedRequestPDU):
             try:
                 xpdu = UnconfirmedRequestPDU()
                 apdu.Encode(xpdu)
             except:
-                print "Unconfirmed Request Encoding Error:", e
-                apdu.DebugContents()
-                print
-                return
+                ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", e)
+                raise e
                 
         else:
-            if _debug:
-                print "    - invalid APDU, should be a confirmed or unconfirmed request"
             return
         
         # forward the encoded packet
         self.Request(xpdu)
         
     def Confirmation(self, apdu):
-        if _debug:
-            print "ApplicationServiceAccessPoint.Confirmation"
-            apdu.DebugContents()
+        ApplicationServiceAccessPoint._debug("Confirmation %r", apdu)
         
         if isinstance(apdu, SimpleAckPDU):
             xpdu = apdu
@@ -1547,8 +1294,7 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
         elif isinstance(apdu, ComplexAckPDU):
             atype = ComplexAckTypes.get(apdu.apduService)
             if not atype:
-                if _debug:
-                    print "    - no decoder"
+                ApplicationServiceAccessPoint._debug("    - no complex ack decoder")
                 return
                 
             xpdu = atype()
@@ -1557,13 +1303,15 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
         elif isinstance(apdu, ErrorPDU):
             atype = ErrorTypes.get(apdu.apduService)
             if not atype:
-                if _debug:
-                    print "    - no decoder"
+                ApplicationServiceAccessPoint._debug("    - no error decoder")
                 return
                 
             xpdu = atype()
-            xpdu.Decode(apdu)
-                
+            try:
+               xpdu.Decode(apdu)
+            except:
+               xpdu = Error(errorClass=0, errorCode=0)
+               
         elif isinstance(apdu, RejectPDU):
             xpdu = apdu
             
@@ -1571,17 +1319,13 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             xpdu = apdu
             
         else:
-            if _debug:
-                print "    - invalid APDU, should be a simple ack, complex ack, error, reject, or abort"
             return
         
         # forward the decoded packet
         self.SAPResponse(xpdu)
 
     def SAPConfirmation(self, apdu):
-        if _debug:
-            print "ApplicationServiceAccessPoint.SAPConfirmation"
-            apdu.DebugContents()
+        ApplicationServiceAccessPoint._debug("SAPConfirmation %r", apdu)
         
         if isinstance(apdu, SimpleAckPDU):
             xpdu = apdu
@@ -1601,51 +1345,8 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             xpdu = apdu
             
         else:
-            if _debug:
-                print "    - invalid APDU, should be a simple ack, complex ack, error, reject, or abort"
             return
         
         # forward the encoded packet
         self.Response(xpdu)
-        
-#
-#   DebugApplicationServiceAccessPoint 
-#
 
-class DebugApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoint):
-
-    def __init__(self, aseID=None, sapID=None):
-        ApplicationServiceElement.__init__(self, aseID)
-        ServiceAccessPoint.__init__(self, sapID)
-
-    def Indication(self, apdu):
-        print "-" * 20, "DebugApplicationServiceAccessPoint.Indication", "-" * 20
-        apdu.DebugContents()
-        print
-        
-        # chain this along
-        self.SAPRequest(apdu)
-        
-    def SAPIndication(self, apdu):
-        print "-" * 20, "DebugApplicationServiceAccessPoint.SAPIndication", "-" * 20
-        apdu.DebugContents()
-        print
-        
-        # chain this along
-        self.Request(apdu)
-        
-    def Confirmation(self, apdu):
-        print "-" * 20, "DebugApplicationServiceAccessPoint.Confirmation", "-" * 20
-        apdu.DebugContents()
-        print
-        
-        # chain this along
-        self.SAPResponse(apdu)
-        
-    def SAPConfirmation(self, apdu):
-        print "-" * 20, "DebugApplicationServiceAccessPoint.SAPConfirmation", "-" * 20
-        apdu.DebugContents()
-        print
-        
-        # chain this along
-        self.Response(apdu)

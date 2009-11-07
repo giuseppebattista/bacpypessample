@@ -1,18 +1,24 @@
-import sys
+#!/usr/bin/python
 
-from BACpypes.CommunicationsCore import Thread
-if ("--debugThread" in sys.argv):
-    print "imported", Thread
+"""
+BACpypes_002.py
+"""
+
+import sys
+import logging
+
+from BACpypes.Debugging import Logging
+from BACpypes.CommandLogging import ConsoleLogHandler
+
+from BACpypes.Core import run
 
 from BACpypes.Application import BIPSimpleApplication
 from BACpypes.Object import LocalDeviceObject
-from BACpypes.APDU import WhoIsRequest, IAmRequest
 
 # some debugging
-_debug = 0
+_log = logging.getLogger(__name__)
 
 # counters
-counterLock = Thread.Lock()
 whoIsCounter = {}
 iAmCounter = {}
 
@@ -30,67 +36,66 @@ thisDevice = \
         )
 
 #
-#   MyApplication
+#   TestApplication
 #
 
-class MyApplication(BIPSimpleApplication):
+class TestApplication(BIPSimpleApplication, Logging):
 
     def __init__(self):
         BIPSimpleApplication.__init__(self, thisDevice, config.get('BACpypes','address'))
         
     def do_WhoIsRequest(self, apdu):
         """Respond to a Who-Is request."""
-        if _debug:
-            print "MyApplication.do_WhoIsRequest"
-            
+        TestApplication._debug("do_WhoIsRequest %r", apdu)
+        
         key = (str(apdu.pduSource), apdu.deviceInstanceRangeLowLimit, apdu.deviceInstanceRangeHighLimit)
         
-        counterLock.acquire()
         whoIsCounter[key] = whoIsCounter.get(key,0) + 1
-        counterLock.release()
         
         # pass back to the default implementation
         BIPSimpleApplication.do_WhoIsRequest(self, apdu)
         
     def do_IAmRequest(self, apdu):
         """Given an I-Am request, cache it."""
-        if _debug:
-            print "MyApplication.do_IAmRequest"
+        TestApplication._debug("do_IAmRequest %r", apdu)
             
         key = (str(apdu.pduSource), apdu.iAmDeviceIdentifier[1])
         
-        counterLock.acquire()
         iAmCounter[key] = iAmCounter.get(key,0) + 1
-        counterLock.release()
         
         # pass back to the default implementation
         BIPSimpleApplication.do_IAmRequest(self, apdu)
-            
-# make a simple application
-myApp = MyApplication()
 
-# start the threads
-Thread.StartThreads()
+#
+#   __main__
+#
 
-go = True
-while go:
-    try:
-        line = sys.stdin.readline()[:-1]
-    except KeyboardInterrupt:
-        break
+try:
+    if ('--debug' in sys.argv):
+        indx = sys.argv.index('--debug')
+        for i in range(indx+1, len(sys.argv)):
+            ConsoleLogHandler(sys.argv[i])
+        del sys.argv[indx:]
+
+    _log.debug("initialization")
+
+    TestApplication()
+
+    _log.debug("running")
+    run()
+except Exception, e:
+    _log.exception("an error has occurred: %s", e)
+finally:
+    _log.debug("finally")
     
-    counterLock.acquire()
-    print
-    print "----- Who Is -----"
-    for (src, lowlim, hilim), count in sorted(whoIsCounter.items()):
-        print "%-20s %8s %8s %4d" % (src, lowlim, hilim, count)
-        
-    print
-    print "----- I Am -----"
-    for (src, devid), count in sorted(iAmCounter.items()):
-        print "%-20s %8d %4d" % (src, devid, count)
-    print
-    counterLock.release()
+print
+print "----- Who Is -----"
+for (src, lowlim, hilim), count in sorted(whoIsCounter.items()):
+    print "%-20s %8s %8s %4d" % (src, lowlim, hilim, count)
     
-# halt
-Thread.HaltThreads()
+print
+print "----- I Am -----"
+for (src, devid), count in sorted(iAmCounter.items()):
+    print "%-20s %8d %4d" % (src, devid, count)
+print
+

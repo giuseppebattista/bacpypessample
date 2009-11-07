@@ -1,17 +1,9 @@
 
 """BACnet Python Package"""
 
-import sys
-
 #
 # Communications Core Modules
 #
-try:
-    import CSThread as Thread
-except:
-    import Thread
-if ("--debugThread" in sys.argv):
-    print "BACpypes package imported", Thread
 
 import CommunicationsCore
 import Exceptions

@@ -1,16 +1,22 @@
+#!/usr/bin/env python
 
-import sys
+"""
+BACnet Virtual Link Layer Module
+"""
+from time import time as _time
+import logging
 
 from Exceptions import *
+from Debugging import DebugContents, Logging
 
 from PDU import *
 from Task import OneShotTask, RecurringTask
 
-from CommunicationsCore import Client, Server, UDPDirector, Bind
+from CommunicationsCore import Client, Server, Bind
+from UDPCommunications import UDPDirector
 
 # some debuging
-_debug = ('--debugBVLL' in sys.argv)
-_debugUDPMultiplexer = ('--debugUDPMultiplexer' in sys.argv)
+_log = logging.getLogger(__name__)
 
 # a dictionary of message type values and classes
 BVLPDUTypes = {}
@@ -22,7 +28,10 @@ def RegisterBVLPDUType(klass):
 #   BVLCI
 #
 
-class BVLCI(PCI):
+class BVLCI(PCI, DebugContents, Logging):
+
+    _debugContents = ('bvlciType', 'bvlciFunction', 'bvlciLength')
+    
     result                              = 0x00
     writeBroadcastDistributionTable     = 0x01
     readBroadcastDistributionTable      = 0x02
@@ -50,8 +59,7 @@ class BVLCI(PCI):
         
     def Encode(self, pdu):
         """Encode the contents of the BVLCI into the PDU."""
-        if _debug:
-            print "BVLCI.Encode", pdu
+        BVLCI._debug("Encode %r", pdu)
 
         # copy the basics
         PCI.update(pdu, self)
@@ -66,8 +74,7 @@ class BVLCI(PCI):
 
     def Decode(self, pdu):
         """Decode the contents of the PDU into the BVLCI."""
-        if _debug:
-            print "BVLCI.Decode", pdu
+        BVLCI._debug("Decode %r", pdu)
 
         # copy the basics
         PCI.update(self, pdu)
@@ -81,15 +88,6 @@ class BVLCI(PCI):
         
         if (self.bvlciLength != len(pdu.pduData) + 4):
             raise DecodingError, "invalid BVLCI length"
-
-    def DebugContents(self):
-        PCI.DebugContents(self)
-        if self.bvlciType is not None:
-            print "    bvlciType =", "0x%02X" % (self.bvlciType,)
-        if self.bvlciFunction is not None:
-            print "    bvlciFunction =", self.bvlciFunction
-        if self.bvlciLength is not None:
-            print "    bvlciLength =", self.bvlciLength
 
 #
 #   BVLPDU
@@ -109,10 +107,6 @@ class BVLPDU(BVLCI, PDUData):
         BVLCI.Decode(self, pdu)
         self.pduData = pdu.GetData(len(pdu.pduData))
 
-    def DebugContents(self):
-        BVLCI.DebugContents(self)
-        PDUData.DebugContents(self)
-
 #------------------------------
 
 #
@@ -120,6 +114,9 @@ class BVLPDU(BVLCI, PDUData):
 #
 
 class Result(BVLCI):
+
+    _debugContents = ('bvlciResultCode',)
+    
     messageType = BVLCI.result
     
     def __init__(self, code=None):
@@ -136,11 +133,6 @@ class Result(BVLCI):
         BVLCI.update(self, bvlpdu)
         self.bvlciResultCode = bvlpdu.GetShort()
 
-    def DebugContents(self):
-        BVLCI.DebugContents(self)
-        if self.bvlciResultCode is not None:
-            print "    bvlciResultCode =", self.bvlciResultCode
-
 RegisterBVLPDUType(Result)
 
 #
@@ -148,6 +140,9 @@ RegisterBVLPDUType(Result)
 #
 
 class WriteBroadcastDistributionTable(BVLCI):
+
+    _debugContents = ('bvlciBDT',)
+    
     messageType = BVLCI.writeBroadcastDistributionTable
 
     def __init__(self, bdt=[]):
@@ -170,11 +165,6 @@ class WriteBroadcastDistributionTable(BVLCI):
             bdte.addrMask = bvlpdu.GetLong()
             self.bvlciBDT.append(bdte)
         
-    def DebugContents(self):
-        BVLCI.DebugContents(self)
-        if self.bvlciBDT is not None:
-            print "    bvlciBDT =", self.bvlciBDT
-
 RegisterBVLPDUType(WriteBroadcastDistributionTable)
 
 #
@@ -201,12 +191,15 @@ RegisterBVLPDUType(ReadBroadcastDistributionTable)
 #   ReadBroadcastDistributionTableAck
 #
 
-class WriteBroadcastDistributionTable(BVLCI):
-    messageType = BVLCI.writeBroadcastDistributionTable
+class ReadBroadcastDistributionTableAck(BVLCI):
+
+    _debugContents = ('bvlciBDT',)
+    
+    messageType = BVLCI.readBroadcastDistributionTableAck
 
     def __init__(self, bdt=[]):
         BVLCI.__init__(self)
-        self.bvlciFunction = BVLCI.writeBroadcastDistributionTable
+        self.bvlciFunction = BVLCI.readBroadcastDistributionTableAck
         self.bvlciLength = 4 + 10 * len(bdt)
         self.bvlciBDT = bdt
         
@@ -231,11 +224,6 @@ class WriteBroadcastDistributionTable(BVLCI):
             bdte.addrMask = bvlpdu.GetLong()
             self.bvlciBDT.append(bdte)
         
-    def DebugContents(self):
-        BVLCI.DebugContents(self)
-        if self.bvlciBDT is not None:
-            print "    bvlciBDT =", self.bvlciBDT
-
 RegisterBVLPDUType(WriteBroadcastDistributionTable)
 
 #
@@ -243,6 +231,9 @@ RegisterBVLPDUType(WriteBroadcastDistributionTable)
 #
 
 class ForwardedNPDU(BVLPDU):
+
+    _debugContents = ('bvlciAddress',)
+    
     messageType = BVLCI.forwardedNPDU
 
     def __init__(self, addr=None, *args):
@@ -272,20 +263,16 @@ class ForwardedNPDU(BVLPDU):
         # get the rest of the data
         self.pduData = bvlpdu.GetData(len(bvlpdu.pduData))
 
-    def DebugContents(self):
-        BVLCI.DebugContents(self)
-        if self.bvlciAddress is not None:
-            print "    bvlciAddress =", self.bvlciAddress
-        PDUData.DebugContents(self)
-
 RegisterBVLPDUType(ForwardedNPDU)
 
 #
 #   Foreign Device Table Entry
 #
 
-class FDTEntry:
+class FDTEntry(DebugContents):
 
+    _debugContents = ('fdAddress', 'fdTTL', 'fdRemain')
+    
     def __init__(self):
         self.fdAddress = None
         self.fdTTL = None
@@ -296,6 +283,9 @@ class FDTEntry:
 #
 
 class RegisterForeignDevice(BVLCI):
+
+    _debugContents = ('bvlciTimeToLive',)
+    
     messageType = BVLCI.registerForeignDevice
 
     def __init__(self, ttl=None):
@@ -312,11 +302,6 @@ class RegisterForeignDevice(BVLCI):
         BVLCI.update(self, bvlpdu)
         self.bvlciTimeToLive = bvlpdu.GetShort()
 
-    def DebugContents(self):
-        BVLCI.DebugContents(self)
-        if self.bvlciTimeToLive is not None:
-            print "    bvlciTimeToLive =", self.bvlciTimeToLive
-
 RegisterBVLPDUType(RegisterForeignDevice)
 
 #
@@ -324,6 +309,7 @@ RegisterBVLPDUType(RegisterForeignDevice)
 #
 
 class ReadForeignDeviceTable(BVLCI):
+
     messageType = BVLCI.readForeignDeviceTable
 
     def __init__(self, ttl=None):
@@ -344,6 +330,9 @@ RegisterBVLPDUType(ReadForeignDeviceTable)
 #
 
 class ReadForeignDeviceTableAck(BVLCI):
+
+    _debugContents = ('bvlciFDT',)
+    
     messageType = BVLCI.readForeignDeviceTableAck
 
     def __init__(self, fdt=[]):
@@ -369,11 +358,6 @@ class ReadForeignDeviceTableAck(BVLCI):
             fdte.fdRemain = bvlpdu.GetShort()
             self.bvlciFDT.append(fdte)
         
-    def DebugContents(self):
-        BVLCI.DebugContents(self)
-        if self.bvlciFDT is not None:
-            print "    bvlciFDT =", self.bvlciFDT
-
 RegisterBVLPDUType(ReadForeignDeviceTableAck)
 
 #
@@ -381,6 +365,9 @@ RegisterBVLPDUType(ReadForeignDeviceTableAck)
 #
 
 class DeleteForeignDeviceTableEntry(BVLCI):
+
+    _debugContents = ('bvlciAddress',)
+    
     messageType = BVLCI.deleteForeignDeviceTableEntry
 
     def __init__(self, addr=None):
@@ -397,11 +384,6 @@ class DeleteForeignDeviceTableEntry(BVLCI):
         BVLCI.update(self, bvlpdu)
         self.bvlciAddress = Address(IPAddrUnpack(bvlpdu.GetData(6)))
 
-    def DebugContents(self):
-        BVLCI.DebugContents(self)
-        if self.bvlciAddress is not None:
-            print "    bvlciAddress =", self.bvlciAddress
-
 RegisterBVLPDUType(DeleteForeignDeviceTableEntry)
 
 #
@@ -409,6 +391,7 @@ RegisterBVLPDUType(DeleteForeignDeviceTableEntry)
 #
 
 class DistributeBroadcastToNetwork(BVLPDU):
+
     messageType = BVLCI.distributeBroadcastToNetwork
 
     def __init__(self, *args):
@@ -501,9 +484,11 @@ class _MultiplexServer(Server):
 #   UDPMultiplexer
 #
 
-class UDPMultiplexer:
+class UDPMultiplexer(Logging):
 
     def __init__(self, addr=None):
+        UDPMultiplexer._debug("__init__ %r", addr)
+        
         # check for some options
         specialBroadcast = False
         if addr is None:
@@ -525,6 +510,10 @@ class UDPMultiplexer:
             else:
                 specialBroadcast = True
             
+        UDPMultiplexer._debug("    - address: %r", self.address)
+        UDPMultiplexer._debug("    - addrTuple: %r", self.addrTuple)
+        UDPMultiplexer._debug("    - addrBroadcastTuple: %r", self.addrBroadcastTuple)
+        
         # create and bind the direct address
         self.direct = _MultiplexClient(self)
         self.directPort = UDPDirector(self.addrTuple)
@@ -543,30 +532,26 @@ class UDPMultiplexer:
         self.annexJ = _MultiplexServer(self)
         
     def Indication(self, server, pdu):
-        if _debugUDPMultiplexer:
-            print "UDPMultiplexer.Indication"
-            print "    - server:", server
-            print "    - pdu:", pdu
+        UDPMultiplexer._debug("Indication %r %r", server, pdu)
 
         # check for a broadcast message
         if pdu.pduDestination.addrType == Address.localBroadcastAddr:
             dest = self.addrBroadcastTuple
+            UDPMultiplexer._debug("    - requesting local broadcast: %r", dest)
         else:
-            dest = pdu.pduDestination.addrTuple
+            dest = IPAddrUnpack(pdu.pduDestination.addrAddr)
+            UDPMultiplexer._debug("    - requesting local station: %r", dest)
         
         self.directPort.Indication(PDU(pdu, destination=dest))
         
     def Confirmation(self, client, pdu):
-        if _debugUDPMultiplexer:
-            print "UDPMultiplexer.Confirmation"
-            print "    - client:", client
-            print "    - pdu:", pdu
+        UDPMultiplexer._debug("Confirmation %r %r", client, pdu)
 
         # if this came from ourselves, dump it
         if pdu.pduSource == self.addrTuple:
-            if _debugUDPMultiplexer:
-                print "    - from us!"
+            UDPMultiplexer._debug("    - from us!")
             return
+        src = Address(pdu.pduSource)
             
         # match the destination in case the stack needs it
         if client is self.direct:
@@ -582,27 +567,26 @@ class UDPMultiplexer:
             
         if ord(pdu.pduData[0]) == 0x01:
             if self.annexH.serverPeer:
-                self.annexH.Response(PDU(pdu, source=Address(pdu.pduSource), destination=dest))
+                self.annexH.Response(PDU(pdu, source=src, destination=dest))
         elif ord(pdu.pduData[0]) == 0x81:
             if self.annexJ.serverPeer:
-                self.annexJ.Response(PDU(pdu, source=Address(pdu.pduSource), destination=dest))
+                self.annexJ.Response(PDU(pdu, source=src, destination=dest))
         else:
-            if _debug:
-                print "unsupported message"
+            UDPMultiplexer._warning("unsupported message")
         
 #
 #   AnnexJCodec
 #
 
-class AnnexJCodec(Client, Server):
+class AnnexJCodec(Client, Server, Logging):
 
     def __init__(self, cid=None, sid=None):
+        AnnexJCodec._debug("__init__ cid=%r sid=%r", cid, sid)
         Client.__init__(self, cid)
         Server.__init__(self, sid)
         
     def Indication(self, rpdu):
-        if _debug:
-            print "AnnexJCodec.Indication"
+        AnnexJCodec._debug("Indication %r", rpdu)
         
         # encode it as a generic BVLL PDU
         bvlpdu = BVLPDU()
@@ -616,8 +600,7 @@ class AnnexJCodec(Client, Server):
         self.Request(pdu)
 
     def Confirmation(self, pdu):
-        if _debug:
-            print "AnnexJCodec.Confirmation"
+        AnnexJCodec._debug("Confirmation %r", pdu)
         
         # interpret as a BVLL PDU
         bvlpdu = BVLPDU()
@@ -634,10 +617,13 @@ class AnnexJCodec(Client, Server):
 #   BTR
 #
 
-class BTR(Client, Server):
+class BTR(Client, Server, DebugContents, Logging):
 
+    _debugContents = ('peers+',)
+    
     def __init__(self, cid=None, sid=None):
         """An Annex-H BACnet Tunneling Router node."""
+        BTR._debug("__init__ cid=%r sid=%r", cid, sid)
         Client.__init__(self, cid)
         Server.__init__(self, sid)
         
@@ -645,9 +631,7 @@ class BTR(Client, Server):
         self.peers = {}
         
     def Indication(self, pdu):
-        if _debug:
-            print "BTR.Indication"
-            pdu.DebugContents()
+        BTR._debug("Indication %r", pdu)
         
         # check for local stations
         if pdu.pduDestination.addrType == Address.localStationAddr:
@@ -672,13 +656,11 @@ class BTR(Client, Server):
             raise RuntimeError, "invalid destination address type (2)"
         
     def Confirmation(self, pdu):
-        if _debug:
-            print "BTR.Confirmation"
-            pdu.DebugContents()
+        BTR._debug("Confirmation %r", pdu)
         
         # make sure it came from a peer
         if not self.peers.has_key(pdu.pduSource):
-            ### log this
+            BTR._warning("not a peer: %r", pdu.pduSource)
             return
         
         # send it upstream
@@ -686,6 +668,8 @@ class BTR(Client, Server):
         
     def AddPeer(self, peerAddr, networks=None):
         """Add a peer and optionally provide a list of the reachable networks."""
+        BTR._debug("AddPeer %r networks=%r", peerAddr, networks)
+        
         # see if this is already a peer
         if self.peers.has_key(peerAddr):
             # add the (new?) reachable networks
@@ -704,6 +688,8 @@ class BTR(Client, Server):
         
     def DeletePeer(self, peerAddr):
         """Delete a peer."""
+        BTR._debug("DeletePeer %r", peerAddr)
+        
         # get the peer networks
         networks = self.peers[peerAddr]
         
@@ -716,27 +702,23 @@ class BTR(Client, Server):
 #   BIPSimple
 #
 
-class BIPSimple(Client, Server):
+class BIPSimple(Client, Server, Logging):
 
     def __init__(self, cid=None, sid=None):
         """A BIP node."""
+        BIPSimple._debug("__init__ cid=%r sid=%r", cid, sid)
         Client.__init__(self, cid)
         Server.__init__(self, sid)
         
     def Indication(self, pdu):
-        if _debug:
-            print "BIPSimple.Indication"
-            print "-pdu-"
-            pdu.DebugContents()
+        BIPSimple._debug("Indication %r", pdu)
         
         # check for local stations
         if pdu.pduDestination.addrType == Address.localStationAddr:
             # make an original unicast PDU
             xpdu = OriginalUnicastNPDU(pdu)
             xpdu.pduDestination = pdu.pduDestination
-            if _debug:
-                print "-xpdu-"
-                xpdu.DebugContents()
+            BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it downstream
             self.Request(xpdu)
@@ -746,31 +728,21 @@ class BIPSimple(Client, Server):
             # make an original broadcast PDU
             xpdu = OriginalBroadcastNPDU(pdu)
             xpdu.pduDestination = pdu.pduDestination
-            if _debug:
-                print "-xpdu-"
-                xpdu.DebugContents()
+            BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it downstream
             self.Request(xpdu)
             
         else:
-            print
-            print "BIPSimple.Indication: Invalid destination address type"
-            pdu.DebugContents()
-            print
+            BIPSimple._warning("invalid destination address: %r", pdu.pduDestination)
 
     def Confirmation(self, pdu):
-        if _debug:
-            print "BIPSimple.Confirmation"
-            print "-pdu-"
-            pdu.DebugContents()
+        BIPSimple._debug("Confirmation %r", pdu)
         
         if isinstance(pdu, OriginalUnicastNPDU):
             # build a vanilla PDU
             xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination)
-            if _debug:
-                print "-xpdu-"
-                xpdu.DebugContents()
+            BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it upstream
             self.Response(xpdu)
@@ -778,9 +750,7 @@ class BIPSimple(Client, Server):
         elif isinstance(pdu, OriginalBroadcastNPDU):
             # build a PDU with a local broadcast address
             xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
-            if _debug:
-                print "-xpdu-"
-                xpdu.DebugContents()
+            BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it upstream
             self.Response(xpdu)
@@ -788,32 +758,35 @@ class BIPSimple(Client, Server):
         elif isinstance(pdu, ForwardedNPDU):
             # build a PDU with the source from the real source
             xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress, destination=LocalBroadcast())
-            if _debug:
-                print "-xpdu-"
-                xpdu.DebugContents()
+            BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it upstream
             self.Response(xpdu)
             
         else:
-            print
-            print "BIPSimple.Confirmation: Invalid PDU type"
-            pdu.DebugContents()
-            print
+            BIPSimple._warning("invalid pdu type: %s", type(pdu))
         
 #
 #   BIPForeign
 #
 
-class BIPForeign(Client, Server, OneShotTask):
+class BIPForeign(Client, Server, OneShotTask, DebugContents, Logging):
 
+    _debugContents = ('registrationStatus', 'bbmdAddress', 'bbmdTimeToLive')
+    
     def __init__(self, addr=None, ttl=None, cid=None, sid=None):
         """A BIP node."""
+        BIPForeign._debug("__init__ addr=%r ttl=%r cid=%r sid=%r", addr, ttl, cid, sid)
         Client.__init__(self, cid)
         Server.__init__(self, sid)
+        OneShotTask.__init__(self)
         
         # -2=unregistered, -1=not attempted or no ack, 0=OK, >0 error
         self.registrationStatus = -1
+        
+        # clear the BBMD address and time-to-live
+        self.bbmdAddress = None
+        self.bbmdTimeToLive = None
         
         # registration provided
         if addr:
@@ -824,14 +797,11 @@ class BIPForeign(Client, Server, OneShotTask):
             self.Register(addr, ttl)
             
     def Indication(self, pdu):
-        if _debug:
-            print "BIPForeign.Indication"
-            pdu.DebugContents()
+        BIPForeign._debug("Indication %r", pdu)
         
         # check the BBMD registration status, we may not be registered
         if self.registrationStatus != 0:
-            ### log this
-            # drop the packet
+            BIPForeign._debug("    - packet dropped, unregistered")
             return
             
         # check for local stations
@@ -853,15 +823,10 @@ class BIPForeign(Client, Server, OneShotTask):
             self.Request(xpdu)
             
         else:
-            print
-            print "BIPForeign.Indication: Invalid destination address type"
-            pdu.DebugContents()
-            print
+            BIPForeign._warning("invalid destination address: %r", pdu.pduDestination)
         
     def Confirmation(self, pdu):
-        if _debug:
-            print "BIPForeign.Confirmation"
-            pdu.DebugContents()
+        BIPForeign._debug("Confirmation %r", pdu)
         
         # check for a registration request result
         if isinstance(pdu, Result):
@@ -873,8 +838,7 @@ class BIPForeign(Client, Server, OneShotTask):
             
             # make sure the result is from the bbmd
             if pdu.pduSource != self.bbmdAddress:
-                ### log this
-                # drop the message
+                BIPForeign._debug("    - packet dropped, not from the BBMD")
                 return
                 
             # save the result code as the status
@@ -889,8 +853,7 @@ class BIPForeign(Client, Server, OneShotTask):
             
         # check the BBMD registration status, we may not be registered
         if self.registrationStatus != 0:
-            ### log this
-            # drop the packet
+            BIPForeign._debug("    - packet dropped, unregistered")
             return
             
         if isinstance(pdu, OriginalUnicastNPDU):
@@ -908,10 +871,7 @@ class BIPForeign(Client, Server, OneShotTask):
             self.Response(xpdu)
             
         else:
-            print
-            print "BIPForeign.Confirmation: Invalid PDU type"
-            pdu.DebugContents()
-            print
+            BIPForeign._warning("invalid pdu type: %s", type(pdu))
         
     def Register(self, addr, ttl):
         """Initiate the process of registering with a BBMD."""
@@ -920,11 +880,14 @@ class BIPForeign(Client, Server, OneShotTask):
             raise ValueError, "time-to-live must be greater than zero"
             
         # save the BBMD address and time-to-live
-        self.bbmdAddress = addr
+        if isinstance(addr, Address):
+            self.bbmdAddress = addr
+        else:
+            self.bbmdAddress = Address(addr)
         self.bbmdTimeToLive = ttl
         
         # install this task to run when it gets a chance
-        self.InstallTask()
+        self.InstallTask(0)
         
     def Unregister(self):
         """Drop the registration with a BBMD."""
@@ -953,15 +916,13 @@ class BIPForeign(Client, Server, OneShotTask):
 #   BIPBBMD
 #
 
-_debugBBMD = ('--debugBBMD' in sys.argv)
-_debugOriginalUnicastNPDU = ('--debugOriginalUnicastNPDU' in sys.argv)
-_debugOriginalBroadcastNPDU = ('--debugOriginalBroadcastNPDU' in sys.argv)
-_debugForwardedNPDU = ('--debugForwardedNPDU' in sys.argv)
+class BIPBBMD(Client, Server, RecurringTask, DebugContents, Logging):
 
-class BIPBBMD(Client, Server, RecurringTask):
-
+    _debugContents = ('bbmdAddress', 'bbmdBDT+', 'bbmdFDT+')
+    
     def __init__(self, addr, cid=None, sid=None):
         """A BBMD node."""
+        BIPBBMD._debug("__init__ %r cid=%r sid=%r", addr, cid, sid)
         Client.__init__(self, cid)
         Server.__init__(self, sid)
         RecurringTask.__init__(self, 1000.0)
@@ -969,18 +930,19 @@ class BIPBBMD(Client, Server, RecurringTask):
         self.bbmdAddress = addr
         self.bbmdBDT = []
         self.bbmdFDT = []
+        
+        # install so ProcessTask runs
+        self.InstallTask()
 
     def Indication(self, pdu):
-        if _debugBBMD:
-            print "BIPBBMD.Indication", pdu
+        BIPBBMD._debug("Indication %r", pdu)
         
         # check for local stations
         if pdu.pduDestination.addrType == Address.localStationAddr:
             # make an original unicast PDU
             xpdu = OriginalUnicastNPDU(pdu)
             xpdu.pduDestination = pdu.pduDestination
-            if _debugBBMD:
-                print "    - xpdu:", xpdu
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
             
             # send it downstream
             self.Request(xpdu)
@@ -990,110 +952,66 @@ class BIPBBMD(Client, Server, RecurringTask):
             # make an original broadcast PDU
             xpdu = OriginalBroadcastNPDU(pdu)
             xpdu.pduDestination = pdu.pduDestination
-            if _debugBBMD:
-                print "    - xpdu (broadcast):", xpdu
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
             
             # send it downstream
             self.Request(xpdu)
             
             # make a forwarded PDU
             xpdu = ForwardedNPDU(self.bbmdAddress, pdu)
-            if _debugBBMD:
-                print "    - xpdu (forwarded):", xpdu
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
             
             # send it to the peers
             for bdte in self.bbmdBDT:
                 if bdte != self.bbmdAddress:
                     xpdu.pduDestination = Address( ((bdte.addrIP|~bdte.addrMask), bdte.addrPort) )
-                    if _debugBBMD:
-                        print "        - sending to peer:", xpdu.pduDestination
+                    BIPBBMD._debug("        - sending to peer: %r", xpdu.pduDestination)
                     self.Request(xpdu)
 
             # send it to the registered foreign devices
             for fdte in self.bbmdFDT:
                 xpdu.pduDestination = fdte.fdAddress
-                if _debugBBMD:
-                    print "        - sending to foreign device:", xpdu.pduDestination
+                BIPBBMD._debug("        - sending to foreign device: %r", xpdu.pduDestination)
                 self.Request(xpdu)
                 
         else:
-            print
-            print "BIPBBMD.Indication: Invalid destination address type"
-            pdu.DebugContents()
-            print
+            BIPBBMD._warning("invalid destination address: %r", pdu.pduDestination)
         
     def Confirmation(self, pdu):
-        if _debugBBMD:
-            print "BIPBBMD.Confirmation",  pdu
+        BIPBBMD._debug("Confirmation %r",  pdu)
         
         # check for a registration request result
         if isinstance(pdu, Result):
-            # this response should go to the service access point
-            if _debugBBMD:
-                print "    - send to ASE"
+            ### this response should go to the service access point
             return
             
-        if isinstance(pdu, OriginalUnicastNPDU):
-            if _debugOriginalUnicastNPDU:
-                print "BIPBBMD.Confirmation - OriginalUnicastNPDU"
-                pdu.DebugContents()
+        elif isinstance(pdu, WriteBroadcastDistributionTable):
+            # build a response
+            xpdu = Result(code=99)
+            xpdu.pduDestination = pdu.pduSource
             
-            # build a vanilla PDU
-            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination)
-            if _debugOriginalUnicastNPDU:
-                print "    - xpdu (upstream):", xpdu
+            # send it downstream
+            self.Request(xpdu)
             
-            # send it upstream
-            self.Response(xpdu)
+        elif isinstance(pdu, ReadBroadcastDistributionTable):
+            # build a response
+            xpdu = ReadBroadcastDistributionTableAck(self.bbmdBDT)
+            xpdu.pduDestination = pdu.pduSource
+            if _debugBDT:
+                print "    - xpdu:", xpdu
+                xpdu.DebugContents()
             
-            if _debugOriginalUnicastNPDU:
-                print
+            # send it downstream
+            self.Request(xpdu)
                 
-        elif isinstance(pdu, OriginalBroadcastNPDU):
-            if _debugOriginalBroadcastNPDU:
-                print "BIPBBMD.Confirmation - OriginalBroadcastNPDU"
-                pdu.DebugContents()
-            
-            # build a PDU with a local broadcast address
-            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
-            if _debugOriginalBroadcastNPDU:
-                print "    - xpdu (upstream):", xpdu
-            
-            # send it upstream
-            self.Response(xpdu)
-            
-            # make a forwarded PDU
-            xpdu = ForwardedNPDU(pdu.pduSource, pdu)
-            if _debugOriginalBroadcastNPDU:
-                print "    - xpdu (forwarded):", xpdu
-            
-            # send it to the peers
-            for bdte in self.bbmdBDT:
-                if bdte != self.bbmdAddress:
-                    xpdu.pduDestination = Address( ((bdte.addrIP|~bdte.addrMask), bdte.addrPort) )
-                    if _debugOriginalBroadcastNPDU:
-                        print "        - sending to peer:", xpdu.pduDestination
-                    self.Request(xpdu)
-
-            # send it to the registered foreign devices
-            for fdte in self.bbmdFDT:
-                xpdu.pduDestination = fdte.fdAddress
-                if _debugOriginalBroadcastNPDU:
-                    print "        - sending to foreign device:", xpdu.pduDestination
-                self.Request(xpdu)
-                
-            if _debugOriginalBroadcastNPDU:
-                print
+        elif isinstance(pdu, ReadBroadcastDistributionTableAck):
+            ### this response should go to the service access point
+            return
             
         elif isinstance(pdu, ForwardedNPDU):
-            if _debugForwardedNPDU:
-                print "BIPBBMD.Confirmation - ForwardedNPDU"
-                pdu.DebugContents()
-            
             # build a PDU with the source from the real source
             xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress, destination=LocalBroadcast())
-            if _debugForwardedNPDU:
-                print "    - xpdu (upstream):", xpdu
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
             
             # send it upstream
             self.Response(xpdu)
@@ -1101,24 +1019,124 @@ class BIPBBMD(Client, Server, RecurringTask):
             # broadcast a copy locally
             xpdu = ForwardedNPDU(pdu.bvlciAddress, pdu)
             xpdu.pduDestination = LocalBroadcast()
-            if _debugForwardedNPDU:
-                print "    - xpdu (local broadcast):", xpdu
-                xpdu.DebugContents()
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
             
             # send it downstream
             self.Request(xpdu)
             
-            if _debugForwardedNPDU:
-                print
+            # send it to the registered foreign devices
+            for fdte in self.bbmdFDT:
+                xpdu.pduDestination = fdte.fdAddress
+                BIPBBMD._debug("        - sending to foreign device: %r", xpdu.pduDestination)
+                self.Request(xpdu)
+                
+        elif isinstance(pdu, RegisterForeignDevice):
+            # save the request
+            stat = self.RegisterForeignDevice(pdu.pduSource, pdu.bvlciTimeToLive)
+            
+            # build a response
+            xpdu = Result(code=stat)
+            xpdu.pduDestination = pdu.pduSource
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
+            
+            # send it downstream
+            self.Request(xpdu)
+                
+        elif isinstance(pdu, ReadForeignDeviceTable):
+            # build a response
+            xpdu = ReadForeignDeviceTableAck(self.bbmdFDT)
+            xpdu.pduDestination = pdu.pduSource
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
+            
+            # send it downstream
+            self.Request(xpdu)
+            
+        elif isinstance(pdu, ReadForeignDeviceTableAck):
+            ### this response should go to the service access point
+            return
+            
+        elif isinstance(pdu, DeleteForeignDeviceTableEntry):
+            # save the request
+            stat = self.DeleteForeignDevice(pdu.bvlciAddress)
+            
+            # build a response
+            xpdu = Result(code=stat)
+            xpdu.pduDestination = pdu.pduSource
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
+            
+            # send it downstream
+            self.Request(xpdu)
+                
+        elif isinstance(pdu, DistributeBroadcastToNetwork):
+            # build a PDU with a local broadcast address
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
+            
+            # send it upstream
+            self.Response(xpdu)
+            
+            # broadcast a copy locally
+            xpdu = ForwardedNPDU(pdu.pduSource, pdu)
+            xpdu.pduDestination = LocalBroadcast()
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
+            
+            # send it downstream
+            self.Request(xpdu)
+            
+            # send it to the peers
+            for bdte in self.bbmdBDT:
+                if bdte != self.bbmdAddress:
+                    xpdu.pduDestination = Address( ((bdte.addrIP|~bdte.addrMask), bdte.addrPort) )
+                    BIPBBMD._debug("        - sending to peer: %r", xpdu.pduDestination)
+                    self.Request(xpdu)
+
+            # send it to the other registered foreign devices
+            for fdte in self.bbmdFDT:
+                if fdte.fdAddress != pdu.pduSource:
+                    xpdu.pduDestination = fdte.fdAddress
+                    BIPBBMD._debug("        - sending to foreign device: %r", xpdu.pduDestination)
+                    self.Request(xpdu)
+                
+        elif isinstance(pdu, OriginalUnicastNPDU):
+            # build a vanilla PDU
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination)
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
+            
+            # send it upstream
+            self.Response(xpdu)
+                
+        elif isinstance(pdu, OriginalBroadcastNPDU):
+            # build a PDU with a local broadcast address
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
+            
+            # send it upstream
+            self.Response(xpdu)
+            
+            # make a forwarded PDU
+            xpdu = ForwardedNPDU(pdu.pduSource, pdu)
+            BIPBBMD._debug("    - xpdu: %r", xpdu)
+            
+            # send it to the peers
+            for bdte in self.bbmdBDT:
+                if bdte != self.bbmdAddress:
+                    xpdu.pduDestination = Address( ((bdte.addrIP|~bdte.addrMask), bdte.addrPort) )
+                    BIPBBMD._debug("        - sending to peer: %r", xpdu.pduDestination)
+                    self.Request(xpdu)
+
+            # send it to the registered foreign devices
+            for fdte in self.bbmdFDT:
+                xpdu.pduDestination = fdte.fdAddress
+                BIPBBMD._debug("        - sending to foreign device: %r", xpdu.pduDestination)
+                self.Request(xpdu)
                 
         else:
-            print
-            print "BIPBBMD.Confirmation: Invalid PDU type"
-            pdu.DebugContents()
-            print
+            BIPBBMD._warning("invalid pdu type: %s", type(pdu))
         
     def RegisterForeignDevice(self, addr, ttl):
         """Add a foreign device to the FDT."""
+        BIPBBMD._debug("RegisterForeignDevice %r %r", addr, ttl)
+            
         if not isinstance(addr,Address):
             raise TypeError, "addr must be an Address"
 
@@ -1137,16 +1155,22 @@ class BIPBBMD(Client, Server, RecurringTask):
         return 0
 
     def DeleteForeignDevice(self, addr):
+        BIPBBMD._debug("DeleteForeignDevice %r", addr)
+        
         if not isinstance(addr,Address):
             raise TypeError, "addr must be an Address"
 
         # find it and delete it
+        stat = 0
         for i in range(len(self.bbmdFDT)-1, -1, -1):
             if addr == self.bbmdFDT[i].fdAddress:
                 del self.bbmdFDT[i]
+                break
+        else:
+            stat = 99 ### entry not found
 
-        # return success
-        return 0
+        # return status
+        return stat
 
     def ProcessTask(self):
         # look for foreign device registrations that have expired
@@ -1156,11 +1180,11 @@ class BIPBBMD(Client, Server, RecurringTask):
 
             # delete it if it expired
             if fdte.fdRemain <= 0:
-                if _debug:
-                    print "(foreign device expired", fdte.fdAddress, ")"
+                BIPBBMD._debug("foreign device expired: %r", fdte.fdAddress)
                 del self.bbmdFDT[i]
 
     def AddPeer(self, addr):
+        BIPBBMD._debug("AddPeer %r", addr)
         if not isinstance(addr, Address):
             raise TypeError, "addr must be an Address"
 
@@ -1172,6 +1196,8 @@ class BIPBBMD(Client, Server, RecurringTask):
             self.bbmdBDT.append(addr)
 
     def DeletePeer(self, addr):
+        BIPBBMD._debug("DeletePeer %r", addr)
+
         if isinstance(addr, LocalStation):
             pass
         elif isinstance(arg,types.StringType):
@@ -1186,3 +1212,4 @@ class BIPBBMD(Client, Server, RecurringTask):
                 break
         else:
             pass
+

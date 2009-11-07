@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-BACpypes_001.py
+BACpypes_007.py
 """
 
 import sys
@@ -11,8 +11,9 @@ from BACpypes.Debugging import Logging
 from BACpypes.CommandLogging import ConsoleLogHandler
 
 from BACpypes.Core import run
+from BACpypes.ConsoleCommunications import ConsoleLogging
 
-from BACpypes.Application import BIPSimpleApplication
+from BACpypes.Application import BIPForeignApplication
 from BACpypes.Object import LocalDeviceObject
 
 # make a device object from a configuration file
@@ -35,27 +36,35 @@ _log = logging.getLogger(__name__)
 #   TestApplication
 #
 
-class TestApplication(BIPSimpleApplication, Logging):
+class TestApplication(BIPForeignApplication, Logging):
 
     def __init__(self):
         TestApplication._debug("__init__")
-        BIPSimpleApplication.__init__(self, thisDevice, config.get('BACpypes','address'))
-        
+        BIPForeignApplication.__init__(self, thisDevice
+            , ('', config.getint('BACpypes','foreignPort'))  # local port to use
+            , config.get('BACpypes','foreignBBMD')           # address of BBMD
+            , config.getint('BACpypes','foreignTTL')         # time-to-live for registration
+            )
+
     def Request(self, apdu):
         TestApplication._debug("Request %r", apdu)
-        BIPSimpleApplication.Request(self, apdu)
+        BIPForeignApplication.Request(self, apdu)
+        sys.stdout.flush()
 
     def Indication(self, apdu):
         TestApplication._debug("Indication %r", apdu)
-        BIPSimpleApplication.Indication(self, apdu)
+        BIPForeignApplication.Indication(self, apdu)
+        sys.stdout.flush()
 
     def Response(self, apdu):
         TestApplication._debug("Response %r", apdu)
-        BIPSimpleApplication.Response(self, apdu)
+        BIPForeignApplication.Response(self, apdu)
+        sys.stdout.flush()
 
     def Confirmation(self, apdu):
         TestApplication._debug("Confirmation %r", apdu)
-        BIPSimpleApplication.Confirmation(self, apdu)
+        BIPForeignApplication.Confirmation(self, apdu)
+        sys.stdout.flush()
 
 #
 #   __main__
@@ -67,10 +76,11 @@ try:
         for i in range(indx+1, len(sys.argv)):
             ConsoleLogHandler(sys.argv[i])
         del sys.argv[indx:]
-
+        
     _log.debug("initialization")
     
     TestApplication()
+    ConsoleLogging()
 
     _log.debug("running")
     run()

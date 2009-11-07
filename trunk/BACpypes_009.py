@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-BACpypes_005.py
+BACpypes_009.py
 """
 
 import sys
@@ -17,7 +17,9 @@ from BACpypes.PDU import Address, GlobalBroadcast
 from BACpypes.Application import BIPSimpleApplication
 from BACpypes.Object import LocalDeviceObject
 
-from BACpypes.APDU import WhoIsRequest, IAmRequest, ReadPropertyRequest
+from BACpypes.BaseTypes import BACnetPropertyReference
+from BACpypes.APDU import WhoIsRequest, IAmRequest, ReadPropertyRequest, \
+    ReadPropertyMultipleRequest, ReadAccessSpecification
 
 # some debugging
 _log = logging.getLogger(__name__)
@@ -140,6 +142,39 @@ class TestConsoleCmd(ConsoleCmd, Logging):
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
 
+    def do_readm(self, args):
+        """readm <addr> <type> <inst>"""
+        args = args.split()
+        TestConsoleCmd._debug("do_readm %r", args)
+
+        try:
+            addr, objType, objInst = args[:3]
+            if isint(objType):
+                objType = int(objType)
+            objInst = int(objInst)
+
+            # build a request
+            request = ReadPropertyMultipleRequest(
+                        listOfReadAccessSpecs = \
+                            [ ReadAccessSpecification(objectIdentifier=(objType, objInst)
+                                , listOfPropertyReferences = \
+                                    [ BACnetPropertyReference(propertyIdentifier='object-name')
+                                    , BACnetPropertyReference(propertyIdentifier='description')
+                                    ]
+                                )
+                            ]
+                        )
+            request.pduDestination = Address(addr)
+            if len(args) == 5:
+                request.propertyArrayIndex = int(args[4])
+            TestConsoleCmd._debug("    - request: %r", request)
+                
+            # give it to the application
+            thisApplication.Request(request)
+            
+        except Exception, e:
+            TestConsoleCmd._exception("exception: %r", e)
+
 #
 #   __main__
 #
@@ -153,7 +188,6 @@ try:
         
     _log.debug("initialization")
     
-    # get the address from the config file
     addr = config.get('BACpypes', 'address')
     
     # maybe use a different port
@@ -161,9 +195,10 @@ try:
         i = sys.argv.index('--port')
         addr += ':' + sys.argv[i+1]
     _log.debug("    - addr: %r", addr)
-
+        
     # make a simple application
     thisApplication = TestApplication(thisDevice, addr)
+    
     TestConsoleCmd()
 
     _log.debug("running")

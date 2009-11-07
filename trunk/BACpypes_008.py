@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-BACpypes_005.py
+BACpypes_008.py
 """
 
 import sys
@@ -14,7 +14,7 @@ from BACpypes.ConsoleCommunications import ConsoleCmd
 from BACpypes.Core import run
 
 from BACpypes.PDU import Address, GlobalBroadcast
-from BACpypes.Application import BIPSimpleApplication
+from BACpypes.Application import BIPForeignApplication
 from BACpypes.Object import LocalDeviceObject
 
 from BACpypes.APDU import WhoIsRequest, IAmRequest, ReadPropertyRequest
@@ -39,11 +39,11 @@ thisDevice = \
 #   TestApplication
 #
 
-class TestApplication(BIPSimpleApplication, Logging):
+class TestApplication(BIPForeignApplication, Logging):
 
     def Request(self, apdu):
         TestApplication._debug("Request %r", apdu)
-        BIPSimpleApplication.Request(self, apdu)
+        BIPForeignApplication.Request(self, apdu)
 
     def Confirmation(self, apdu):
         TestApplication._debug("Confirmation %r", apdu)
@@ -153,17 +153,13 @@ try:
         
     _log.debug("initialization")
     
-    # get the address from the config file
-    addr = config.get('BACpypes', 'address')
-    
-    # maybe use a different port
-    if '--port' in sys.argv:
-        i = sys.argv.index('--port')
-        addr += ':' + sys.argv[i+1]
-    _log.debug("    - addr: %r", addr)
-
     # make a simple application
-    thisApplication = TestApplication(thisDevice, addr)
+    thisApplication = TestApplication(thisDevice
+        , ('', config.getint('BACpypes','foreignPort'))
+        , config.get('BACpypes','foreignBBMD')
+        , config.getint('BACpypes','foreignTTL')
+        )
+
     TestConsoleCmd()
 
     _log.debug("running")

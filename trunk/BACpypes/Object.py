@@ -4,6 +4,7 @@ import re
 import types
 
 from Exceptions import *
+from Debugging import Logging
 
 from PrimativeData import *
 from ConstructedData import *
@@ -93,10 +94,13 @@ def GetDatatype(objectType, property):
 #   Property
 #
 
-class Property:
+class Property(Logging):
 
     def __init__(self, identifier, datatype, default=None, optional=True, mutable=True):
-        ### validate the identifier to be one of the Property enumerations
+        # validate the identifier to be one of the Property enumerations
+        if identifier not in BACnetPropertyIdentifier.enumerations:
+            raise ConfigurationError, "unknown property identifier: %s" % (identifier,)
+
         self.identifier = identifier
         self.datatype = datatype
         self.optional = optional
@@ -104,8 +108,7 @@ class Property:
         self.default = default
 
     def ReadProperty(self, obj, arrayIndex=None):
-        if _debug:
-            print self, "Property.ReadProperty", obj, arrayIndex
+        Property._debug("ReadProperty %r arrayIndex=%r", obj, arrayIndex)
             
         # get the value
         value = obj._values[self.identifier]
@@ -122,9 +125,8 @@ class Property:
         return value
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
-        if _debug:
-            print self, "Property.WriteProperty", obj, value, arrayIndex, priority
-            
+        Property._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
+        
         # see if it must be provided
         if not self.optional and value is None:
             raise ValueError, "%s value required" % (self.identifier,)
@@ -160,11 +162,10 @@ class Property:
 #   ObjectIdentifierProperty
 #
 
-class ObjectIdentifierProperty(Property):
+class ObjectIdentifierProperty(Property, Logging):
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
-        if _debug:
-            print self, "ObjectIdentifierProperty.WriteProperty", obj, value, arrayIndex, priority
+        ObjectIdentifierProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
             
         # make it easy to default
         if value is None:
@@ -227,7 +228,7 @@ class CurrentTimeProperty(Property):
 #   Object
 #
 
-class Object(object):
+class Object(Logging):
 
     properties = \
         [ ObjectIdentifierProperty('object-identifier', ObjectIdentifier, optional=False)
@@ -238,6 +239,8 @@ class Object(object):
     
     def __init__(self, **kwargs):
         """Create an object, with default property values as needed."""
+        Object._debug("__init__ %r", kwargs)
+        
         # map the python names into property names and make sure they 
         # are appropriate for this object
         initargs = {}
@@ -291,9 +294,8 @@ class Object(object):
         return self._attrToProp(attr).WriteProperty(self, value)
         
     def ReadProperty(self, property, arrayIndex=None):
-        if _debug:
-            print self, "Object.ReadProperty", property, arrayIndex
-            
+        Object._debug("ReadProperty %r arrayIndex=%r", property, arrayIndex)
+        
         # get the property
         prop = self._properties.get(property)
         if not prop:
@@ -303,9 +305,8 @@ class Object(object):
         return prop.ReadProperty(self, arrayIndex)
 
     def WriteProperty(self, property, value, arrayIndex=None, priority=None):
-        if _debug:
-            print self, "Object.WriteProperty", property, arrayIndex
-            
+        Object._debug("WriteProperty %r %r arrayIndex=%r priority=%r", property, value, arrayIndex, priority)
+        
         # get the property
         prop = self._properties.get(property)
         if not prop:
@@ -316,9 +317,8 @@ class Object(object):
         
     def GetDatatype(self, property):
         """Return the datatype for the property of an object."""
-        if _debug:
-            print self, "Object.GetDatatype", property
-            
+        Object._debug("GetDatatype %r", property)
+        
         # get the property
         prop = self._properties.get(property)
         if not prop:
@@ -327,7 +327,7 @@ class Object(object):
         # return the datatype
         return prop.datatype
         
-    def DebugContents(self, indent=1):
+    def DebugContents(self, indent=1, file=sys.stdout, _ids=None):
         """Print out interesting things about the object."""
         klasses = list(self.__class__.__mro__)
         klasses.reverse()
@@ -342,13 +342,56 @@ class Object(object):
             value = prop.ReadProperty(self)
             if hasattr(value, "DebugContents"):
                 print "%s%s" % ("    " * indent, prop.identifier)
-                value.DebugContents(indent+1)
+                value.DebugContents(indent+1, file, _ids)
             else:
                 print "%s%s = %r" % ("    " * indent, prop.identifier, value)
             
 #
 #   Standard Object Types
 #
+
+class BACnetAccumulatorRecord(Sequence):
+    sequenceElements = \
+        [ Element('timestamp', BACnetDateTime, 0)
+        , Element('presentValue', Unsigned, 1)
+        , Element('accumulatedValue', Unsigned, 2)
+        , Element('accumulatorStatus', BACnetAccumulatorStatus, 3)
+        ]
+
+class AccumulatorObject(Object):
+    objectType = 'accumulator'
+    properties = \
+        [ Property('present-value', Unsigned)
+        , Property('description', CharacterString, optional=True)
+        , Property('device-type', CharacterString, optional=True)
+        , Property('status-flags', BACnetStatusFlags)
+        , Property('event-state', BACnetEventState)
+        , Property('reliability', BACnetReliability, optional=True)
+        , Property('out-of-service', Boolean)
+        , Property('scale', BACnetScale)
+        , Property('units', BACnetEngineeringUnits)
+        , Property('prescale', BACnetPrescale, optional=True)
+        , Property('max-pres-value', Unsigned)
+        , Property('value-change-time', BACnetDateTime, optional=True)
+        , Property('value-before-change', Unsigned, optional=True)
+        , Property('value-set', Unsigned, optional=True)
+        , Property('logging-record', BACnetAccumulatorRecord, optional=True)
+        , Property('logging-object', ObjectIdentifier, optional=True)
+        , Property('pulse-rate', Unsigned, optional=True)
+        , Property('high-limit', Unsigned, optional=True)
+        , Property('low-limit', Unsigned, optional=True)
+        , Property('limit-monitoring-interval', Unsigned, optional=True)
+        , Property('notification-class', Unsigned, optional=True)
+        , Property('time-delay', Unsigned, optional=True)
+        , Property('limit-enable', BACnetLimitEnable, optional=True)
+        , Property('event-enable', BACnetEventTransitionBits, optional=True)
+        , Property('acked-transitions', BACnetEventTransitionBits, optional=True)
+        , Property('notify-type', BACnetNotifyType, optional=True)
+        , Property('event-time-stamps', SequenceOf(BACnetTimeStamp), optional=True)
+        , Property('profile-name', CharacterString, optional=True)
+        ]
+
+RegisterObjectType(AccumulatorObject)
 
 class AnalogInputObject(Object):
     objectType = 'analog-input'
@@ -454,7 +497,7 @@ class DeviceObject(Object):
 
 RegisterObjectType(DeviceObject)
 
-class LocalDeviceObject(DeviceObject):
+class LocalDeviceObject(DeviceObject, Logging):
     properties = \
         [ CurrentTimeProperty('local-time')
         , CurrentDateProperty('local-date')
@@ -470,8 +513,7 @@ class LocalDeviceObject(DeviceObject):
         }
         
     def __init__(self, **kwargs):
-        if _debug:
-            print "LocalDeviceObject.__init__", kwargs
+        LocalDeviceObject._debug("__init__ %r", kwargs)
         
         # proceed as usual
         DeviceObject.__init__(self, **kwargs)
@@ -580,15 +622,22 @@ class LifeSafetyZoneObject(Object):
 
 RegisterObjectType(LifeSafetyZoneObject)
 
-class AccumulatorObject(Object):
-    objectType = 'accumulator'
-    properties = []
-
-RegisterObjectType(AccumulatorObject)
-
 class PulseConverterObject(Object):
     objectType = 'pulse-converter'
     properties = []
 
 RegisterObjectType(PulseConverterObject)
+
+class StructuredViewObject(Object):
+    objectType = 'structured-view'
+    properties = \
+        [ Property('node-type', BACnetNodeType)
+        , Property('node-subtype', CharacterString)
+        , Property('subordinate-list', ArrayOf(BACnetDeviceObjectReference))
+        , Property('subordinate-annotations', ArrayOf(CharacterString), optional=True)
+        , Property('profile-name', CharacterString, optional=True)
+        ]
+
+RegisterObjectType(StructuredViewObject)
+
 

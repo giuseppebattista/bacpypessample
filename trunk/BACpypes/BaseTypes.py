@@ -1,12 +1,12 @@
 
-import sys
+import logging
 
 # from PDU import *
 from PrimativeData import *
 from ConstructedData import *
 
 # some debuging
-_debug = ('--debugBaseTypes' in sys.argv)
+_log = logging.getLogger(__name__)
 
 #
 #   Arrays
@@ -62,16 +62,31 @@ class BACnetObjectTypesSupported(BitString):
         , 'notification-class':15
         , 'program':16
         , 'schedule':17
+# Objects added after 1995
         , 'averaging':18
         , 'multi-state-value':19
         , 'trend-log':20
         , 'life-safety-point':21
         , 'life-safety-zone':22
+# Objects added after 2001
         , 'accumulator':23
         , 'pulse-converter':24
+# Objects added after 2004
+        , 'event-log':25
+        , 'trend-log-multiple':27
+        , 'load-control':28
+        , 'structured-view':29
+        , 'access-door':30
         }
-    bitLen = 25
+    bitLen = 31
 
+class BACnetResultFlags(BitString):
+    bitNames = \
+        { 'first-item':0
+        , 'last-item':1
+        , 'more-items':2
+        }
+        
 class BACnetServicesSupported(BitString):
     bitNames = \
         { 'acknowledgeAlarm':0
@@ -129,6 +144,15 @@ class BACnetStatusFlags(BitString):
 #
 #   Base Type Enumerations
 #
+
+class BACnetAccumulatorStatus(Enumerated):
+    enumerations = \
+        { 'normal':0
+        , 'starting':1
+        , 'recovered':2
+        , 'abnormal':3
+        , 'failed':4
+        }
 
 class BACnetAction(Enumerated):
     enumerations = \
@@ -270,9 +294,11 @@ class BACnetPropertyIdentifier(Enumerated):
         , 'active-text':4
         , 'active-vt-sessions':5
         , 'active-cov-subscriptions':152
+        , 'actual-sched-level':212
         , 'adjust-value':176
         , 'alarm-value':6
         , 'alarm-values':7
+        , 'align-intervals':193
         , 'all':8
         , 'all-writes-successful':9
         , 'apdu-segment-timeout':10
@@ -309,20 +335,32 @@ class BACnetPropertyIdentifier(Enumerated):
         , 'device-address-binding':30
         , 'device-type':31
         , 'direct-reading':156
+        , 'door-alarm-state':226
+        , 'door-extended-pulse-time':227
+        , 'door-members':228
+        , 'door-open-too-long-time':229
+        , 'door-pulse-time':230
+        , 'door-status':231
+        , 'door-unlock-delay-time':232
+        , 'duty-window':213
         , 'effective-period':32
         , 'elapsed-active-time':33
+        , 'enable':133
         , 'error-limit':34
         , 'event-enable':35
+        , 'event-state':36
         , 'event-time-stamps':130
         , 'event-type':37
         , 'event-parameters':83
         , 'exception-schedule':38
+        , 'expected-sched-level':214
         , 'fault-values':39
         , 'feedback-value':40
         , 'file-access-method':41
         , 'file-size':42
         , 'file-type':43
         , 'firmware-revision':44
+        , 'full-duty-baseline':213
         , 'high-limit':45
         , 'inactive-text':46
         , 'in-process':47
@@ -330,7 +368,9 @@ class BACnetPropertyIdentifier(Enumerated):
         , 'instance-of':48
         , 'integral-constant':49
         , 'integral-constant-units':50
+        , 'interval-offset':195
         , 'last-notify-record':173
+        , 'last-restart-reason':196
         , 'last-restore-time':157
         , 'life-safety-alarm-values':166
         , 'limit-enable':52
@@ -341,16 +381,19 @@ class BACnetPropertyIdentifier(Enumerated):
         , 'local-date':56
         , 'local-time':57
         , 'location':58
+        , 'lock-status':233
         , 'log-buffer':131
         , 'log-device-object-property':132
-        , 'log-enable':133
+        # 'log-enable' renamed to 'enable'
         , 'log-interval':134
         , 'logging-object':183
         , 'logging-record':184
+        , 'logging-type':197
         , 'low-limit':59
         , 'maintenance-required':158
         , 'manipulated-variable-reference':60
         , 'manual-slave-address-binding':170
+        , 'masked-alarm-values':234
         , 'maximum-output':61
         , 'maximum-value':135
         , 'maximum-value-timestamp':149
@@ -368,7 +411,11 @@ class BACnetPropertyIdentifier(Enumerated):
         , 'min-pres-value':69
         , 'mode':160
         , 'model-name':70
+        , 'modification-date':71
+        , 'node-subtype':207
+        , 'node-type':208
         , 'notification-class':17
+        , 'notification-threshold':137
         , 'notify-type':72
         , 'number-of-apdu-retries':73 # number-of-APDU-retries
         , 'number-of-states':74
@@ -395,6 +442,7 @@ class BACnetPropertyIdentifier(Enumerated):
         , 'program-state':92
         , 'proportional-constant':93
         , 'proportional-constant-units':94
+        , 'protocol-conformance-class':95 # deleted in version 1 revision 2
         , 'protocol-object-types-supported':96
         , 'protocol-revision':139
         , 'protocol-services-supported':97
@@ -406,33 +454,47 @@ class BACnetPropertyIdentifier(Enumerated):
         , 'record-count':141
         , 'reliability':103
         , 'relinquish-default':104
+        , 'requested-sched-level':218
         , 'required':105
         , 'resolution':106
+        , 'restart-notification-recipients':202
         , 'scale':187
         , 'scale-factor':188
         , 'schedule-default':174
+        , 'secured-status':235
         , 'segmentation-supported':107
         , 'setpoint':108
         , 'setpoint-reference':109
-        , 'slave-address-binding':171
         , 'setting':162
+        , 'sched-duration':219
+        , 'sched-level-descriptions':220
+        , 'sched-levels':221
         , 'silenced':163
+        , 'slave-address-binding':171
+        , 'slave-proxy-enable':172
         , 'start-time':142
         , 'state-text':110
         , 'status-flags':111
         , 'stop-time':143
         , 'stop-when-full':144
+        , 'structured-object-list':209
+        , 'subordinate-annotations':210
+        , 'subordinate-list':211
         , 'system-status':112
         , 'time-delay':113
         , 'time-of-active-time-reset':114
+        , 'time-of-device-restart':203
         , 'time-of-state-count-reset':115
+        , 'time-synchronization-interval':204
         , 'time-synchronization-recipients':116
         , 'total-record-count':145
         , 'tracking-value':164
+        , 'trigger':205
         , 'units':117
         , 'update-interval':118
         , 'update-time':189
         , 'utc-offset':119
+        , 'utc-time-synchronization-recipients':206
         , 'valid-samples':146
         , 'value-before-change':190
         , 'value-set':191
@@ -460,6 +522,12 @@ class BACnetPolarity(Enumerated):
         , 'reverse':1
         }
 
+class BACnetPrescale(Sequence):
+    sequenceElements = \
+        [ Element('multiplier', Unsigned, 0)
+        , Element('moduloDivide', Unsigned, 1)
+        ]
+
 class BACnetReliability(Enumerated):
     enumerations = \
         { 'no-fault-detected':0
@@ -471,7 +539,15 @@ class BACnetReliability(Enumerated):
         , 'no-output':6
         , 'unreliable-other':7
         , 'process-error':8
+        , 'multi-state-fault':9
+        , 'configuration-error':10
         }
+
+class BACnetScale(Choice):
+    choiceElements = \
+        [ Element('floatScale', Real)
+        , Element('integerScale', Integer)
+        ]
 
 class BACnetSegmentation(Enumerated):
     enumerations = \
@@ -535,6 +611,22 @@ class BACnetVTClass(Enumerated):
         , 'dec-vt220':4
         , 'hp-700-94':5
         , 'ibm-3130':6
+        }
+
+class BACnetNodeType(Enumerated):
+    enumerations = \
+        { 'unknown':0
+        , 'system':1
+        , 'network':2
+        , 'device':3
+        , 'organizational':4
+        , 'area':5
+        , 'equipment':6
+        , 'point':7
+        , 'collection':8
+        , 'property':9
+        , 'functional':10
+        , 'other':11
         }
 
 #
@@ -786,4 +878,11 @@ class BACnetVTSession(Sequence):
         , Element('remote-vtAddress', BACnetAddress)
         ]
 
-        
+#-----
+
+class BACnetDeviceObjectReference(Sequence):
+    sequenceElements = \
+        [ Element('deviceIdentifier', ObjectIdentifier, 0, True)
+        , Element('objectIdentifier', ObjectIdentifier, 1)
+        ]
+

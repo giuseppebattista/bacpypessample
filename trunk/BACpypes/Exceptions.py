@@ -27,3 +27,4 @@ class DecodingError(exceptions.ValueError):
 
     def __init__(self, *args):
         self.args = args
+

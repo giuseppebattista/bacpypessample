@@ -1,11 +1,13 @@
 
+import sys
 import time
+import logging
 
 from Exceptions import *
 from PDU import *
 
 # some debugging
-_debug = 0
+_log = logging.getLogger(__name__)
 
 def _StringToHex(x,sep=''):
     return sep.join(["%02X" % (ord(c),) for c in x])
@@ -22,7 +24,7 @@ def _HexToString(x,sep=''):
 #   Tag
 #
 
-class Tag:
+class Tag(object):
     applicationTagClass     = 0
     contextTagClass         = 1
     openingTagClass         = 2
@@ -226,35 +228,34 @@ class Tag:
     def __ne__(self,arg):
         return not self.__eq__(arg)
 
-    def DebugContents(self, indent=1):
+    def DebugContents(self, indent=1, file=sys.stdout, _ids=None):
         # object reference first
-        print "%s%r" % ("    " * indent, self)
+        file.write("%s%r\n" % ("    " * indent, self))
         indent += 1
         
         # tag class
-        print "%stagClass =" % ("    " * indent,), self.tagClass,
-        if self.tagClass == Tag.applicationTagClass: print 'application'
-        elif self.tagClass == Tag.contextTagClass: print 'context'
-        elif self.tagClass == Tag.openingTagClass: print 'opening'
-        elif self.tagClass == Tag.closingTagClass: print 'closing'
-        else: print "?"
+        msg = "%stagClass = %s " % ("    " * indent, self.tagClass)
+        if self.tagClass == Tag.applicationTagClass: msg += 'application'
+        elif self.tagClass == Tag.contextTagClass: msg += 'context'
+        elif self.tagClass == Tag.openingTagClass: msg += 'opening'
+        elif self.tagClass == Tag.closingTagClass: msg += 'closing'
+        else: msg += "?"
+        file.write(msg + "\n")
         
         # tag number
-        print "%stagNumber =" % ("    " * indent,), self.tagNumber,
+        msg = "%stagNumber = %d " % ("    " * indent, self.tagNumber)
         if self.tagClass == Tag.applicationTagClass:
             try:
-                print self._applicationTagName[self.tagNumber]
+                msg += self._applicationTagName[self.tagNumber]
             except:
-                print "?"
-        else: print
+                msg += '?'
+        file.write(msg + "\n")
         
         # length, value, type
-        print "%stagLVT =" % ("    " * indent,), self.tagLVT,
-        if self.tagLVT != len(self.tagData): print "(length does not match data)"
-        else: print "(length match)"
+        file.write("%stagLVT = %s\n" % ("    " * indent, self.tagLVT))
         
         # data
-        print "%stagData = '%s'" % ("    " * indent, _StringToHex(self.tagData,'.'))
+        file.write("%stagData = '%s'\n" % ("    " * indent, _StringToHex(self.tagData,'.')))
     
 #
 #   ApplicationTag
@@ -326,7 +327,7 @@ class ClosingTag(Tag):
 #   TagList
 #
 
-class TagList:
+class TagList(object):
 
     def __init__(self, arg=None):
         self.tagList = []
@@ -357,16 +358,10 @@ class TagList:
         else:
             tag = None
 
-        if _debug:
-            print "(peek)", tag
-
         return tag
 
     def Push(self, tag):
         """Return a tag back to the front of the list."""
-        if _debug:
-            print "(push)", tag
-
         self.tagList = [tag] + self.tagList
 
     def Pop(self):
@@ -376,9 +371,6 @@ class TagList:
             del self.tagList[0]
         else:
             tag = None
-
-        if _debug:
-            print "(pop)", tag
 
         return tag
 
@@ -441,15 +433,15 @@ class TagList:
         while pdu.pduData:
             self.tagList.append( Tag(pdu) )
 
-    def DebugContents(self, indent=1):
+    def DebugContents(self, indent=1, file=sys.stdout, _ids=None):
         for tag in self.tagList:
-            tag.DebugContents(indent+1)
+            tag.DebugContents(indent+1, file, _ids)
             
 #
 #   Atomic
 #
 
-class Atomic:
+class Atomic(object):
 
     _appTag = None
 
@@ -1052,6 +1044,7 @@ class Enumerated(Atomic):
 # translate lowers to uppers, keep digits, toss everything else
 _ExpandTranslateTable = ''.join([c.isalnum() and c.upper() or '-' for c in [chr(cc) for cc in range(256)]])
 _ExpandDeleteChars = ''.join([chr(cc) for cc in range(256) if not chr(cc).isalnum()])
+del c, cc
 
 def ExpandEnumerations(klass):
     # build a value dictionary
@@ -1219,9 +1212,12 @@ class Time(Atomic):
 
 class ObjectType(Enumerated):
     enumerations = \
-        { 'analog-input':0
+        { 'access-door':30
+        , 'accumulator':23
+        , 'analog-input':0
         , 'analog-output':1
         , 'analog-value':2
+        , 'averaging':18
         , 'binary-input':3
         , 'binary-output':4
         , 'binary-value':5
@@ -1229,21 +1225,22 @@ class ObjectType(Enumerated):
         , 'command':7
         , 'device':8
         , 'event-enrollment':9
+        , 'event-log':25
         , 'file':10
         , 'group':11
+        , 'life-safety-point':21
+        , 'life-safety-zone':22
         , 'loop':12
         , 'multi-state-input':13
         , 'multi-state-output':14
+        , 'multi-state-value':19
         , 'notification-class':15
         , 'program':16
-        , 'schedule':17
-        , 'averaging':18
-        , 'multi-state-value':19
-        , 'trend-log':20
-        , 'life-safety-point':21
-        , 'life-safety-zone':22
-        , 'accumulator':23
         , 'pulse-converter':24
+        , 'schedule':17
+        , 'structured-view':29
+        , 'trend-log':20
+        , 'trend-log-multiple':27
         }
 
 ExpandEnumerations(ObjectType)
@@ -1284,7 +1281,9 @@ class ObjectIdentifier(Atomic):
         if isinstance(objType, types.IntType):
             try:
                 # try and make it pretty
-                objType = self.objectTypeClass()[objType]
+                xType = self.objectTypeClass()[objType]
+                if xType is not None:
+                    objType = xType
             except KeyError:
                 pass
         elif isinstance(objType, types.StringType):
@@ -1400,3 +1399,4 @@ Tag._applicationTagClass = \
     , BitString, Enumerated, Date, Time
     , ObjectIdentifier, None, None, None
     ]
+
