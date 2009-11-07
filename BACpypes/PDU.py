@@ -13,12 +13,10 @@ _shortMask = 0xFFFFL
 _longMask = 0xFFFFFFFFL
 
 # some debugging
-_debug = 0
-
-def _StringToHex(x,sep=''):
+def _StringToHex(x, sep=''):
     return sep.join(["%02X" % (ord(c),) for c in x])
 
-def _HexToString(x,sep=''):
+def _HexToString(x, sep=''):
     if sep:
         parts = x.split(sep)
     else:
@@ -61,9 +59,6 @@ class Address:
 
     def DecodeAddress(self,addr):
         """Initialize the address from a string.  Lots of different forms are supported."""
-        if _debug:
-            print self, "DecodeAddress", addr
-
         # start out assuming this is a local station
         self.addrType = Address.localStationAddr
         self.addrNet = None
@@ -184,14 +179,20 @@ class Address:
             addr, port = addr
             self.addrPort = int(port)
 
-            if isinstance(addr,types.StringType):
-                addrstr = socket.inet_aton(addr)
-                self.addrTuple = (addr,self.addrPort)
-            elif isinstance(addr,types.LongType):
+            if isinstance(addr, types.StringType):
+                if not addr:
+                    # when ('', n) is passed it is the local host address, but that 
+                    # could be more than one on a multihomed machine, the empty string 
+                    # means "any".
+                    addrstr = '\0\0\0\0'
+                else:
+                    addrstr = socket.inet_aton(addr)
+                self.addrTuple = (addr, self.addrPort)
+            elif isinstance(addr, types.LongType):
                 addrstr = struct.pack('!L',addr & _longMask)
                 self.addrTuple = (socket.inet_ntoa(addrstr),self.addrPort)
             else:
-                raise TypeError, "tuple must be (string,port) or (long,port)"
+                raise TypeError, "tuple must be (string, port) or (long, port)"
 
             self.addrIP = struct.unpack('!L',addrstr)[0]
             self.addrMask = -1L
@@ -356,6 +357,8 @@ class GlobalBroadcast(Address):
 
 class PCI(_PCI):
 
+    _debugContents = ('pduExpectingReply', 'pduNetworkPriority')
+    
     def __init__(self, **kwargs):
         _PCI.__init__(self, **kwargs)
         
@@ -365,21 +368,11 @@ class PCI(_PCI):
         
     def update(self, pci):
         """Copy the PCI fields."""
-        if _debug:
-            print self, "PCI.update", pci
-            
         _PCI.update(self, pci)
         
         # now do the BACnet PCI fields
         self.pduExpectingReply = pci.pduExpectingReply
         self.pduNetworkPriority = pci.pduNetworkPriority
-
-    def DebugContents(self):
-        _PCI.DebugContents(self)
-        if self.pduExpectingReply is not None:
-            print "    pduExpectingReply =", self.pduExpectingReply
-        if self.pduNetworkPriority is not None:
-            print "    pduNetworkPriority =", self.pduNetworkPriority
 
 #
 #   PDU
@@ -394,6 +387,3 @@ class PDU(PCI, PDUData):
     def __str__(self):
         return '<%s %s -> %s : %s>' % (self.__class__.__name__, self.pduSource, self.pduDestination, _StringToHex(self.pduData,'.'))
 
-    def DebugContents(self):
-        PCI.DebugContents(self)
-        PDUData.DebugContents(self)

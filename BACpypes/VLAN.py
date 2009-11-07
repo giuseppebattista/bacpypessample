@@ -4,89 +4,75 @@ VLAN
 """
 
 import random
+import logging
 
-from PDU import Address, LocalBroadcast, PDU
-from Task import OneShotDeleteTask
+from Debugging import Logging
+
+from PDU import Address
+from Task import OneShotFunction
 from CommunicationsCore import Server
+from Exceptions import ConfigurationError
 
 # some debugging
-_debug = 0
-
-#
-#   VLANMessage
-#
-
-class VLANMessage(OneShotDeleteTask):
-    """VLANMessage objects are used to transfer content from the VLAN port threads
-    to the task manager thread."""
-
-    def __init__(self, lan, pdu):
-        OneShotDeleteTask.__init__(self, 0)
-
-        # save the LAN reference and PDU
-        self.lan = lan
-        self.pdu = pdu
-
-    def ProcessTask(self):
-        self.lan.ProcessPDU(pdu)
+_log = logging.getLogger(__name__)
 
 #
 #   VLAN
 #
 
-class VLAN:
+class VLAN(Logging):
 
     def __init__(self, dropPercent=0):
-        if _debug:
-            print self, "VLAN.__init__"
+        VLAN._debug("__init__ dropPercent=%r", dropPercent)
 
         self.nodes = []
         self.dropPercent = dropPercent
 
     def AddNode(self, node):
-        if _debug:
-            print self, "VLAN.AddNode", node
+        VLAN._debug("AddNode %r", node)
 
         self.nodes.append(node)
         node.lan = self
 
     def RemoveNode(self, node):
-        if _debug:
-            print self, "VLAN.RemoveNode", node
+        VLAN._debug("RemoveNode %r", node)
 
         self.nodes.remove(node)
         node.lan = None
 
     def ProcessPDU(self, pdu):
-        """Process a PDU from a station."""
-        if _debug:
-            print self, "VLAN.ProcessPDU", pdu
+        VLAN._debug("ProcessPDU %r", pdu)
 
         if self.dropPercent != 0:
             if (random.random() * 100.0) < self.dropPercent:
-                if _debug:
-                    print "    - *** packet dropped ***"
+                VLAN._debug("    - packet dropped")
                 return
 
-        if pdu.pduDestination.addrType == Address.localBroadcastAddr:
+        if not pdu.pduDestination or not isinstance(pdu.pduDestination, Address):
+            raise RuntimeError, "invalid destination address"
+            
+        elif pdu.pduDestination.addrType == Address.localBroadcastAddr:
             for n in self.nodes:
                 if (pdu.pduSource != n.address):
                     n.Response(pdu)
-        else:
+                    
+        elif pdu.pduDestination.addrType == Address.localStationAddr:
             for n in self.nodes:
                 if n.promiscuous or (pdu.pduDestination == n.address):
                     n.Response(pdu)
+                    
+        else:
+            raise RuntimeError, "invalid destination address type"
 
 #
 #   VLANNode
 #
 
-class VLANNode(Server):
+class VLANNode(Server, Logging):
 
     def __init__(self, addr, lan=None, promiscuous=False, sid=None):
+        VLANNode._debug("__init__ %r lan=%r promiscuous=%r sid=%r", addr, lan, promiscuous, sid)
         Server.__init__(self, sid)
-        if _debug:
-            print self, "VLANNode.__init__", addr, lan, sid
 
         if not isinstance(addr, Address):
             raise TypeError, "addr must be an address"
@@ -103,15 +89,13 @@ class VLANNode(Server):
 
     def Bind(self, lan):
         """Bind to a LAN."""
-        if _debug:
-            print self, "VLANNode.Bind", lan
+        VLANNode._debug("Bind %r", lan)
 
         lan.AddNode(self)
 
     def Indication(self, pdu):
         """Send a message."""
-        if _debug:
-            print self, "VLANNode.Indication", pdu
+        VLANNode._debug("Indication %r", pdu)
 
         # make sure we're connected
         if not self.lan:
@@ -123,7 +107,5 @@ class VLANNode(Server):
             pdu.pduSource = self.address
             
         # build a VLAN message which will be scheduled
-        newpdu = VLANMessage(self.lan, pdu)
+        OneShotFunction(self.lan.ProcessPDU, pdu)
 
-        # install it
-        newpdu.InstallTask()

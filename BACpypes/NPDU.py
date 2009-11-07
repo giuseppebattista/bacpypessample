@@ -1,10 +1,13 @@
 
+import logging
+
 from Exceptions import *
+from Debugging import DebugContents, Logging
 
 from PDU import *
 
 # some debuging
-_debug = 0
+_log = logging.getLogger(__name__)
 
 # a dictionary of message type values and classes
 NPDUTypes = {}
@@ -16,7 +19,12 @@ def RegisterNPDUType(klass):
 #  NPCI
 #
 
-class NPCI(PCI):
+class NPCI(PCI, DebugContents, Logging):
+
+    _debugContents = ('npduVersion', 'npduControl', 'npduDADR', 'npduSADR'
+        , 'npduHopCount', 'npduNetMessage', 'npduVendorID'
+        )
+    
     whoIsRouterToNetwork            = 0x00
     iAmRouterToNetwork              = 0x01
     iCouldBeRouterToNetwork         = 0x02
@@ -50,8 +58,7 @@ class NPCI(PCI):
 
     def Encode(self, pdu):
         """Encode the contents of the NPCI into the PDU."""
-        if _debug:
-            print "NPDU.Encode"
+        NPCI._debug("Encode %s", repr(pdu))
 
         PCI.update(pdu, self)
         
@@ -60,29 +67,18 @@ class NPCI(PCI):
 
         # build the flags
         if self.npduNetMessage is not None:
-            if _debug:
-                print "    - network layer message"
             netLayerMessage = 0x80
         else:
-            if _debug:
-                print "    - application layer message"
             netLayerMessage = 0x00
-
-        if _debug:
-            print "    - npduDADR", self.npduDADR
 
         # map the destination address
         dnetPresent = 0x00
         if self.npduDADR is not None:
-            if _debug:
-                print "    - dnet/dlen/dadr present"
             dnetPresent = 0x20
 
         # map the source address
         snetPresent = 0x00
         if self.npduSADR is not None:
-            if _debug:
-                print "    - dnet/dlen/dadr present"
             snetPresent = 0x08
 
         # encode the control octet
@@ -90,8 +86,6 @@ class NPCI(PCI):
         if self.pduExpectingReply:
             control |= 0x04
         control |= (self.pduNetworkPriority & 0x03)
-        if _debug:
-            print "    - control 0x%02X" % (control,)
         self.npduControl = control
         pdu.Put(control)
 
@@ -131,8 +125,7 @@ class NPCI(PCI):
 
     def Decode(self, pdu):
         """Decode the contents of the PDU and put them into the NPDU."""
-        if _debug:
-            print "NPDU.Decode"
+        NPCI._debug("Decode %r", pdu)
 
         PCI.update(self, pdu)
 
@@ -193,23 +186,6 @@ class NPCI(PCI):
             # application layer message
             self.npduNetMessage = None
 
-    def DebugContents(self):
-        PCI.DebugContents(self)
-        if self.npduVersion is not None:
-            print "    npduVersion =", self.npduVersion
-        if self.npduControl is not None:
-            print "    npduControl =", self.npduControl
-        if self.npduDADR is not None:
-            print "    npduDADR =", self.npduDADR
-        if self.npduSADR is not None:
-            print "    npduSADR =", self.npduSADR
-        if self.npduHopCount is not None:
-            print "    npduHopCount =", self.npduHopCount
-        if self.npduNetMessage is not None:
-            print "    npduNetMessage =", self.npduNetMessage, NPDUTypes.get(self.npduNetMessage, '?')
-        if self.npduVendorID is not None:
-            print "    npduVendorID =", self.npduVendorID
-
 #
 #   NPDU
 #
@@ -228,10 +204,6 @@ class NPDU(NPCI, PDUData):
         NPCI.Decode(self, pdu)
         self.pduData = pdu.GetData(len(pdu.pduData))
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        PDUData.DebugContents(self)
-
 #------------------------------
 
 #
@@ -239,6 +211,9 @@ class NPDU(NPCI, PDUData):
 #
 
 class WhoIsRouterToNetwork(NPCI):
+
+    _debugContents = ('wirtnNetwork',)
+    
     messageType = 0x00
 
     def __init__(self, net=None):
@@ -247,9 +222,6 @@ class WhoIsRouterToNetwork(NPCI):
         self.wirtnNetwork = net
         
     def Encode(self, npdu):
-        if _debug:
-            print self, "WhoIsRouterToNetwork.Encode", npdu
-            
         NPCI.update(npdu, self)
         if self.wirtnNetwork is not None:
             npdu.PutShort( self.wirtnNetwork )
@@ -261,11 +233,6 @@ class WhoIsRouterToNetwork(NPCI):
         else:
             self.wirtnNetwork = None
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        if self.wirtnNetwork is not None:
-            print "    wirtnNetwork =", self.wirtnNetwork
-            
 RegisterNPDUType(WhoIsRouterToNetwork)
 
 #
@@ -273,6 +240,9 @@ RegisterNPDUType(WhoIsRouterToNetwork)
 #
 
 class IAmRouterToNetwork(NPCI):
+
+    _debugContents = ('iartnNetworkList',)
+    
     messageType = 0x01
 
     def __init__(self, netList=[]):
@@ -291,11 +261,6 @@ class IAmRouterToNetwork(NPCI):
         while npdu.pduData:
             self.iartnNetworkList.append(npdu.GetShort())
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        if self.iartnNetworkList is not None:
-            print "    iartnNetworkList =", self.iartnNetworkList
-            
 RegisterNPDUType(IAmRouterToNetwork)
 
 #
@@ -303,6 +268,9 @@ RegisterNPDUType(IAmRouterToNetwork)
 #
 
 class ICouldBeRouterToNetwork(NPCI):
+
+    _debugContents = ('icbrtnNetwork','icbrtnPerformanceIndex')
+    
     messageType = 0x02
 
     def __init__(self, net=None, perf=None):
@@ -321,13 +289,6 @@ class ICouldBeRouterToNetwork(NPCI):
         self.icbrtnNetwork = npdu.GetShort()
         self.icbrtnPerformanceIndex = npdu.Get()
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        if self.icbrtnNetwork is not None:
-            print "    icbrtnNetwork =", self.icbrtnNetwork
-        if self.icbrtnPerformanceIndex is not None:
-            print "    icbrtnPerformanceIndex =", self.icbrtnPerformanceIndex
-            
 RegisterNPDUType(ICouldBeRouterToNetwork)
 
 #
@@ -335,6 +296,9 @@ RegisterNPDUType(ICouldBeRouterToNetwork)
 #
 
 class RejectMessageToNetwork(NPCI):
+
+    _debugContents = ('rmtnRejectReason','rmtnDNET')
+    
     messageType = 0x03
 
     def __init__(self, reason=None, dnet=None):
@@ -353,13 +317,6 @@ class RejectMessageToNetwork(NPCI):
         self.rmtnRejectionReason = npdu.Get()
         self.rmtnDNET = npdu.GetShort()
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        if self.rmtnRejectionReason is not None:
-            print "    rmtnRejectionReason =", self.rmtnRejectionReason
-        if self.rmtnDNET is not None:
-            print "    rmtnDNET =", self.rmtnDNET
-            
 RegisterNPDUType(RejectMessageToNetwork)
 
 #
@@ -367,6 +324,9 @@ RegisterNPDUType(RejectMessageToNetwork)
 #
 
 class RouterBusyToNetwork(NPCI):
+
+    _debugContents = ('rbtnNetworkList',)
+    
     messageType = 0x04
 
     def __init__(self, netList=[]):
@@ -385,11 +345,6 @@ class RouterBusyToNetwork(NPCI):
         while npdu.pduData:
             self.rbtnNetworkList.append(npdu.GetShort())
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        if self.rbtnNetworkList is not None:
-            print "    rbtnNetworkList =", self.rbtnNetworkList
-            
 RegisterNPDUType(RouterBusyToNetwork)
 
 #
@@ -397,6 +352,9 @@ RegisterNPDUType(RouterBusyToNetwork)
 #
 
 class RouterAvailableToNetwork(NPCI):
+
+    _debugContents = ('ratnNetworkList',)
+    
     messageType = 0x05
 
     def __init__(self, netList=[]):
@@ -415,18 +373,15 @@ class RouterAvailableToNetwork(NPCI):
         while npdu.pduData:
             self.ratnNetworkList.append(npdu.GetShort())
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        if self.ratnNetworkList is not None:
-            print "    ratnNetworkList =", self.ratnNetworkList
-            
 RegisterNPDUType(RouterAvailableToNetwork)
 
 #
 #   Routing Table Entry
 #
 
-class RTEntry:
+class RTEntry(DebugContents):
+
+    _debugContents = ('rtDNET', 'rtPortID', 'rtPortInfo')
 
     def __init__(self, dnet=None, portID=None, portInfo=None):
         self.rtDNET = dnet
@@ -439,6 +394,7 @@ class RTEntry:
 
 class InitializeRoutingTable(NPCI):
     messageType = 0x06
+    _debugContents = ('irtTable++',)
 
     def __init__(self, routingTable=[]):
         NPCI.__init__(self)
@@ -475,6 +431,7 @@ RegisterNPDUType(InitializeRoutingTable)
 
 class InitializeRoutingTableAck(NPCI):
     messageType = 0x07
+    _debugContents = ('irtaTable++',)
 
     def __init__(self, routingTable=[]):
         NPCI.__init__(self)
@@ -510,6 +467,9 @@ RegisterNPDUType(InitializeRoutingTableAck)
 #
 
 class EstablishConnectionToNetwork(NPCI):
+
+    _debugContents = ('ectnDNET', 'ectnTerminationTime')
+    
     messageType = 0x08
 
     def __init__(self, dnet=None, terminationTime=None):
@@ -528,13 +488,6 @@ class EstablishConnectionToNetwork(NPCI):
         self.ectnDNET = npdu.GetShort()
         self.ectnTerminationTime = npdu.Get()
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        if self.ectnDNET is not None:
-            print "    ectnDNET =", self.ectnDNET
-        if self.ectnTerminationTime is not None:
-            print "    ectnTerminationTime =", self.ectnTerminationTime
-            
 RegisterNPDUType(EstablishConnectionToNetwork)
 
 #
@@ -542,6 +495,9 @@ RegisterNPDUType(EstablishConnectionToNetwork)
 #
 
 class DisconnectConnectionToNetwork(NPCI):
+
+    _debugContents = ('dctnDNET',)
+    
     messageType = 0x09
 
     def __init__(self, dnet=None):
@@ -557,9 +513,5 @@ class DisconnectConnectionToNetwork(NPCI):
         NPCI.update(self, npdu)
         self.dctnDNET = npdu.GetShort()
 
-    def DebugContents(self):
-        NPCI.DebugContents(self)
-        if self.dctnDNET is not None:
-            print "    dctnDNET =", self.dctnDNET
-            
 RegisterNPDUType(DisconnectConnectionToNetwork)
+

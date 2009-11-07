@@ -1,5 +1,4 @@
 
-import sys
 import logging
 
 from Exceptions import *

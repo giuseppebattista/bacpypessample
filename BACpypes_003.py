@@ -1,21 +1,24 @@
 #!/usr/bin/python
 
-import sys
+"""
+BACpypes_003.py
+"""
 
-from BACpypes.CommunicationsCore import Thread
-if ("--debugThread" in sys.argv):
-    print "imported", Thread
+import sys
+import logging
+
+from BACpypes.Debugging import Logging
+from BACpypes.CommandLogging import ConsoleLogHandler
+
+from BACpypes.Core import run
 
 from BACpypes.Application import BIPSimpleApplication
 from BACpypes.Object import LocalDeviceObject
 
-from BACpypes.APDU import WhoHasRequest, IHaveRequest
-
 # some debugging
-_debug = 0
+_log = logging.getLogger(__name__)
 
 # counters
-counterLock = Thread.Lock()
 whoHasCounter = {}
 iHaveCounter = {}
 
@@ -33,19 +36,18 @@ thisDevice = \
         )
 
 #
-#   MyApplication
+#   TestApplication
 #
 
-class MyApplication(BIPSimpleApplication):
+class TestApplication(BIPSimpleApplication, Logging):
 
     def __init__(self):
         BIPSimpleApplication.__init__(self, thisDevice, config.get('BACpypes','address'))
         
     def do_WhoHasRequest(self, apdu):
         """Respond to a Who-Has request."""
-        if _debug:
-            print "MyApplication.do_WhoHasRequest"
-            
+        TestApplication._debug("do_WhoHasRequest, %r", apdu)
+        
         key = (str(apdu.pduSource),)
         if apdu.object.objectIdentifier is not None:
             key += (str(apdu.object.objectIdentifier),)
@@ -57,45 +59,44 @@ class MyApplication(BIPSimpleApplication):
             print ")"
             return
             
-        counterLock.acquire()
         whoHasCounter[key] = whoHasCounter.get(key,0) + 1
-        counterLock.release()
             
     def do_IHaveRequest(self, apdu):
         """Respond to a I-Have request."""
-        if _debug:
-            print "MyApplication.do_IHaveRequest"
-            
+        TestApplication._debug("do_IHaveRequest %r", apdu)
+
         key = (str(apdu.pduSource), str(apdu.deviceIdentifier), str(apdu.objectIdentifier), apdu.objectName)
-        
-        counterLock.acquire()
         iHaveCounter[key] = iHaveCounter.get(key,0) + 1
-        counterLock.release()
 
-# make a simple application
-myApp = MyApplication()
+#
+#   __main__
+#
 
-# start the threads
-Thread.StartThreads()
+try:
+    if ('--debug' in sys.argv):
+        indx = sys.argv.index('--debug')
+        for i in range(indx+1, len(sys.argv)):
+            ConsoleLogHandler(sys.argv[i])
+        del sys.argv[indx:]
 
-go = True
-while go:
-    try:
-        line = sys.stdin.readline()[:-1]
-    except KeyboardInterrupt:
-        break
+    _log.debug("initialization")
+
+    TestApplication()
+
+    _log.debug("running")
+    run()
+except Exception, e:
+    _log.exception("an error has occurred: %s", e)
+finally:
+    _log.debug("finally")
     
-    counterLock.acquire()
-    print
-    print "----- Who Has -----"
-    for (src, objname), count in sorted(whoHasCounter.items()):
-        print "%-20s %-30s %4d" % (src, objname, count)
-    print
-    print "----- I Have -----"
-    for (src, devid, objid, objname), count in sorted(iHaveCounter.items()):
-        print "%-20s %-20s %-20s %-20s %4d" % (src, devid, objid, objname, count)
-    print
-    counterLock.release()
-    
-# halt
-Thread.HaltThreads()
+print
+print "----- Who Has -----"
+for (src, objname), count in sorted(whoHasCounter.items()):
+    print "%-20s %-30s %4d" % (src, objname, count)
+print
+print "----- I Have -----"
+for (src, devid, objid, objname), count in sorted(iHaveCounter.items()):
+    print "%-20s %-20s %-20s %-20s %4d" % (src, devid, objid, objname, count)
+print
+
