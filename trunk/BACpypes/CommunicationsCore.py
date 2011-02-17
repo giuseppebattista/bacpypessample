@@ -240,7 +240,7 @@ class ApplicationServiceElement(Logging):
                 Bind(self, service)
                 
     def Request(self, *args, **kwargs):
-        ApplicationServiceElement._debug("Request(%s)", self.elementID, args, kwargs)
+        ApplicationServiceElement._debug("Request(%s)  %r %r", self.elementID, args, kwargs)
             
         if not self.elementService:
             raise ConfigurationError, "unbound application service element"
@@ -251,7 +251,7 @@ class ApplicationServiceElement(Logging):
         raise NotImplementedError, "Indication must be overridden"
 
     def Response(self, *args, **kwargs):
-        ApplicationServiceElement._debug("Response(%s)", self.elementID, args, kwargs)
+        ApplicationServiceElement._debug("Response(%s) %r %r", self.elementID, args, kwargs)
             
         if not self.elementService:
             raise ConfigurationError, "unbound application service element"
