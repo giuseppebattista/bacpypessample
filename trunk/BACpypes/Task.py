@@ -143,6 +143,7 @@ class RecurringTask(_Task):
     def __init__(self, interval=None):
         _Task.__init__(self)
         self.taskInterval = interval
+        self.isSuspended = False
         if interval is None:
             self.taskTime = None
         else:
@@ -167,7 +168,15 @@ class RecurringTask(_Task):
             _unscheduledTasks.append(self)
         else:
             _taskManager.InstallTask(self)
-        
+
+    def SuspendTask(self):
+        _Task.SuspendTask(self)
+        self.isSuspended = True
+
+    def ResumeTask(self):
+        self.isSuspended = False
+        _Task.ResumeTask(self)
+
 #
 #   RecurringFunctionTask
 #
@@ -315,7 +324,7 @@ class TaskManager(SingletonLogging):
         task.ProcessTask()
 
         # see if it should be rescheduled
-        if isinstance(task, RecurringTask):
+        if isinstance(task, RecurringTask) and not task.isSuspended:
             task.InstallTask()
         elif isinstance(task, OneShotDeleteTask):
             del task
