@@ -252,6 +252,71 @@ class TestConsoleCmd(ConsoleCmd, Logging):
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
 
+    def do_write(self, args):
+        """write <addr> <type> <inst> <prop> <value> [ <indx> ] [ <priority> ]"""
+        args = args.split()
+        TestConsoleCmd._debug("do_write %r", args)
+
+        try:
+            addr, objType, objInst, propId = args[:4]
+            if isint(objType):
+                objType = int(objType)
+            objInst = int(objInst)
+
+            value = indx = priority = None
+            if len(args) >= 5:
+                value = args[4]
+            if len(args) >= 6:
+                indx = int(args[5])
+            if len(args) >= 7:
+                priority = int(args[6])
+
+            # get the datatype
+            datatype = GetDatatype(objType, propId)
+            TestConsoleCmd._debug("    - datatype: %r", datatype)
+
+            # change atomic values into something encodeable
+            if issubclass(datatype, Atomic):
+                if datatype == Integer:
+                    value = int(value)
+                elif datatype == Real:
+                    value = float(value)
+
+                value = datatype(value)
+            elif issubclass(datatype, Array) and (indx is not None):
+                if indx == 0:
+                    value = Integer(value)
+                elif issubclass(datatype.subtype, Atomic):
+                    value = datatype.subtype(value)
+                elif not isinstance(value, datatype.subtype):
+                    raise TypeError, "invalid result datatype, expecting %s" % (datatype.subtype.__name__,)
+            elif not isinstance(value, datatype):
+                raise TypeError, "invalid result datatype, expecting %s" % (datatype.__name__,)
+            TestConsoleCmd._debug("    - encodeable value: %r %s", value, type(value))
+
+            # build a request
+            request = WritePropertyRequest(objectIdentifier=(objType, objInst), propertyIdentifier=propId)
+            request.pduDestination = Address(addr)
+            if indx is not None:
+                request.propertyArrayIndex = indx
+            if priority is not None:
+                request.priority = priority
+
+            # save the result in the property value
+            request.propertyValue = Any()
+            try:
+                request.propertyValue.CastIn(value)
+            except Exception, e:
+                TestConsoleCmd._exception("WriteProperty cast error: %r", e)
+
+            TestConsoleCmd._debug("    - request: %r", request)
+
+            # give it to the application
+            thisApplication.Request(request)
+
+        except Exception, e:
+            TestConsoleCmd._exception("exception: %r", e)
+
 #
 #   __main__
 #
