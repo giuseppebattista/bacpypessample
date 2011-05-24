@@ -5,6 +5,7 @@ VLAN
 
 import random
 import logging
+from copy import deepcopy
 
 from Debugging import Logging
 
@@ -54,13 +55,13 @@ class VLAN(Logging):
         elif pdu.pduDestination.addrType == Address.localBroadcastAddr:
             for n in self.nodes:
                 if (pdu.pduSource != n.address):
-                    n.Response(pdu)
-                    
+                    n.Response(deepcopy(pdu))
+
         elif pdu.pduDestination.addrType == Address.localStationAddr:
             for n in self.nodes:
                 if n.promiscuous or (pdu.pduDestination == n.address):
-                    n.Response(pdu)
-                    
+                    n.Response(deepcopy(pdu))
+
         else:
             raise RuntimeError, "invalid destination address type"
 

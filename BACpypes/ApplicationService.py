@@ -1275,7 +1275,7 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             try:
                 xpdu = UnconfirmedRequestPDU()
                 apdu.Encode(xpdu)
-            except:
+            except Exception, e:
                 ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", e)
                 raise e
                 
