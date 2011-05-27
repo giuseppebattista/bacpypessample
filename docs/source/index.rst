@@ -82,7 +82,7 @@ UDP Communications
     modules/bvllservice.rst
 
 TCP Communications
-------------------
+^^^^^^^^^^^^^^^^^^
 
 .. toctree::
     :maxdepth: 2
@@ -92,7 +92,7 @@ TCP Communications
     modules/bsllservice.rst
 
 Network Layer
--------------
+^^^^^^^^^^^^^
 
 .. toctree::
     :maxdepth: 2
@@ -102,7 +102,7 @@ Network Layer
     modules/vlan.rst
 
 Application Layer
------------------
+^^^^^^^^^^^^^^^^^
 
 .. toctree::
     :maxdepth: 2
@@ -117,7 +117,7 @@ Application Layer
     modules/appservice.rst
 
 Analysis
---------
+^^^^^^^^
 
 .. toctree::
     :maxdepth: 2
