@@ -189,24 +189,24 @@ def RecurringFunctionTask(interval, fn, *args, **kwargs):
     return task
     
 #
-#   RecurringFunction
+#   recurring_function
 #
 
 @function_debugging
-def RecurringFunction(interval):
-    def RecurringFunctionDecorator(fn):
-        class RecurringFunctionTask(RecurringTask):
+def recurring_function(interval):
+    def recurring_function_decorator(fn):
+        class _RecurringFunctionTask(RecurringTask):
             def process_task(self):
-                if _debug: RecurringFunction._debug("process_task %r", fn)
+                if _debug: recurring_function._debug("process_task %r", fn)
                 fn()
             def __call__(self, *args, **kwargs):
                 fn(*args, **kwargs)
-        task = RecurringFunctionTask(interval)
+        task = _RecurringFunctionTask(interval)
         task.install_task()
-        
+
         return task
-    
-    return RecurringFunctionDecorator
+
+    return recurring_function_decorator
 
 #
 #   TaskManager
