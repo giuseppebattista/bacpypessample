@@ -21,13 +21,24 @@ Functions
 
     :param globs: dictionary of module globals
 
-    This is a long line of text.
+    This function, posing as an instance creator, returns a ...
 
-.. function:: function_debugging(f)
+Function Decorators
+-------------------
 
-    :param f: function to update
+.. function:: function_debugging
 
-    This is a long line of text.
+    This function decorates a function with instances of buggers that are
+    named by the function name combined with the module name.  It is used like
+    this::
+
+        @function_debugging
+        def some_function(arg):
+            if _debug: some_function._debug("some_function %r", arg)
+            # rest of code
+
+    This results in a bugger called **module.some_function** that can be
+    accessed by that name when attaching log handlers.
 
 Classes
 -------

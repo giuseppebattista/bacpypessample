@@ -80,8 +80,3 @@ Functions
     When sleeping is enabled, and it only needs to be enabled for multithreaded
     applications, it will put a damper on the thruput of the application.
 
-
-Classes
--------
-
-This module does not define any classes.
