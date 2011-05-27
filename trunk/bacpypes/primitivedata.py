@@ -442,7 +442,7 @@ class TagList(object):
 
     def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
         for tag in self.tagList:
-            tag.DebugContents(indent+1, file, _ids)
+            tag.debug_contents(indent+1, file, _ids)
             
 #
 #   Atomic

@@ -346,9 +346,9 @@ class Object(Logging):
         # print out the values
         for prop in properties:
             value = prop.ReadProperty(self)
-            if hasattr(value, "DebugContents"):
+            if hasattr(value, "debug_contents"):
                 print "%s%s" % ("    " * indent, prop.identifier)
-                value.DebugContents(indent+1, file, _ids)
+                value.debug_contents(indent+1, file, _ids)
             else:
                 print "%s%s = %r" % ("    " * indent, prop.identifier, value)
             

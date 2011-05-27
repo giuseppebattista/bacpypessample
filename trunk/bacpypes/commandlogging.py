@@ -37,7 +37,7 @@ class LoggingFormatter(logging.Formatter):
                         sio.write(msg)
                         msg = None
                     sio.write("    %r\n" % (arg,))
-                    arg.DebugContents(indent=2, file=sio)
+                    arg.debug_contents(indent=2, file=sio)
                     
             # get the message from the StringIO buffer
             if not msg:

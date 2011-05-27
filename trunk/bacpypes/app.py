@@ -235,33 +235,33 @@ class BIPSimpleApplication(Application, Logging):
     def __init__(self, localDevice, localAddress, aseID=None):
         if _debug: BIPSimpleApplication._debug("__init__ %r %r aseID=%r", localDevice, localAddress, aseID)
         Application.__init__(self, localDevice, localAddress, aseID)
-        
+
         # include a application decoder
         self.asap = ApplicationServiceAccessPoint()
-        
+
         # pass the device object to the state machine access point so it
         # can know if it should support segmentation
         self.smap = StateMachineAccessPoint(localDevice)
-        
+
         # a network service access point will be needed
         self.nsap = NetworkServiceAccessPoint()
-        
+
         # give the NSAP a generic network layer service element
         self.nse = NetworkServiceElement()
         bind(self.nse, self.nsap)
-        
+
         # bind the top layers
         bind(self, self.asap, self.smap, self.nsap)
-        
+
         # create a generic BIP stack, bound to the Annex J server 
         # on the UDP multiplexer
         self.bip = BIPSimple()
         self.annexj = AnnexJCodec()
         self.mux = UDPMultiplexer(self.localAddress)
-        
+
         # bind the bottom layers
         bind(self.bip, self.annexj, self.mux.annexJ)
-        
+
         # bind the BIP stack to the network, no network number
         self.nsap.bind(self.bip)
 
@@ -274,33 +274,33 @@ class BIPForeignApplication(Application, Logging):
     def __init__(self, localDevice, localAddress, bbmdAddress, bbmdTTL, aseID=None):
         if _debug: BIPForeignApplication._debug("__init__ %r %r %r %r aseID=%r", localDevice, localAddress, bbmdAddress, bbmdTTL, aseID)
         Application.__init__(self, localDevice, localAddress, aseID)
-        
+
         # include a application decoder
         self.asap = ApplicationServiceAccessPoint()
-        
+
         # pass the device object to the state machine access point so it
         # can know if it should support segmentation
         self.smap = StateMachineAccessPoint(localDevice)
-        
+
         # a network service access point will be needed
         self.nsap = NetworkServiceAccessPoint()
-        
+
         # give the NSAP a generic network layer service element
         self.nse = NetworkServiceElement()
         bind(self.nse, self.nsap)
-        
+
         # bind the top layers
         bind(self, self.asap, self.smap, self.nsap)
-        
+
         # create a generic BIP stack, bound to the Annex J server 
         # on the UDP multiplexer
         self.bip = BIPForeign(bbmdAddress, bbmdTTL)
         self.annexj = AnnexJCodec()
         self.mux = UDPMultiplexer(self.localAddress, noBroadcast=True)
-        
+
         # bind the bottom layers
         bind(self.bip, self.annexj, self.mux.annexJ)
-        
+
         # bind the NSAP to the stack, no network number
         self.nsap.bind(self.bip)
 
@@ -313,28 +313,28 @@ class BIPNetworkApplication(NetworkServiceElement, Logging):
     def __init__(self, localAddress, eID=None):
         if _debug: BIPNetworkApplication._debug("__init__ %r eID=%r", localAddress, eID)
         NetworkServiceElement.__init__(self, eID)
-        
+
         # allow the address to be cast to the correct type
         if isinstance(localAddress, Address):
             self.localAddress = localAddress
         else:
             self.localAddress = Address(localAddress)
-        
+
         # a network service access point will be needed
         self.nsap = NetworkServiceAccessPoint()
-        
+
         # give the NSAP a generic network layer service element
         bind(self, self.nsap)
-        
+
         # create a generic BIP stack, bound to the Annex J server 
         # on the UDP multiplexer
         self.bip = BIPSimple()
         self.annexj = AnnexJCodec()
         self.mux = UDPMultiplexer(self.localAddress)
-        
+
         # bind the bottom layers
         bind(self.bip, self.annexj, self.mux.annexJ)
-        
+
         # bind the NSAP to the stack, no network number
         self.nsap.bind(self.bip)
 

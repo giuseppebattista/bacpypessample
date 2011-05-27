@@ -230,14 +230,14 @@ class Sequence(Logging):
             if _sequence_of_classes.has_key(element.klass):
                 file.write("%s%s\n" % ("    " * indent, element.name))
                 helper = element.klass(value)
-                helper.DebugContents(indent+1, file, _ids)
+                helper.debug_contents(indent+1, file, _ids)
                 
             elif issubclass(element.klass, Atomic):
                 file.write("%s%s = %r\n" % ("    " * indent, element.name, value))
                 
             elif isinstance(value, element.klass):
                 file.write("%s%s\n" % ("    " * indent, element.name))
-                value.DebugContents(indent+1, file, _ids)
+                value.debug_contents(indent+1, file, _ids)
                 
             else:
                 file.write("%s'%s' must be a %s\n" % ("    " * indent, element.name, element.klass.__name__))
@@ -346,7 +346,7 @@ def SequenceOf(klass):
                     file.write("%s[%d] = %r\n" % ("    " * indent, i, value))
                 elif isinstance(value, self.subtype):
                     file.write("%s[%d]" % ("    " * indent, i))
-                    value.DebugContents(indent+1, file, _ids)
+                    value.debug_contents(indent+1, file, _ids)
                 else:
                     file.write("%s[%d] %s must be a %s" % ("    " * indent, i, value, self.subtype.__name__))
                 i += 1
@@ -593,7 +593,7 @@ def ArrayOf(klass):
                     file.write("%s[%d] = %r\n" % ("    " * indent, i, value))
                 elif isinstance(value, self.subtype):
                     file.write("%s[%d]\n" % ("    " * indent, i))
-                    value.DebugContents(indent+1, file, _ids)
+                    value.debug_contents(indent+1, file, _ids)
                 else:
                     file.write("%s%s must be a %s" % ("    " * indent, value, self.subtype.__name__))
 
@@ -772,7 +772,7 @@ class Choice(Logging):
                 
             elif isinstance(value, element.klass):
                 file.write("%s%s\n" % ("    " * indent, element.name))
-                value.DebugContents(indent+1, file, _ids)
+                value.debug_contents(indent+1, file, _ids)
                 break
                 
             else:
@@ -887,5 +887,5 @@ class Any(Logging):
             return value
 
     def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
-        self.tagList.DebugContents(indent, file, _ids)
+        self.tagList.debug_contents(indent, file, _ids)
 
