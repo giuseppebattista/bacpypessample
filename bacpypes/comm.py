@@ -222,12 +222,12 @@ class Debug(Client, Server):
         print "Debug(%s).confirmation" % (self.label,)
         for i, arg in enumerate(args):
             print "    - args[%d]:" % (i,), arg
-            if hasattr(arg, 'DebugContents'):
-                arg.DebugContents(2)
+            if hasattr(arg, 'debug_contents'):
+                arg.debug_contents(2)
         for key, value in kwargs.items():
             print "    - kwargs[%r]:" % (key,), value
-            if hasattr(value, 'DebugContents'):
-                value.DebugContents(2)
+            if hasattr(value, 'debug_contents'):
+                value.debug_contents(2)
 
         if self.serverPeer:
             self.response(*args, **kwargs)
@@ -236,12 +236,12 @@ class Debug(Client, Server):
         print "Debug(%s).indication" % (self.label,)
         for i, arg in enumerate(args):
             print "    - args[%d]:" % (i,), arg
-            if hasattr(arg, 'DebugContents'):
-                arg.DebugContents(2)
+            if hasattr(arg, 'debug_contents'):
+                arg.debug_contents(2)
         for key, value in kwargs.items():
             print "    - kwargs[%r]:" % (key,), value
-            if hasattr(value, 'DebugContents'):
-                value.DebugContents(2)
+            if hasattr(value, 'debug_contents'):
+                value.debug_contents(2)
 
         if self.clientPeer:
             self.request(*args, **kwargs)

@@ -406,7 +406,7 @@ if __name__ == "__main__":
 
         for pkt in decode_file(sys.argv[1]):
             print strftimestamp(pkt._timestamp), pkt.__class__.__name__
-            pkt.DebugContents()
+            pkt.debug_contents()
             print
 
     except KeyboardInterrupt:
