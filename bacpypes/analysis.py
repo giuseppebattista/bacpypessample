@@ -15,7 +15,6 @@ except:
     pcap = None
 
 from debugging import DebugContents, Logging, function_debugging, ModuleLogger
-from commandlogging import ConsoleLogHandler
 
 from pdu import PDU, Address
 from bvll import BVLPDU
@@ -396,12 +395,14 @@ def trace(fname, tracers):
 
 if __name__ == "__main__":
     try:
+        from consolelogging import ConsoleLogHandler
+
         if ('--debug' in sys.argv):
             indx = sys.argv.index('--debug')
             for i in range(indx+1, len(sys.argv)):
                 ConsoleLogHandler(sys.argv[i])
             del sys.argv[indx:]
-            
+
         _log.debug("initialization")
 
         for pkt in decode_file(sys.argv[1]):
@@ -415,4 +416,3 @@ if __name__ == "__main__":
         _log.exception("an error has occurred: %s", e)
     finally:
         _log.debug("finally")
-
