@@ -3,6 +3,17 @@
 Clients and Servers
 ===================
 
+While exploring a library like BACpypes, take full advantage of Python being
+an interpreted language with an interactive prompt!  The code for this tutorial
+is also available in the *tutorial* subdirectory of the repository.
+
+This tutorial will be using :class:`comm.Client`, :class:`comm.Server` classes,
+and the :func:`comm.bind` function, so start out by importing them::
+
+    >>> from bacpypes.comm import Client, Server, bind
+
+This is a long line of text.
+
 Since the server needs to do something when it gets a request, it 
 needs to provide a function to get it::
 
@@ -39,12 +50,3 @@ Create an instance of it, bind the client and server together and test it::
     thanks for the HI
 
 Success!
-
-But at some point you can't get too carried away with yourself.
-
-.. note::
-    Having some the real text of the note display under the directive, or whatever this thing is called
-    looks a lot nicer.  I wondering what it would take to make a restructed text format for OWL
-    documents.
-
-Ah, some day maybe.
