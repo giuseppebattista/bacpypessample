@@ -38,6 +38,7 @@ essential components of a BACpypes application and how the pieces fit together.
     :maxdepth: 1
 
     tutorial/tutorial001.rst
+    tutorial/tutorial002.rst
 
 Samples
 -------

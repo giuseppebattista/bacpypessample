@@ -52,12 +52,12 @@ Classes
 
     .. method:: readable()
 
-        This method returns True so it will always be included in the
+        This method returns :keyword:`True` so it will always be included in the
         list of file-like objects when waiting for IO activity.
 
     .. method:: writable()
 
-        This method returns False becuase there is never any pending
+        This method returns :keyword:`False` becuase there is never any pending
         write activity like there would be for a actual file or socket.
 
     .. method:: handle_read()
@@ -69,7 +69,7 @@ Classes
     .. method:: handle_write()
 
         This function is never called because :func:`writable()` always
-        returns False.
+        returns :keyword:`False`.
 
     .. method:: handle_close()
 
@@ -89,7 +89,7 @@ Classes
         so the "read" side will have activity and the select function will
         exit.
 
-        This function returns True if the "event" is "set".
+        This function returns :keyword:`True` if the "event" is "set".
 
     .. method:: isSet()
 
