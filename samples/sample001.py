@@ -9,7 +9,7 @@ import logging
 from ConfigParser import ConfigParser
 
 from bacpypes.debugging import Logging, ModuleLogger
-from bacpypes.commandlogging import ConsoleLogHandler
+from bacpypes.consolelogging import ConsoleLogHandler
 
 from bacpypes.core import run
 

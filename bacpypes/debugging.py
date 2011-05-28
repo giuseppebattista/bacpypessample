@@ -189,6 +189,41 @@ class DebugContents(object):
             klass.debug_contents(self, indent, file, _ids)
 
 #
+#   LoggingFormatter
+#
+
+class LoggingFormatter(logging.Formatter):
+
+    def __init__(self):
+        logging.Formatter.__init__(self, logging.BASIC_FORMAT, None)
+
+    def format(self, record):
+        try:
+            # use the basic formatting
+            msg = logging.Formatter.format(self, record) + '\n'
+
+            # look for detailed arguments
+            for arg in record.args:
+                if isinstance(arg, DebugContents):
+                    if msg:
+                        sio = cStringIO.StringIO()
+                        sio.write(msg)
+                        msg = None
+                    sio.write("    %r\n" % (arg,))
+                    arg.debug_contents(indent=2, file=sio)
+
+            # get the message from the StringIO buffer
+            if not msg:
+                msg = sio.getvalue()
+
+            # trim off the last '\n'
+            msg = msg[:-1]
+        except Exception, e:
+            msg = "LoggingFormatter exception: " + str(e)
+
+        return msg
+
+#
 #   _LoggingWrapper
 #
 
