@@ -32,6 +32,15 @@ class WaitableEvent(asyncore.file_dispatcher, Logging):
         # continue with init
         asyncore.file_dispatcher.__init__(self, self._read_fd)
 
+    def __del__(self):
+        WaitableEvent._debug("__del__")
+
+        # close the file descriptors
+        os.close(self._read_fd)
+        os.close(self._write_fd)
+
+    #----- file methods
+
     def readable(self):
         # we are always happy to read
         return True
@@ -49,7 +58,9 @@ class WaitableEvent(asyncore.file_dispatcher, Logging):
     def handle_close(self):
         WaitableEvent._debug("handle_close")
         self.close()
-    
+
+    #----- event methods
+
     def wait(self, timeout=None):
         rfds, wfds, efds = select.select([self._read_fd], [], [], timeout)
         return self._read_fd in rfds
@@ -66,9 +77,3 @@ class WaitableEvent(asyncore.file_dispatcher, Logging):
         WaitableEvent._debug("clear")
         if self.isSet():
             os.read(self._read_fd, 1)
-        
-    def __del__(self):
-        WaitableEvent._debug("__del__")
-        os.close(self._read_fd)
-        os.close(self._write_fd)
-
