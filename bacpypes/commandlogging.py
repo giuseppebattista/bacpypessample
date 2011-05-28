@@ -23,12 +23,12 @@ class LoggingFormatter(logging.Formatter):
 
     def __init__(self):
         logging.Formatter.__init__(self, logging.BASIC_FORMAT, None)
-        
+
     def format(self, record):
         try:
             # use the basic formatting
             msg = logging.Formatter.format(self, record) + '\n'
-            
+
             # look for detailed arguments
             for arg in record.args:
                 if isinstance(arg, DebugContents):
@@ -38,16 +38,16 @@ class LoggingFormatter(logging.Formatter):
                         msg = None
                     sio.write("    %r\n" % (arg,))
                     arg.debug_contents(indent=2, file=sio)
-                    
+
             # get the message from the StringIO buffer
             if not msg:
                 msg = sio.getvalue()
-        
+
             # trim off the last '\n'
             msg = msg[:-1]
         except Exception, e:
             msg = "LoggingFormatter exception: " + str(e)
-        
+
         return msg
         
 #
@@ -94,100 +94,92 @@ def ConsoleLogHandler(loggerRef='', level=logging.DEBUG):
     loggerRef.setLevel(level)
 
 #
-#   LoggingHandler
+#   CommandLoggingHandler
 #
 
-class LoggingHandler(logging.Handler):
+class CommandLoggingHandler(logging.Handler):
 
-    def __init__(self, commander, destination, loggerName):
+    def __init__(self, commander, addr, loggerName):
         logging.Handler.__init__(self, logging.DEBUG)
         self.setFormatter(LoggingFormatter())
-        
+
         # save where this stuff goes
         self.commander = commander
-        self.destination = destination
+        self.addr = addr
         self.loggerName = loggerName
-        
+
     def emit(self, record):
         # use the basic formatting
         msg = self.format(record) + '\n'
 
         # tell the commander
-        self.commander.request(PDU(msg, destination=self.destination))
+        self.commander.emit(msg, self.addr)
 
 #
-#   commandlogging
+#   CommandLogging
 #
 
-class commandlogging(Logging):
+class CommandLogging(Logging):
 
     def __init__(self):
-        if _debug: commandlogging._debug("__init__")
-        
+        if _debug: CommandLogging._debug("__init__")
+
         # handlers, self.handlers[addr][logger] = handler
         self.handlers = {}
-        
-    def process_pdu(self, pdu):
-        if _debug: commandlogging._debug("process_pdu %r", pdu)
-        
-        # get the address, find the list of handlers
-        addr = pdu.pduSource
+
+    def process_command(self, cmd, addr):
+        if _debug: CommandLogging._debug("process_command %r", cmd, addr)
+
+        # get the address, find (or build) its list of handlers
         if addr not in self.handlers:
             handlers = self.handlers[addr] = {}
         else:
             handlers = self.handlers[addr]
-            
-        args = pdu.pduData.strip().split()
-        
-        # get the +/- and logger name
-        if (len(pdu.pduData) > 1):
-            cmd, loggerName = pdu.pduData[0], pdu.pduData[1:-1]
-        else:
-            cmd, loggerName = '?', ''
-        
+
+        # split the command into a list of args
+        args = cmd.strip().split()
+
         # get the logger name and logger
+        logger = None
+
+        # second arg is optional, but always a logger name
         if len(args) > 1:
             loggerName = args[1]
             if loggerName in logging.Logger.manager.loggerDict:
                 logger = logging.getLogger(loggerName)
-            else:
-                logger = None
-        else:
-            loggerName = '__root__'
-            logger = logging.getLogger()
-        
+
         if not args:
             response = '-'
-            
+
         elif args[0] == '?':
             if len(args) == 1:
                 if not handlers:
                     response = 'no handlers'
                 else:
-                    response = "handlers: " + ', '.join(loggerName or 'root' for loggerName in handlers)
+                    response = "handlers: " + ', '.join(loggerName for loggerName in handlers)
             elif not logger:
                 response = 'not a valid logger name'
             elif loggerName in handlers:
                 response = 'yes'
             else:
                 response = 'no'
-            
+
         elif args[0] == '+':
             if not logger:
                 response = 'not a valid logger name'
             elif loggerName in handlers:
                 response = loggerName + ' already has a handler'
             else:
-                handler = LoggingHandler(self, addr, loggerName)
+                handler = CommandLoggingHandler(self, addr, loggerName)
                 handlers[loggerName] = handler
-                
+
                 # add it to the logger
                 logger.addHandler(handler)
                 if not addr:
                     response = "handler to %s added" % (loggerName,)
                 else:
                     response = "handler from %s to %s added" % (addr, loggerName)
-            
+
         elif args[0] == '-':
             if not logger:
                 response = 'not a valid logger name'
@@ -196,7 +188,7 @@ class commandlogging(Logging):
             else:
                 handler = handlers[loggerName]
                 del handlers[loggerName]
-                
+
                 # remove it from the logger
                 logger.removeHandler(handler)
                 if not addr:
@@ -205,39 +197,57 @@ class commandlogging(Logging):
                     response = "handler from %s to %s removed" % (addr, loggerName)
 
         else:
-            if _debug: commandlogging._warning("bad command %r", pdu.pduData)
+            if _debug: CommandLogging._warning("bad command %r", cmd)
             response = 'bad command'
-        
+
         # return the response
-        return PDU(response+'\n', destination=pdu.pduSource)
+        return response + '\n'
+
+    def emit(self, msg, addr):
+        if _debug: CommandLogging._debug("emit %r %r", msg, addr)
+
+        raise NotImplementedError, "emit must be overridden"
 
 #
 #   CommandLoggingServer
 #
 
-class CommandLoggingServer(commandlogging, Server, Logging):
+class CommandLoggingServer(CommandLogging, Server, Logging):
 
     def __init__(self):
         if _debug: CommandLoggingServer._debug("__init__")
-        commandlogging.__init__(self)
-        
+        CommandLogging.__init__(self)
+
     def indication(self, pdu):
         if _debug: CommandLoggingServer._debug("indication %r", pdu)
-        resp = self.process_pdu(pdu)
-        self.response(resp)
+        addr = pdu.pduSource
+        resp = self.process_command(pdu.pduData, addr)
+        self.response(PDU(resp, source=addr))
+
+    def emit(self, msg, addr):
+        if _debug: CommandLoggingServer._debug("emit %r %r", msg, addr)
+
+        # pass upstream to the client
+        self.response(PDU(msg, source=addr))
 
 #
 #   CommandLoggingClient
 #
 
-class CommandLoggingClient(commandlogging, Client, Logging):
+class CommandLoggingClient(CommandLogging, Client, Logging):
 
     def __init__(self):
         if _debug: CommandLoggingClient._debug("__init__")
-        commandlogging.__init__(self)
-        
+        CommandLogging.__init__(self)
+
     def confirmation(self, pdu):
         if _debug: CommandLoggingClient._debug("confirmation %r", pdu)
-        resp = self.process_pdu(pdu)
-        self.request(resp)
+        addr = pdu.pduSource
+        resp = self.process_command(pdu.pduData, addr)
+        self.request(PDU(resp, destination=addr))
 
+    def emit(self, msg, addr):
+        if _debug: CommandLoggingClient._debug("emit %r %r", msg, addr)
+
+        # pass downstream to the server
+        self.request(PDU(msg, destination=addr))
