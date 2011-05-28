@@ -49,7 +49,7 @@ Classes
     the same object.
 
     .. method:: debug_contents(indent=1, file=sys.stdout, _ids=None)
-    
+
         :param indent: function to call
         :param file: regular arguments to pass to fn
         :param _ids: keyword arguments to pass to fn
