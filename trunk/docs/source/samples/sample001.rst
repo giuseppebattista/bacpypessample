@@ -25,7 +25,7 @@ ConfigParser module for reading configuration information::
 Immediately following the built-in module includes are those for debugging::
 
     from bacpypes.debugging import Logging, ModuleLogger
-    from bacpypes.commandlogging import ConsoleLogHandler
+    from bacpypes.consolelogging import ConsoleLogHandler
 
 For applications that communicate on the network, it needs the :func:`core.run`
 function::

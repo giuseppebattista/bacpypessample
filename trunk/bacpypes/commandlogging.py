@@ -8,90 +8,12 @@ import types
 import logging
 import cStringIO
 
-from debugging import DebugContents, Logging, ModuleLogger
+from debugging import Logging, LoggingFormatter, ModuleLogger
 from comm import PDU, Client, Server
 
 # some debugging
 _debug = 0
 _log = ModuleLogger(globals())
-
-#
-#   LoggingFormatter
-#
-
-class LoggingFormatter(logging.Formatter):
-
-    def __init__(self):
-        logging.Formatter.__init__(self, logging.BASIC_FORMAT, None)
-
-    def format(self, record):
-        try:
-            # use the basic formatting
-            msg = logging.Formatter.format(self, record) + '\n'
-
-            # look for detailed arguments
-            for arg in record.args:
-                if isinstance(arg, DebugContents):
-                    if msg:
-                        sio = cStringIO.StringIO()
-                        sio.write(msg)
-                        msg = None
-                    sio.write("    %r\n" % (arg,))
-                    arg.debug_contents(indent=2, file=sio)
-
-            # get the message from the StringIO buffer
-            if not msg:
-                msg = sio.getvalue()
-
-            # trim off the last '\n'
-            msg = msg[:-1]
-        except Exception, e:
-            msg = "LoggingFormatter exception: " + str(e)
-
-        return msg
-        
-#
-#   ConsoleLogHandler
-#
-
-def ConsoleLogHandler(loggerRef='', level=logging.DEBUG):
-    """Add a stream handler to stderr with our custom formatter to a logger."""
-    if isinstance(loggerRef, logging.Logger):
-        pass
-
-    elif isinstance(loggerRef, types.StringType):
-        # check for root
-        if not loggerRef:
-            loggerRef = _log
-
-        # check for a valid logger name
-        elif loggerRef not in logging.Logger.manager.loggerDict:
-            raise RuntimeError, "not a valid logger name: %r" % (loggerRef,)
-
-        # get the logger
-        loggerRef = logging.getLogger(loggerRef)
-
-    else:
-        raise RuntimeError, "not a valid logger reference: %r" % (loggerRef,)
-
-    # see if this (or its parent) is a module level logger
-    if hasattr(loggerRef, 'globs'):
-        loggerRef.globs['_debug'] += 1
-    elif hasattr(loggerRef.parent, 'globs'):
-        loggerRef.parent.globs['_debug'] += 1
-
-    # make a debug handler
-    hdlr = logging.StreamHandler()
-    hdlr.setLevel(level)
-
-    # use our formatter
-    hdlr.setFormatter(LoggingFormatter())
-
-    # add it to the logger
-    loggerRef.addHandler(hdlr)
-
-    # make sure the logger has at least this level
-    loggerRef.setLevel(level)
 
 #
 #   CommandLoggingHandler

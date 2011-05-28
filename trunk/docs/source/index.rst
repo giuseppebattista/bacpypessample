@@ -65,7 +65,7 @@ Core
     modules/core.rst
     modules/comm.rst
     modules/debugging.rst
-    modules/commandlogging.rst
+    modules/consolelogging.rst
     modules/errors.rst
     modules/singleton.rst
     modules/task.rst
@@ -123,6 +123,14 @@ Analysis
     :maxdepth: 2
 
     modules/analysis.rst
+
+Other
+^^^^^
+
+.. toctree::
+    :maxdepth: 2
+
+    modules/commandlogging.rst
 
 Indices and tables
 ==================
