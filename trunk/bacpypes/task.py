@@ -12,7 +12,6 @@ from heapq import heapify, heappush, heappop
 
 from singleton import SingletonLogging
 from debugging import DebugContents, Logging, function_debugging, ModuleLogger
-from commandlogging import ConsoleLogHandler
 
 # some debugging
 _debug = 0
