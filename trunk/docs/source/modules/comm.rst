@@ -48,7 +48,7 @@ specific to BACnet.
 
         The source of a PDU.  The datatype and composition of the address is
         dependent on the client/server relationship and protocol context.  The
-        source may be `None`, in which case it has no source or the source is
+        source may be :keyword:`None`, in which case it has no source or the source is
         implicit.
 
     .. attribute:: pduDestination
