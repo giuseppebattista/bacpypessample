@@ -132,6 +132,7 @@ Other
     :maxdepth: 2
 
     modules/commandlogging.rst
+    glossary.rst
 
 Indices and tables
 ==================
