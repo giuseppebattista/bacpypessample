@@ -356,10 +356,10 @@ class ReadForeignDeviceTableAck(BVLCI):
 register_bvlpdu_type(ReadForeignDeviceTableAck)
 
 #
-#   delete_foreign_device_table_entry
+#   DeleteForeignDeviceTableEntry
 #
 
-class delete_foreign_device_table_entry(BVLCI):
+class DeleteForeignDeviceTableEntry(BVLCI):
 
     _debug_contents = ('bvlciAddress',)
     
@@ -379,7 +379,7 @@ class delete_foreign_device_table_entry(BVLCI):
         BVLCI.update(self, bvlpdu)
         self.bvlciAddress = Address(unpack_ip_addr(bvlpdu.get_data(6)))
 
-register_bvlpdu_type(delete_foreign_device_table_entry)
+register_bvlpdu_type(DeleteForeignDeviceTableEntry)
 
 #
 #   DistributeBroadcastToNetwork
