@@ -41,7 +41,7 @@ class UDPActor(Logging):
 
         # associated with a peer
         self.peer = peer
-        
+
         # add a timer
         self.timeout = director.timeout
         if self.timeout > 0:
@@ -49,13 +49,13 @@ class UDPActor(Logging):
             self.timer.install_task(_time() + self.timeout)
         else:
             self.timer = None
-        
+
         # tell the director this is a new actor
         self.director.AddActor(self)
 
     def IdleTimeout(self):
         if _debug: UDPActor._debug("IdleTimeout")
-        
+
         # tell the director this is gone
         self.director.RemoveActor(self)
 
@@ -65,7 +65,7 @@ class UDPActor(Logging):
         # reschedule the timer
         if self.timer:
             self.timer.install_task(_time() + self.timeout)
-        
+
         # put it in the outbound queue for the director
         self.director.request.put(pdu)
 
@@ -75,7 +75,7 @@ class UDPActor(Logging):
         # reschedule the timer
         if self.timer:
             self.timer.install_task(_time() + self.timeout)
-        
+
         # process this as a response from the director
         self.director.response(pdu)
 
@@ -94,7 +94,7 @@ class UDPPickleActor(UDPActor, Logging):
 
         # pickle the data
         pdu.pduData = cPickle.dumps(pdu.pduData)
-        
+
         # continue as usual
         UDPActor.indication(self, pdu)
 
@@ -107,7 +107,7 @@ class UDPPickleActor(UDPActor, Logging):
         except:
             UDPPickleActor._exception("pickle error")
             return
-            
+
         # continue as usual
         UDPActor.response(self, pdu)
 
@@ -186,7 +186,7 @@ class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
             if _debug: deferred(UDPDirector._debug, "    - received %d octets from %s", len(msg), addr)
 
             # send the PDU up to the client
-            deferred(self._Response, PDU(msg, source=addr))
+            deferred(self._response, PDU(msg, source=addr))
 
         except socket.timeout, why:
             deferred(UDPDirector._error, "handle_read socket timeout: %s", why)
@@ -237,10 +237,10 @@ class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
         # send the message
         peer.indication(pdu)
 
-    def _Response(self, pdu):
+    def _response(self, pdu):
         """Incoming datagrams are routed through an actor."""
-        if _debug: UDPDirector._debug("_Response %r", pdu)
-        
+        if _debug: UDPDirector._debug("_response %r", pdu)
+
         # get the destination
         addr = pdu.pduSource
 
@@ -251,4 +251,3 @@ class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
 
         # send the message
         peer.response(pdu)
-
