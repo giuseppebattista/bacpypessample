@@ -664,9 +664,9 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
             # send this to the service access point
             self.sap_response(pdu)
 
-        elif isinstance(pdu, delete_foreign_device_table_entry):
+        elif isinstance(pdu, DeleteForeignDeviceTableEntry):
             # save the request
-            stat = self.delete_foreign_device(pdu.bvlciAddress)
+            stat = self.DeleteForeignDeviceTableEntry(pdu.bvlciAddress)
 
             # build a response
             xpdu = Result(code=stat)
@@ -763,8 +763,8 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         # return success
         return 0
 
-    def delete_foreign_device(self, addr):
-        if _debug: BIPBBMD._debug("delete_foreign_device %r", addr)
+    def DeleteForeignDeviceTableEntry(self, addr):
+        if _debug: BIPBBMD._debug("DeleteForeignDeviceTableEntry %r", addr)
 
         if not isinstance(addr,Address):
             raise TypeError, "addr must be an Address"

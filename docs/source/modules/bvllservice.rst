@@ -190,6 +190,53 @@ Service Access Point Types
 
 .. class:: BIPBBMD(BIPSAP, Client, Server, RecurringTask)
 
+    .. method:: __init__(addr)
+
+        :param addr: address of itself
+
+        This is a long line of text.
+
+    .. method:: indication(pdu)
+
+        :param pdu: message to process
+
+        This is a long line of text.
+
+    .. method:: confirmation(pdu)
+
+        :param pdu: message to process
+
+        This is a long line of text.
+
+    .. method:: RegisterForeignDevice(addr, ttl)
+
+        :param addr: address of foreign device
+        :param ttl: time-to-live
+
+        This is a long line of text.
+
+    .. method:: DeleteForeignDeviceTableEntry(addr)
+
+        :param addr: address of foreign device to delete
+
+        This is a long line of text.
+
+    .. method:: process_task()
+
+        This is a long line of text.
+
+    .. method:: add_peer(addr)
+
+        :param addr: address of peer to add
+
+        This is a long line of text.
+
+    .. method:: delete_peer(addr)
+
+        :param addr: addess of peer to delete
+
+        This is a long line of text.
+
 Service Element
 ^^^^^^^^^^^^^^^
 
