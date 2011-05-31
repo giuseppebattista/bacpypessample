@@ -895,7 +895,7 @@ class BitString(Atomic):
         # bundle it together
         return "BitString(" + ','.join(valueList) + ")"
 
-    def __getitem__(self,bit):
+    def __getitem__(self, bit):
         if isinstance(bit,types.IntType):
             pass
         elif isinstance(bit,types.StringType):
@@ -911,7 +911,7 @@ class BitString(Atomic):
 
         return self.value[bit]
 
-    def __setitem__(self,bit,value):
+    def __setitem__(self, bit, value):
         if isinstance(bit,types.IntType):
             pass
         elif isinstance(bit,types.StringType):
