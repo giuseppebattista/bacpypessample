@@ -45,7 +45,7 @@ generates a print statement and responds with the string uppercase::
 Upstream from the server is the debugging instance again, this time as a 
 confirmation::
 
-    Debug(middle).indication
+    Debug(middle).confirmation
         - args[0]: HI
 
 Now it acts as a server and continues the response up the stack, which is 

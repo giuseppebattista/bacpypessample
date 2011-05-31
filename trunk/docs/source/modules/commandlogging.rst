@@ -13,6 +13,8 @@ capability.
 
 .. class:: CommandLoggingHandler(logging.Handler)
 
+    This is a long line of text.
+
     .. method:: __init__(self, commander, destination, loggerName)
 
         :param commander: record to format
@@ -29,7 +31,11 @@ capability.
 
 .. class:: CommandLogging(Logging)
 
+    This is a long line of text.
+
     .. data:: handlers
+
+        This is a long line of text.
 
     .. method:: process_command(self, cmd, addr)
 
@@ -47,6 +53,8 @@ capability.
 
 .. class:: CommandLoggingServer(CommandLogging, Server, Logging)
 
+    This is a long line of text.
+
     .. method:: indication(pdu)
 
         :param pdu: command message to be processed
@@ -61,6 +69,8 @@ capability.
         This is a long line of text.
 
 .. class:: CommandLoggingClient(CommandLogging, Client, Logging)
+
+    This is a long line of text.
 
     .. method:: confirmation(pdu)
 

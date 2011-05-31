@@ -127,7 +127,7 @@ Annex J - B/IP
 Service Access Point Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class BIPSAP(ServiceAccessPoint)
+.. class:: BIPSAP(ServiceAccessPoint)
 
     .. method:: __init__
 
