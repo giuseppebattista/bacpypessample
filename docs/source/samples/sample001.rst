@@ -133,7 +133,7 @@ as the application, but the '--ini' option is available when it's not::
 If the sample applications are run from the subversion directory, there is a
 sample INI file called **BACpypes~.ini** that is part of the repository.  Make 
 a local copy *that is not part of the repository* and edit it with information
-appropriate to your installation.
+appropriate to your installation::
 
     $ pwd
     .../samples
@@ -167,8 +167,8 @@ Last but not least it is time to run::
 
         run()
 
-Test Application
-----------------
+Sample Application
+------------------
 
 The sample application creates a class that does almost nothing.  The definition
 and initialization mirrors the :class:`app.BIPSimpleApplication` and uses the

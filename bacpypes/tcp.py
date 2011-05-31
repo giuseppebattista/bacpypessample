@@ -595,7 +595,7 @@ class TCPServerDirector(asyncore.dispatcher, Server, ServiceAccessPoint, DebugCo
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         if reuse:
             self.set_reuse_addr()
-        
+
         # try to bind, keep trying for a while if its already in use
         hadBindErrors = False
         for i in range(30):
