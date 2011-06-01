@@ -15,7 +15,7 @@ from debugging import ModuleLogger, DebugContents, Logging
 
 from core import deferred
 from task import FunctionTask, OneShotFunction
-from comm import PDU, Client, Server, bind
+from comm import PDU, Client, Server
 from comm import ServiceAccessPoint, ApplicationServiceElement
 
 # some debugging
@@ -341,8 +341,9 @@ class TCPClientDirector(Server, ServiceAccessPoint, DebugContents, Logging):
         if address in self.clients:
             return
             
-        # create an actor
+        # create an actor, which will eventually call AddActor
         client = self.actorClass(self, address)
+        if _debug: TCPClientDirector._debug("    - client: %r", client)
 
         # if it should automatically reconnect, save the timer value
         if reconnect:

@@ -4,9 +4,7 @@
 Command Logging
 """
 
-import types
 import logging
-import cStringIO
 
 from debugging import Logging, LoggingFormatter, ModuleLogger
 from comm import PDU, Client, Server

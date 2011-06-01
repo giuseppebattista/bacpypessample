@@ -7,6 +7,7 @@ Debugging
 import sys
 import types
 import logging
+import cStringIO
 
 # set the level of the root logger
 _root = logging.getLogger()
