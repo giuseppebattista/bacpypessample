@@ -35,10 +35,10 @@ def register_complex_ack_type(klass):
     complex_ack_types[klass.serviceChoice] = klass
 
 # a dictionary of unconfirmed request choices and classes
-UnconfirmedRequestTypes = {}
+unconfirmed_request_types = {}
 
 def register_unconfirmed_request_type(klass):
-    UnconfirmedRequestTypes[klass.serviceChoice] = klass
+    unconfirmed_request_types[klass.serviceChoice] = klass
 
 # a dictionary of unconfirmed request choices and classes
 error_types = {}
@@ -486,7 +486,7 @@ class ErrorPDU(_APDU):
 register_apdu_type(ErrorPDU)
 
 #
-#   Reject
+#   RejectPDU
 #
 
 class BACnetRejectReason(Enumerated):
@@ -538,7 +538,7 @@ class RejectPDU(_APDU):
 register_apdu_type(RejectPDU)
 
 #
-#   abort
+#   AbortPDU
 #
 
 class BACnetAbortReason(Enumerated):
