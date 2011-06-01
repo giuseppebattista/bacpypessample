@@ -549,12 +549,6 @@ class BACnetReliability(Enumerated):
         , 'configuration-error':10
         }
 
-class BACnetScale(Choice):
-    choiceElements = \
-        [ Element('floatScale', Real)
-        , Element('integerScale', Integer)
-        ]
-
 class BACnetSegmentation(Enumerated):
     enumerations = \
         { 'segmented-both':0
@@ -643,6 +637,12 @@ class BACnetCalendarEntry(Choice):
         [ Element('date', Date, 0)
         , Element('dateRange', BACnetDateRange, 1)
         , Element('weekNDay', BACnetWeekNDay, 2)
+        ]
+
+class BACnetScale(Choice):
+    choiceElements = \
+        [ Element('floatScale', Real)
+        , Element('integerScale', Integer)
         ]
 
 class BACnetTimeValue(Sequence):
