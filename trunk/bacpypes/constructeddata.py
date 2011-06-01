@@ -286,11 +286,11 @@ def SequenceOf(klass):
                 raise TypeError, "%s value required" % (value, self.subtype.__name__,)
             self.value.append(value)
 
-        def __getitem__(self, item):
-            return self.value[item]
-
         def __len__(self):
             return len(self.value)
+
+        def __getitem__(self, item):
+            return self.value[item]
 
         def encode(self, taglist):
             if _debug: SequenceOf._debug("(%r)encode %r", self.__class__.__name__, taglist)
