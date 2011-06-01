@@ -57,81 +57,17 @@ Modules
 
 This documentation is intended for BACpypes developers.
 
-Core
-^^^^
+.. toctree::
+    :maxdepth: 1
+
+    modules/index.rst
+
+Glossary
+--------
 
 .. toctree::
     :maxdepth: 2
 
-    modules/core.rst
-    modules/comm.rst
-    modules/debugging.rst
-    modules/consolelogging.rst
-    modules/errors.rst
-    modules/singleton.rst
-    modules/task.rst
-    modules/event.rst
-
-UDP Communications
-^^^^^^^^^^^^^^^^^^
-
-.. toctree::
-    :maxdepth: 2
-
-    modules/udp.rst
-    modules/bvll.rst
-    modules/bvllservice.rst
-
-TCP Communications
-^^^^^^^^^^^^^^^^^^
-
-.. toctree::
-    :maxdepth: 2
-
-    modules/tcp.rst
-    modules/bsll.rst
-    modules/bsllservice.rst
-
-Network Layer
-^^^^^^^^^^^^^
-
-.. toctree::
-    :maxdepth: 2
-
-    modules/npdu.rst
-    modules/netservice.rst
-    modules/vlan.rst
-
-Application Layer
-^^^^^^^^^^^^^^^^^
-
-.. toctree::
-    :maxdepth: 2
-
-    modules/primitivedata.rst
-    modules/constructeddata.rst
-    modules/basetypes.rst
-
-    modules/apdu.rst
-    modules/object.rst
-    modules/app.rst
-    modules/appservice.rst
-
-Analysis
-^^^^^^^^
-
-.. toctree::
-    :maxdepth: 2
-
-    modules/analysis.rst
-
-Other
-^^^^^
-
-.. toctree::
-    :maxdepth: 2
-
-    modules/commandlogging.rst
     glossary.rst
 
 Indices and tables

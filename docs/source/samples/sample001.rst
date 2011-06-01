@@ -4,7 +4,7 @@ Sample 1 - Simple Application
 =============================
 
 This sample application is the simplest BACpypes application that is a complete
-stack.  Using an INI file it will configure a :class:`LocalDeviceObject`, 
+:term:`stack`.  Using an INI file it will configure a :class:`LocalDeviceObject`, 
 create a **SampleApplication** instance, and run, waiting for a keyboard interrupt
 or a TERM signal to quit.
 
