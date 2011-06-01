@@ -5,7 +5,6 @@ Task
 """
 
 import sys
-import logging
 
 from time import time as _time
 from heapq import heapify, heappush, heappop
@@ -36,7 +35,10 @@ if 'linux' in sys.platform:
 
         def handle_read(self):
             if _debug: _Trigger._debug("handle_read")
+
+            # read in the character, highlander
             data = self.recv(1)
+            if _debug: _Trigger._debug("    - data: %r", data)
 
 #
 #   _Task

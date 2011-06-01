@@ -9,10 +9,11 @@ import time
 import socket
 import struct
 
+pcap = None
 try:
     import pcap
 except:
-    pcap = None
+    pass
 
 from debugging import DebugContents, Logging, function_debugging, ModuleLogger
 
@@ -416,3 +417,4 @@ if __name__ == "__main__":
         _log.exception("an error has occurred: %s", e)
     finally:
         _log.debug("finally")
+

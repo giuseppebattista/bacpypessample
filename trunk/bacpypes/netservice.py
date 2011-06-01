@@ -210,7 +210,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
         for nkey in delnlist:
             try:
                 del self.networks[nkey]
-            except KeyError, err:
+            except KeyError:
                 if _debug: NetworkServiceAccessPoint._debug("    - nkey not in self.networks: %r", rkey)
 
     #-----
@@ -664,47 +664,47 @@ class NetworkServiceElement(ApplicationServiceElement):
         if _debug: NetworkServiceElement._debug("ICouldBeRouterToNetwork %r %r", adapter, npdu)
         
         # reference the service access point
-        sap = self.elementService
+        # sap = self.elementService
         
     def RejectMessageToNetwork(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("RejectMessageToNetwork %r %r", adapter, npdu)
         
         # reference the service access point
-        sap = self.elementService
+        # sap = self.elementService
         
     def RouterBusyToNetwork(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("RouterBusyToNetwork %r %r", adapter, npdu)
         
         # reference the service access point
-        sap = self.elementService
+        # sap = self.elementService
         
     def RouterAvailableToNetwork(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("RouterAvailableToNetwork %r %r", adapter, npdu)
         
         # reference the service access point
-        sap = self.elementService
+        # sap = self.elementService
         
     def InitializeRoutingTable(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("InitializeRoutingTable %r %r", adapter, npdu)
         
         # reference the service access point
-        sap = self.elementService
+        # sap = self.elementService
         
     def InitializeRoutingTableAck(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("InitializeRoutingTableAck %r %r", adapter, npdu)
         
         # reference the service access point
-        sap = self.elementService
+        # sap = self.elementService
         
     def EstablishConnectionToNetwork(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("EstablishConnectionToNetwork %r %r", adapter, npdu)
         
         # reference the service access point
-        sap = self.elementService
+        # sap = self.elementService
         
     def DisconnectConnectionToNetwork(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("DisconnectConnectionToNetwork %r %r", adapter, npdu)
         
         # reference the service access point
-        sap = self.elementService
+        # sap = self.elementService
 

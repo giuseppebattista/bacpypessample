@@ -587,7 +587,6 @@ class AbortPDU(_APDU):
         if (xid < 0): xid += (1L << 32)
 
         sname = self.__module__ + '.' + self.__class__.__name__
-        stype = '%s,%s' % (self.apduInvokeID, self.apduAbortRejectReason)
         reason = self.__str__()
 
         return '<' + sname + '(%s,%s) instance at 0x%08x' % (self.apduInvokeID, reason, xid) + '>'
