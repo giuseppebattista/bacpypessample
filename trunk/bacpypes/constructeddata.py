@@ -456,12 +456,12 @@ def ArrayOf(klass):
             del self.value[item]
             self.value[0] -= 1
 
-        def index(self, item):
+        def index(self, value):
             # only search through values
             for i in range(1, self.value[0] + 1):
-                if item == self.value[i]:
+                if value == self.value[i]:
                     return i
-                    
+
             # not found
             raise ValueError, "%r not in array" % (item,)
 
