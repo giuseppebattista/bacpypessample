@@ -215,8 +215,8 @@ This is a long line of text.
 
     This is a long line of text.
 
-Who Is
-^^^^^^
+Who-Is/I-Am
+^^^^^^^^^^^
 
 This is a long line of text.
 
@@ -224,17 +224,12 @@ This is a long line of text.
 
     This is a long line of text.
 
-I Am
-^^^^
-
-This is a long line of text.
-
 .. class:: IAmRequest(UnconfirmedRequestSequence)
 
     This is a long line of text.
 
-Who Has
-^^^^^^^
+Who-Has/I-Have
+^^^^^^^^^^^^^^
 
 This is a long line of text.
 
@@ -250,16 +245,13 @@ This is a long line of text.
 
     This is a long line of text.
 
-I Have
-^^^^^^
-
 This is a long line of text.
 
 .. class:: IHaveRequest(UnconfirmedRequestSequence)
 
     This is a long line of text.
 
-Read Property
+Read-Property
 ^^^^^^^^^^^^^
 
 This is a long line of text.
@@ -272,7 +264,16 @@ This is a long line of text.
 
     This is a long line of text.
 
-Read Property Multiple
+Write-Property
+^^^^^^^^^^^^^^
+
+This is a long line of text.
+
+.. class:: WritePropertyRequest(ConfirmedRequestSequence)
+
+    This is a long line of text.
+
+Read-Property-Multiple
 ^^^^^^^^^^^^^^^^^^^^^^
 
 This is a long line of text.
@@ -301,7 +302,24 @@ This is a long line of text.
 
     This is a long line of text.
 
-Read Range
+Write-Property-Multiple
+^^^^^^^^^^^^^^^^^^^^^^^
+
+This is a long line of text.
+
+.. class:: WritePropertyMultipleRequest(ConfirmedRequestSequence)
+
+    This is a long line of text.
+
+.. class:: WriteAccessSpecification(Sequence)
+
+    This is a long line of text.
+
+.. class:: WritePropertyMultipleError(ErrorSequence)
+
+    This is a long line of text.
+
+Read-Range
 ^^^^^^^^^^
 
 This is a long line of text.
@@ -330,33 +348,7 @@ This is a long line of text.
 
     This is a long line of text.
 
-Write Property
-^^^^^^^^^^^^^^
-
-This is a long line of text.
-
-.. class:: WritePropertyRequest(ConfirmedRequestSequence)
-
-    This is a long line of text.
-
-Write Property Multiple
-^^^^^^^^^^^^^^^^^^^^^^^
-
-This is a long line of text.
-
-.. class:: WritePropertyMultipleRequest(ConfirmedRequestSequence)
-
-    This is a long line of text.
-
-.. class:: WriteAccessSpecification(Sequence)
-
-    This is a long line of text.
-
-.. class:: WritePropertyMultipleError(ErrorSequence)
-
-    This is a long line of text.
-
-Event Notification
+Event-Notification
 ^^^^^^^^^^^^^^^^^^
 
 This is a long line of text.
@@ -369,7 +361,7 @@ This is a long line of text.
 
     This is a long line of text.
 
-Change Of Value Notification
+Change-Of-Value-Notification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a long line of text.
