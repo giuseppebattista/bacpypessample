@@ -25,7 +25,7 @@ The :func:`comm.bind` function takes an arbitrary number of objects, but it
 assumes that the first one will always be a client, the last one is a server, 
 and that the objects in the middle are both a kind of server that can be
 bound with the client to its left in the parameter list, and a client that can
-be bound to a server to its left::
+be bound to a server to its right::
 
     >>> bind(c, d, s)
 
