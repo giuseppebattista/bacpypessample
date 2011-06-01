@@ -19,7 +19,7 @@ setup(name='BACpypes',
     author='Joel Bender',
     author_email='joel@carrickbender.com',
     url='http://bacpypes.sourceforge.net/',
-    packages=['bacpypes']
+    packages=['bacpypes'],
     long_description=read('README.txt'),
     classifiers=[
         "Development Status :: 4 - Beta",
