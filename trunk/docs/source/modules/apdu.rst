@@ -93,36 +93,33 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(pdu)
+                decode(pdu)
 
-        :param pdu: :class:`pdu.PDUData` destination buffer
+        :param pdu: :class:`pdu.PDUData` buffer
 
-    .. method:: decode(pdu)
-
-        :param pdu: :class:`pdu.PDUData` source information
+        This is a long line of text.
 
 .. class:: APDU(APCI, PDUData)
 
     This is a long line of text.
 
     .. method:: encode(pdu)
+                decode(pdu)
 
-        :param pdu: :class:`pdu.PDUData` destination buffer
+        :param pdu: :class:`pdu.PDUData` buffer
 
-    .. method:: decode(pdu)
-
-        :param pdu: :class:`pdu.PDUData` source information
+        This is a long line of text.
 
 .. class:: _APDU(APDU)
 
     This is a long line of text.
 
     .. method:: encode(pdu)
+                decode(pdu)
 
-        :param pdu: :class:`pdu.PDUData` destination buffer
+        :param pdu: :class:`pdu.PDUData` buffer
 
-    .. method:: decode(pdu)
-
-        :param pdu: :class:`pdu.PDUData` source information
+        This is a long line of text.
 
     .. method:: set_context(context)
 

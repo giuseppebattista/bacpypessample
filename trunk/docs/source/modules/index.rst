@@ -11,6 +11,7 @@ Core
 
     core.rst
     comm.rst
+    pdu.rst
     debugging.rst
     consolelogging.rst
     errors.rst
