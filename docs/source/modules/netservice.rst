@@ -28,15 +28,15 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: network
+    .. attribute:: network
 
         This is a long line of text.
 
-    .. data:: router
+    .. attribute:: router
 
         This is a long line of text.
 
-    .. data:: status
+    .. attribute:: status
 
         This is a long line of text.
 
@@ -44,19 +44,19 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: adapter
+    .. attribute:: adapter
 
         This is a long line of text.
 
-    .. data:: address
+    .. attribute:: address
 
         This is a long line of text.
 
-    .. data:: networks
+    .. attribute:: networks
 
         This is a long line of text.
 
-    .. data:: status
+    .. attribute:: status
 
         This is a long line of text.
 
@@ -69,11 +69,11 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: adapterSAP
+    .. attribute:: adapterSAP
 
         This is a long line of text.
 
-    .. data:: adapterNet
+    .. attribute:: adapterNet
 
         This is a long line of text.
 
@@ -105,23 +105,23 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: adapters
+    .. attribute:: adapters
 
         This is a long line of text.
 
-    .. data:: routers
+    .. attribute:: routers
 
         This is a long line of text.
 
-    .. data:: networks
+    .. attribute:: networks
 
         This is a long line of text.
 
-    .. data:: localAdapter
+    .. attribute:: localAdapter
 
         This is a long line of text.
 
-    .. data:: localAddress
+    .. attribute:: localAddress
 
         This is a long line of text.
 

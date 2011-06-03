@@ -12,9 +12,9 @@ PDU Base Types
 
 .. class:: BVLCI(PCI, DebugContents, Logging)
 
-    .. data:: bvlciType
-    .. data:: bvlciFunction
-    .. data:: bvlciLength
+    .. attribute:: bvlciType
+    .. attribute:: bvlciFunction
+    .. attribute:: bvlciLength
 
     This is a long line of text.
 

@@ -12,9 +12,9 @@ PDU Base Types
 
 .. class:: BSLCI(PCI)
 
-    .. data:: bslciType
-    .. data:: bslciFunction
-    .. data:: bslciLength
+    .. attribute:: bslciType
+    .. attribute:: bslciFunction
+    .. attribute:: bslciLength
 
     This is a long line of text.
 
@@ -27,7 +27,7 @@ Service Requests
 
 .. class:: Result(BVLCI)
 
-    .. data:: bslciResultCode
+    .. attribute:: bslciResultCode
 
     This is a long line of text.
 

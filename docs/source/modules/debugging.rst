@@ -51,7 +51,7 @@ Classes
 
     This is a long line of text.
 
-    .. data:: _debug_contents
+    .. attribute:: _debug_contents
 
         This is a long line of text.
 

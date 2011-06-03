@@ -56,31 +56,31 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: address
+    .. attribute:: address
 
         This is a long line of text.
 
-    .. data:: service
+    .. attribute:: service
 
         This is a long line of text.
 
-    .. data:: connected
+    .. attribute:: connected
 
         This is a long line of text.
 
-    .. data:: accessState
+    .. attribute:: accessState
 
         This is a long line of text.
 
-    .. data:: challenge
+    .. attribute:: challenge
 
         This is a long line of text.
 
-    .. data:: userinfo
+    .. attribute:: userinfo
 
         This is a long line of text.
 
-    .. data:: proxyAdapter
+    .. attribute:: proxyAdapter
 
         This is a long line of text.
 
