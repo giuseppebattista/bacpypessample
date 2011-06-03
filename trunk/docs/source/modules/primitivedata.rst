@@ -16,27 +16,27 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: tagClass
+    .. attribute:: tagClass
 
         This is a long line of text.
 
-    .. data:: tagNumber
+    .. attribute:: tagNumber
 
         This is a long line of text.
 
-    .. data:: tagLVT
+    .. attribute:: tagLVT
 
         This is a long line of text.
 
-    .. data:: tagData
+    .. attribute:: tagData
 
         This is a long line of text.
 
-    .. data:: _app_tag_name
+    .. attribute:: _app_tag_name
 
         This is a long line of text.
 
-    .. data:: _app_tag_class
+    .. attribute:: _app_tag_class
 
         This is a long line of text.
 
@@ -225,11 +225,11 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: enumerations
+    .. attribute:: enumerations
 
         This is a long line of text.
 
-    .. data:: _xlate_table
+    .. attribute:: _xlate_table
 
         This is a long line of text.
 
@@ -318,7 +318,7 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: objectTypeClass
+    .. attribute:: objectTypeClass
 
         This is a long line of text.
 

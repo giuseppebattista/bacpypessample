@@ -33,7 +33,7 @@ capability.
 
     This is a long line of text.
 
-    .. data:: handlers
+    .. attribute:: handlers
 
         This is a long line of text.
 

@@ -14,31 +14,31 @@ PDU Base Types
 
     This is a long line of text.
 
-    .. data:: npduVersion
+    .. attribute:: npduVersion
 
         This is a long line of text.
 
-    .. data:: npduControl
+    .. attribute:: npduControl
 
         This is a long line of text.
 
-    .. data:: npduDADR
+    .. attribute:: npduDADR
 
         This is a long line of text.
 
-    .. data:: npduSADR
+    .. attribute:: npduSADR
 
         This is a long line of text.
 
-    .. data:: npduHopCount
+    .. attribute:: npduHopCount
 
         This is a long line of text.
 
-    .. data:: npduNetMessage
+    .. attribute:: npduNetMessage
 
         This is a long line of text.
 
-    .. data:: npduVendorID
+    .. attribute:: npduVendorID
 
         This is a long line of text.
 
@@ -127,15 +127,15 @@ Service Requests
 
     This is a long line of text.
 
-    .. data:: rtDNET
+    .. attribute:: rtDNET
 
         This is a long line of text.
 
-    .. data:: rtPortID
+    .. attribute:: rtPortID
 
         This is a long line of text.
 
-    .. data:: rtPortInfo
+    .. attribute:: rtPortInfo
 
         This is a long line of text.
 

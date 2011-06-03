@@ -35,7 +35,7 @@ UDP Multiplexing
 
 .. class:: _MultiplexClient
 
-    .. data:: multiplexer
+    .. attribute:: multiplexer
 
         This is a long line of text.
 
@@ -53,7 +53,7 @@ UDP Multiplexing
 
 .. class:: _MultiplexServer
 
-    .. data:: multiplexer
+    .. attribute:: multiplexer
 
         This is a long line of text.
 

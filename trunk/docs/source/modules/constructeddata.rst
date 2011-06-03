@@ -14,19 +14,19 @@ This is a long line of text.
 
 .. class:: Element
 
-    .. data:: name
+    .. attribute:: name
 
         This is a long line of text.
 
-    .. data:: klass
+    .. attribute:: klass
 
         This is a long line of text.
 
-    .. data:: context
+    .. attribute:: context
 
         This is a long line of text.
 
-    .. data:: optional
+    .. attribute:: optional
 
         This is a long line of text.
 
@@ -37,7 +37,7 @@ This is a long line of text.
 
 .. class:: Sequence
 
-    .. data:: sequenceElements
+    .. attribute:: sequenceElements
 
         This is a long line of text.
 
@@ -179,7 +179,7 @@ This is a long line of text.
 
     This is a long line of text.
 
-    .. data:: tagList
+    .. attribute:: tagList
 
         This is a long line of text.
 

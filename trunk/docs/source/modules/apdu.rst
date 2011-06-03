@@ -70,19 +70,19 @@ This is a long line of text.
 
 .. class:: APCI(PCI)
 
-    .. data:: apduType
-    .. data:: apduSeg
-    .. data:: apduMor
-    .. data:: apduSA
-    .. data:: apduSrv
-    .. data:: apduNak
-    .. data:: apduSeq
-    .. data:: apduWin
-    .. data:: apduMaxSegs
-    .. data:: apduMaxResp
-    .. data:: apduService
-    .. data:: apduInvokeID
-    .. data:: apduAbortRejectReason
+    .. attribute:: apduType
+    .. attribute:: apduSeg
+    .. attribute:: apduMor
+    .. attribute:: apduSA
+    .. attribute:: apduSrv
+    .. attribute:: apduNak
+    .. attribute:: apduSeq
+    .. attribute:: apduWin
+    .. attribute:: apduMaxSegs
+    .. attribute:: apduMaxResp
+    .. attribute:: apduService
+    .. attribute:: apduInvokeID
+    .. attribute:: apduAbortRejectReason
 
     This is a long line of text.
 
