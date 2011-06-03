@@ -47,22 +47,20 @@ PDU Base Types
         This is a long line of text.
 
     .. method:: encode(pdu)
+                decode(pdu)
+
+        :param pdu: :class:`pdu.PDUData` buffer
 
         This is a long line of text.
 
-    .. method:: decode(pdu)
-
-        This is a long line of text.
-
-.. class:: BSLPDU(BVSCI, PDUData)
+.. class:: NPDU(NPCI, PDUData)
 
     This is a long line of text.
 
     .. method:: encode(pdu)
+                decode(pdu)
 
-        This is a long line of text.
-
-    .. method:: decode(pdu)
+        :param pdu: :class:`pdu.PDUData` buffer
 
         This is a long line of text.
 
@@ -74,7 +72,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -83,7 +83,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -92,7 +94,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -101,7 +105,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -110,7 +116,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -119,7 +127,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -144,7 +154,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -153,7 +165,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -162,7 +176,9 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.
 
@@ -171,6 +187,8 @@ Service Requests
     This is a long line of text.
 
     .. method:: encode(npdu)
-    .. method:: decode(npdu)
+                decode(npdu)
+
+        :param pdu: :class:`NPDU` buffer
 
         This is a long line of text.

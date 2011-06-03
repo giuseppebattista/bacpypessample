@@ -53,12 +53,12 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(pdu)
-    .. method:: decode(pdu)
+                decode(pdu)
 
         This is a long line of text.
 
     .. method:: app_to_context(context)
-    .. method:: context_to_app(dataType)
+                context_to_app(dataType)
 
         This is a long line of text.
 
@@ -71,7 +71,7 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: __eq__(tag)
-    .. method:: __ne__(tag)
+                __ne__(tag)
 
         This is a long line of text.
 
@@ -119,9 +119,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -130,9 +130,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -141,9 +141,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -152,9 +152,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -163,9 +163,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -174,9 +174,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -185,9 +185,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -196,9 +196,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -207,9 +207,9 @@ This is a long line of text.
     This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -250,9 +250,9 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -279,9 +279,9 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -304,9 +304,9 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 
@@ -326,20 +326,23 @@ This is a long line of text.
 
         This is a long line of text.
 
-    .. method:: set_tuple(self, objType, objInstance)
-    .. method:: get_tuple()
+    .. method:: set_tuple(objType, objInstance)
+                get_tuple()
+
+        :param objType: :class:`ObjectType` object type
+        :param int objInstance: object instance
 
         This is a long line of text.
 
     .. method:: set_long(value)
-    .. method:: get_long()
+                get_long()
 
         This is a long line of text.
 
     .. method:: encode(tag)
-    .. method:: decode(tag)
+                decode(tag)
 
-        :param tag: :class:`Tag` object reference
+        :param tag: :class:`Tag` reference
 
         This is a long line of text.
 

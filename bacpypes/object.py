@@ -242,11 +242,11 @@ class Object(Logging):
         , Property('description', CharacterString, default='')
         ]
     _properties = {}
-    
+
     def __init__(self, **kwargs):
         """Create an object, with default property values as needed."""
         if _debug: Object._debug("__init__ %r", kwargs)
-        
+
         # map the python names into property names and make sure they 
         # are appropriate for this object
         initargs = {}
@@ -255,10 +255,10 @@ class Object(Logging):
             if pname not in self._properties:
                 raise PropertyError, pname
             initargs[pname] = value
-            
+
         # start with a clean dict of values
         self._values = {}
-        
+
         # initialize the object
         for prop in self._properties.values():
             propid = prop.identifier
@@ -272,7 +272,7 @@ class Object(Logging):
                 raise PropertyError, "%s required" % (propid,)
             else:
                 self._values[propid] = None
-                
+
     def _attr_to_property(self, attr):
         """Common routine to translate a python attribute name to a property name and 
         return the appropriate property."""
@@ -281,68 +281,68 @@ class Object(Logging):
         prop = self._properties.get(property)
         if not prop:
             raise PropertyError, property
-            
+
         # found it
         return prop
-        
+
     def __getattr__(self, attr):
         if attr.startswith('_') or attr[0].isupper():
             return object.__getattribute__(self, attr)
-            
+
         # defer to the property to get the value
         return self._attr_to_property(attr).ReadProperty(self)
-        
+
     def __setattr__(self, attr, value):
         if attr.startswith('_') or attr[0].isupper():
             return object.__setattr__(self, attr, value)
-            
+
         # defer to the property to get the value
         return self._attr_to_property(attr).WriteProperty(self, value)
-        
+
     def ReadProperty(self, property, arrayIndex=None):
         if _debug: Object._debug("ReadProperty %r arrayIndex=%r", property, arrayIndex)
-        
+
         # get the property
         prop = self._properties.get(property)
         if not prop:
             raise PropertyError, property
-            
+
         # defer to the property to get the value
         return prop.ReadProperty(self, arrayIndex)
 
     def WriteProperty(self, property, value, arrayIndex=None, priority=None):
         if _debug: Object._debug("WriteProperty %r %r arrayIndex=%r priority=%r", property, value, arrayIndex, priority)
-        
+
         # get the property
         prop = self._properties.get(property)
         if not prop:
             raise PropertyError, property
-            
+
         # defer to the property to set the value
         return prop.WriteProperty(self, value, arrayIndex, priority)
-        
+
     def get_datatype(self, property):
         """Return the datatype for the property of an object."""
         if _debug: Object._debug("get_datatype %r", property)
-        
+
         # get the property
         prop = self._properties.get(property)
         if not prop:
             raise PropertyError, property
-            
+
         # return the datatype
         return prop.datatype
-        
+
     def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
         """Print out interesting things about the object."""
         klasses = list(self.__class__.__mro__)
         klasses.reverse()
-        
+
         # build a list of properties "bottom up"
         properties = []
         for c in klasses:
             properties.extend(getattr(c, 'properties', []))
-        
+
         # print out the values
         for prop in properties:
             value = prop.ReadProperty(self)
@@ -351,7 +351,7 @@ class Object(Logging):
                 value.debug_contents(indent+1, file, _ids)
             else:
                 print "%s%s = %r" % ("    " * indent, prop.identifier, value)
-            
+
 #
 #   Standard Object Types
 #
@@ -562,6 +562,18 @@ class GroupObject(Object):
 
 register_object_type(GroupObject)
 
+class LifeSafetyPointObject(Object):
+    objectType = 'life-safety-point'
+    properties = []
+
+register_object_type(LifeSafetyPointObject)
+
+class LifeSafetyZoneObject(Object):
+    objectType = 'life-safety-zone'
+    properties = []
+
+register_object_type(LifeSafetyZoneObject)
+
 class LoopObject(Object):
     objectType = 'loop'
     properties = []
@@ -580,6 +592,12 @@ class MultiStateOutputObject(Object):
 
 register_object_type(MultiStateOutputObject)
 
+class MultiStateValueObject(Object):
+    objectType = 'multi-state-value'
+    properties = []
+
+register_object_type(MultiStateValueObject)
+
 class NotificationClassObject(Object):
     objectType = 'notification-class'
     properties = []
@@ -592,47 +610,17 @@ class ProgramObject(Object):
 
 register_object_type(ProgramObject)
 
-class ScheduleObject(Object):
-    objectType = 'schedule'
-    properties = []
-
-register_object_type(ScheduleObject)
-
-class AveragingObject(Object):
-    objectType = 'averaging'
-    properties = []
-
-register_object_type(AveragingObject)
-
-class MultiStateValueObject(Object):
-    objectType = 'multi-state-value'
-    properties = []
-
-register_object_type(MultiStateValueObject)
-
-class TrendLogObject(Object):
-    objectType = 'trend-log'
-    properties = []
-
-register_object_type(TrendLogObject)
-
-class LifeSafetyPointObject(Object):
-    objectType = 'life-safety-point'
-    properties = []
-
-register_object_type(LifeSafetyPointObject)
-
-class LifeSafetyZoneObject(Object):
-    objectType = 'life-safety-zone'
-    properties = []
-
-register_object_type(LifeSafetyZoneObject)
-
 class PulseConverterObject(Object):
     objectType = 'pulse-converter'
     properties = []
 
 register_object_type(PulseConverterObject)
+
+class ScheduleObject(Object):
+    objectType = 'schedule'
+    properties = []
+
+register_object_type(ScheduleObject)
 
 class StructuredViewObject(Object):
     objectType = 'structured-view'
@@ -645,5 +633,11 @@ class StructuredViewObject(Object):
         ]
 
 register_object_type(StructuredViewObject)
+
+class TrendLogObject(Object):
+    objectType = 'trend-log'
+    properties = []
+
+register_object_type(TrendLogObject)
 
 

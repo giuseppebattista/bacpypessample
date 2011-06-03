@@ -42,7 +42,7 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(taglist)
-    .. method:: decode(taglist)
+                decode(taglist)
 
         :param taglist: list of :class:`primitivedata.Tag` objects
 
@@ -69,7 +69,7 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(taglist)
-    .. method:: decode(taglist)
+                decode(taglist)
 
         :param taglist: list of :class:`primitivedata.Tag` objects
 
@@ -126,14 +126,14 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(taglist)
-    .. method:: decode(taglist)
+                decode(taglist)
 
         :param taglist: list of :class:`primitivedata.Tag` objects
 
         This is a long line of text.
 
     .. method:: encode_item(item, taglist)
-    .. method:: decode_item(item, taglist)
+                decode_item(item, taglist)
 
         :param item: item number
         :param taglist: list of :class:`primitivedata.Tag` objects
@@ -160,7 +160,7 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(taglist)
-    .. method:: decode(taglist)
+                decode(taglist)
 
         :param taglist: list of :class:`primitivedata.Tag` objects
 
@@ -190,7 +190,7 @@ This is a long line of text.
         This is a long line of text.
 
     .. method:: encode(taglist)
-    .. method:: decode(taglist)
+                decode(taglist)
 
         :param taglist: list of :class:`primitivedata.Tag` objects
 
