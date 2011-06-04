@@ -51,6 +51,7 @@ that don't require a connection to a network.
     :maxdepth: 1
 
     samples/sample001.rst
+    samples/sample002.rst
 
 Modules
 -------
