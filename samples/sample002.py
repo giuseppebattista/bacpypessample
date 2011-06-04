@@ -1,11 +1,13 @@
 #!/usr/bin/python
 
 """
-sample001.py
+sample002.py
 """
 
 import sys
 import logging
+from collections import defaultdict
+
 from ConfigParser import ConfigParser
 
 from bacpypes.debugging import Logging, ModuleLogger
@@ -20,6 +22,10 @@ from bacpypes.object import LocalDeviceObject
 _debug = 0
 _log = ModuleLogger(globals())
 
+# counters
+whoIsCounter = defaultdict(int)
+iAmCounter = defaultdict(int)
+
 #
 #   SampleApplication
 #
@@ -30,21 +36,36 @@ class SampleApplication(BIPSimpleApplication, Logging):
         if _debug: SampleApplication._debug("__init__ %r %r", device, address)
         BIPSimpleApplication.__init__(self, device, address)
 
-    def request(self, apdu):
-        if _debug: SampleApplication._debug("request %r", apdu)
-        BIPSimpleApplication.request(self, apdu)
+    def do_WhoIsRequest(self, apdu):
+        """Respond to a Who-Is request."""
+        if _debug: SampleApplication._debug("do_WhoIsRequest %r", apdu)
 
-    def indication(self, apdu):
-        if _debug: SampleApplication._debug("indication %r", apdu)
-        BIPSimpleApplication.indication(self, apdu)
+        # build a key from the source and parameters
+        key = (str(apdu.pduSource),
+            apdu.deviceInstanceRangeLowLimit,
+            apdu.deviceInstanceRangeHighLimit,
+            )
 
-    def response(self, apdu):
-        if _debug: SampleApplication._debug("response %r", apdu)
-        BIPSimpleApplication.response(self, apdu)
+        # count the times this has been received
+        whoIsCounter[key] += 1
 
-    def confirmation(self, apdu):
-        if _debug: SampleApplication._debug("confirmation %r", apdu)
-        BIPSimpleApplication.confirmation(self, apdu)
+        # pass back to the default implementation
+        BIPSimpleApplication.do_WhoIsRequest(self, apdu)
+
+    def do_IAmRequest(self, apdu):
+        """Given an I-Am request, cache it."""
+        if _debug: SampleApplication._debug("do_IAmRequest %r", apdu)
+
+        # build a key from the source, just use the instance number
+        key = (str(apdu.pduSource),
+            apdu.iAmDeviceIdentifier[1],
+            )
+
+        # count the times this has been received
+        iAmCounter[key] += 1
+
+        # pass back to the default implementation
+        BIPSimpleApplication.do_IAmRequest(self, apdu)
 
 #
 #   __main__
@@ -60,11 +81,9 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
+        for i in range(indx+1, len(sys.argv)):
             ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
+        del sys.argv[indx:]
 
     _log.debug("initialization")
 
@@ -93,10 +112,20 @@ try:
 
     _log.debug("running")
 
+    # run until stopped, ^C works
     run()
+
+    print "----- Who Is -----"
+    for (src, lowlim, hilim), count in sorted(whoIsCounter.items()):
+        print "%-20s %8s %8s %4d" % (src, lowlim, hilim, count)
+    print
+
+    print "----- I Am -----"
+    for (src, devid), count in sorted(iAmCounter.items()):
+        print "%-20s %8d %4d" % (src, devid, count)
+    print
 
 except Exception, e:
     _log.exception("an error has occurred: %s", e)
 finally:
     _log.debug("finally")
-
