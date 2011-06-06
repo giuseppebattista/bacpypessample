@@ -52,24 +52,24 @@ def register_object_type(klass):
     # make sure it's an Object derived class
     if not issubclass(klass, Object):
         raise RuntimeError, "Object derived class required"
-        
+
     # build a property dictionary by going through the class and all its parents
     _properties = {}
     for c in klass.__mro__:
         for prop in getattr(c, 'properties', []):
             if prop.identifier not in _properties:
                 _properties[prop.identifier] = prop
-    
+
     # if the object type hasn't been provided, make an immutable one
     if 'object-type' not in _properties:
         _properties['object-type'] = Property('object-type', ObjectType, klass.objectType, mutable=False)
-        
+
     # store this in the class
     klass._properties = _properties
-    
+
     # now save this in all our types
     object_types[klass.objectType] = klass
-    
+
 #
 #   get_object_class
 #

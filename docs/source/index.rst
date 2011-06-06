@@ -52,6 +52,7 @@ that don't require a connection to a network.
 
     samples/sample001.rst
     samples/sample002.rst
+    samples/sample004.rst
 
 Modules
 -------
