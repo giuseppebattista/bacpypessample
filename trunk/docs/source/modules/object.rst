@@ -270,3 +270,7 @@ This is a long line of text.
 
 .. class:: TrendLogObject(Object)
 
+Extended Object Types
+---------------------
+
+.. class:: LocalDeviceObject(DeviceObject)
