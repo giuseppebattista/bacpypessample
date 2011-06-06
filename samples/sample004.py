@@ -20,6 +20,10 @@ from bacpypes.app import BIPSimpleApplication
 from bacpypes.object import LocalDeviceObject, AnalogInputObject, Property, register_object_type
 from bacpypes.apdu import Error
 
+# some debugging
+_debug = 0
+_log = ModuleLogger(globals())
+
 #
 #   RandomValueProperty
 #
@@ -30,7 +34,7 @@ class RandomValueProperty(Property, Logging):
         Property.__init__(self, identifier, Real, default=None, optional=True, mutable=False)
 
     def ReadProperty(self, obj, arrayIndex=None):
-        RandomValueProperty._debug("ReadProperty %r arrayIndex=%r", obj, arrayIndex)
+        if _debug: RandomValueProperty._debug("ReadProperty %r arrayIndex=%r", obj, arrayIndex)
 
         # access an array
         if arrayIndex is not None:
@@ -38,12 +42,12 @@ class RandomValueProperty(Property, Logging):
 
         # return a random value
         value = random.random() * 100.0
-        RandomValueProperty._debug("    - value: %r", value)
+        if _debug: RandomValueProperty._debug("    - value: %r", value)
 
         return value
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
-        RandomValueProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
+        if _debug: RandomValueProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
         raise Error(errorClass='property', errorCode='write-access-denied')
 
 #
@@ -89,7 +93,7 @@ try:
         raise RuntimeError, "configuration file not found"
 
     # make a sample application
-    thisApplication = SampleApplication(thisDevice, config.get('BACpypes','address'))
+    thisApplication = BIPSimpleApplication(thisDevice, config.get('BACpypes','address'))
 
     # make a random input object
     raio = RandomAnalogValueObject(objectIdentifier=('analog-value', 1), objectName='Random')
@@ -105,4 +109,3 @@ except Exception, e:
     _log.exception("an error has occurred: %s", e)
 finally:
     _log.debug("finally")
-

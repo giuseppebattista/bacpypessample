@@ -94,7 +94,7 @@ to the one for the built-in AnalogValueObject::
                 optional=True, mutable=False
                 )
 
-The only difference is **mutable** is False, which means BACnet clients will
+The only difference is *mutable* is ``False``, which means BACnet clients will
 receive an error if they attempt to write a value to the property.
 
 The core of the application is responding to a ReadPropertyRequest, which is
