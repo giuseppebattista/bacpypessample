@@ -14,6 +14,7 @@ Core
     pdu.rst
     debugging.rst
     consolelogging.rst
+    consolecmd.rst
     errors.rst
     singleton.rst
     task.rst
