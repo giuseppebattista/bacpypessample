@@ -39,6 +39,8 @@ essential components of a BACpypes application and how the pieces fit together.
 
     tutorial/tutorial001.rst
     tutorial/tutorial002.rst
+    tutorial/tutorial003.rst
+    tutorial/tutorial004.rst
     tutorial/tutorial006.rst
 
 Samples
