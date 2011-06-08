@@ -15,7 +15,7 @@ For some debugging scenerios it is beneficial to force some values into the
 stack, or delete some values and see how the application performs.  For example,
 perhaps deleting a routing path associated with a network.
 
-Python has a `cmd <http://wiki.python.org/moin/CmdModule>` module that makes
+Python has a `cmd <http://wiki.python.org/moin/CmdModule>`_ module that makes
 it easy to embed a command line interpreter in an application.  BACpypes 
 extends this interpreter with some commands to assist debugging and runs 
 the interpret in a separate thread so it does not interfere with the BACpypes
