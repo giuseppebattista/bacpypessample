@@ -88,7 +88,7 @@ class BSLCI(PCI, DebugContents, Logging):
 
     def __init__(self, *args):
         PCI.__init__(self)
-        self.bslciType = 0x82
+        self.bslciType = 0x83
         self.bslciFunction = None
         self.bslciLength = None
 
@@ -105,7 +105,7 @@ class BSLCI(PCI, DebugContents, Logging):
         # copy the basics
         PCI.update(pdu, self)
 
-        pdu.put( self.bslciType )               # 0x82
+        pdu.put( self.bslciType )               # 0x83
         pdu.put( self.bslciFunction )
 
         if (self.bslciLength != len(self.pduData) + 4):
@@ -121,7 +121,7 @@ class BSLCI(PCI, DebugContents, Logging):
         PCI.update(self, pdu)
 
         self.bslciType = pdu.get()
-        if self.bslciType != 0x82:
+        if self.bslciType != 0x83:
             raise DecodingError, "invalid BSLCI type"
 
         self.bslciFunction = pdu.get()
