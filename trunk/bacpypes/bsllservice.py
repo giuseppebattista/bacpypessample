@@ -30,7 +30,7 @@ def _Packetize(data):
     if _debug: _Packetize._debug("_Packetize %r", data)
 
     # look for the type field
-    start_ind = data.find('\x82')
+    start_ind = data.find('\x83')
     if start_ind == -1:
         return None
 
