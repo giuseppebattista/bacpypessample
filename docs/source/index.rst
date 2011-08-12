@@ -1,7 +1,4 @@
-.. BACpypes documentation master file, created by
-   sphinx-quickstart on Wed May  4 21:36:23 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. BACpypes documentation master file
 
 Welcome to BACpypes
 ===================
@@ -57,6 +54,7 @@ that don't require a connection to a network.
     samples/sample002.rst
     samples/sample003.rst
     samples/sample004.rst
+    samples/sample005.rst
     samples/sample014.rst
 
 Modules
