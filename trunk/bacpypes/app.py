@@ -53,30 +53,38 @@ class Application(ApplicationServiceElement, Logging):
     def add_object(self, obj):
         """Add an object to the local collection."""
         if _debug: Application._debug("add_object %r", obj)
+
+        # make sure it hasn't already been defined
+        if obj.objectName in self.objectName:
+            raise RuntimeError, "already an object with name '%s'" % (obj.objectName,)
+        if obj.objectIdentifier in self.objectIdentifier:
+            raise RuntimeError, "already an object with identifier %s" % (obj.objectIdentifier,)
+
+        # now put it in local dictionaries
         self.objectName[obj.objectName] = obj
         self.objectIdentifier[obj.objectIdentifier] = obj
-        
+
         # append the new object's identifier to the device's object list
         self.localDevice.objectList.append(obj.objectIdentifier)
-        
+
     def delete_object(self, obj):
         """Add an object to the local collection."""
         if _debug: Application._debug("delete_object %r", obj)
         del self.objectName[obj.objectName]
         del self.objectIdentifier[obj.objectIdentifier]
-        
+
         # remove the object's identifier from the device's object list
         indx = self.localDevice.objectList.index(obj.objectIdentifier)
         del self.localDevice.objectList[indx]
-        
+
     def get_object_id(self, objid):
         """Return a local object or None."""
         return self.objectIdentifier.get(objid, None)
-        
+
     def get_object_name(self, objname):
         """Return a local object or None."""
         return self.objectName.get(objname, None)
-        
+
     def iter_objects(self):
         """Iterate over the objects."""
         return self.objectIdentifier.itervalues()

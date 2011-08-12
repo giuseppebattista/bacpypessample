@@ -6,18 +6,18 @@ sample004.py
 
 import sys
 import logging
-from collections import defaultdict
+import random
 
 from ConfigParser import ConfigParser
 
-from bacpypes.debugging import Logging, ModuleLogger
+from bacpypes.debugging import DebugContents, Logging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 
 from bacpypes.core import run
 
-from bacpypes.primativedata import Real
+from bacpypes.primitivedata import Real
 from bacpypes.app import BIPSimpleApplication
-from bacpypes.object import LocalDeviceObject, AnalogInputObject, Property, register_object_type
+from bacpypes.object import LocalDeviceObject, AnalogValueObject, Property, register_object_type
 from bacpypes.apdu import Error
 
 # some debugging
@@ -31,6 +31,7 @@ _log = ModuleLogger(globals())
 class RandomValueProperty(Property, Logging):
 
     def __init__(self, identifier):
+        if _debug: RandomValueProperty._debug("__init__ %r", identifier)
         Property.__init__(self, identifier, Real, default=None, optional=True, mutable=False)
 
     def ReadProperty(self, obj, arrayIndex=None):
@@ -54,12 +55,23 @@ class RandomValueProperty(Property, Logging):
 #   Random Value Object Type
 #
 
-class RandomAnalogValueObject(AnalogValueObject):
+class RandomAnalogValueObject(AnalogValueObject, Logging):
+
     properties = [
         RandomValueProperty('present-value'),
         ]
 
-register_object_type(RandomAnalogInputObject)
+    def __init__(self, _deviceid, _tagid, **kwargs):
+        if _debug:
+            RandomAnalogValueObject._debug("__init__ %r %r %r",
+                _deviceid, _tagid, kwargs
+                )
+        AnalogValueObject.__init__(self, **kwargs)
+
+        self._deviceid = _deviceid
+        self._tagid = _tagid
+
+register_object_type(RandomAnalogValueObject)
 
 #
 #   __main__
@@ -92,14 +104,32 @@ try:
     elif not config.read('BACpypes.ini'):
         raise RuntimeError, "configuration file not found"
 
+    # make a local device
+    thisDevice = \
+        LocalDeviceObject(objectName=config.get('BACpypes', 'objectName')
+            , objectIdentifier=config.getint('BACpypes', 'objectIdentifier')
+            , maxApduLengthAccepted=config.getint('BACpypes', 'maxApduLengthAccepted')
+            , segmentationSupported=config.get('BACpypes', 'segmentationSupported')
+            , vendorIdentifier=config.getint('BACpypes', 'vendorIdentifier')
+            )
+
     # make a sample application
     thisApplication = BIPSimpleApplication(thisDevice, config.get('BACpypes','address'))
 
     # make a random input object
-    raio = RandomAnalogValueObject(objectIdentifier=('analog-value', 1), objectName='Random')
+    ravo1 = RandomAnalogValueObject('device1', 'random1',
+        objectIdentifier=('analog-value', 1), objectName='Random1'
+        )
+    _log.debug("    - ravo1: %r", ravo1)
+
+    ravo2 = RandomAnalogValueObject('device2', 'random2',
+        objectIdentifier=('analog-value', 2), objectName='Random2'
+        )
+    _log.debug("    - ravo2: %r", ravo2)
 
     # add it to the device
-    thisApplication.AddObject(raio)
+    thisApplication.add_object(ravo1)
+    thisApplication.add_object(ravo2)
 
     _log.debug("running")
 

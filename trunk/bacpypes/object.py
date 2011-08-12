@@ -9,7 +9,7 @@ import re
 import types
 
 from errors import ConfigurationError
-from debugging import ModuleLogger, Logging
+from debugging import function_debugging, ModuleLogger, Logging
 
 from primitivedata import *
 from constructeddata import *
@@ -48,7 +48,10 @@ object_types = {}
 #   register_object_type
 #
 
+@function_debugging
 def register_object_type(klass):
+    if _debug: register_object_type._debug("register_object_type %s", repr(klass))
+
     # make sure it's an Object derived class
     if not issubclass(klass, Object):
         raise RuntimeError, "Object derived class required"
@@ -75,27 +78,31 @@ def register_object_type(klass):
 #
 
 def get_object_class(objectType):
+    """Return the class associated with an object type."""
     return object_types.get(objectType)
     
 #
 #   get_datatype
 #
 
+@function_debugging
 def get_datatype(objectType, property):
     """Return the datatype for the property of an object."""
+    if _debug: get_datatype._debug("get_datatype %r %r", objectType, property)
+
     # get the related class
     cls = object_types.get(objectType)
     if not cls:
         return None
-        
+
     # get the property
     prop = cls._properties.get(property)
     if not prop:
         return None
-    
+
     # return the datatype
     return prop.datatype
-    
+
 #
 #   Property
 #
@@ -103,6 +110,11 @@ def get_datatype(objectType, property):
 class Property(Logging):
 
     def __init__(self, identifier, datatype, default=None, optional=True, mutable=True):
+        if _debug:
+            Property._debug("__init__ %s %s default=%r optional=%r mutable=%r",
+                identifier, datatype, default, optional, mutable
+                )
+
         # validate the identifier to be one of the Property enumerations
         if identifier not in BACnetPropertyIdentifier.enumerations:
             raise ConfigurationError, "unknown property identifier: %s" % (identifier,)
@@ -114,8 +126,11 @@ class Property(Logging):
         self.default = default
 
     def ReadProperty(self, obj, arrayIndex=None):
-        if _debug: Property._debug("ReadProperty %r arrayIndex=%r", obj, arrayIndex)
-            
+        if _debug:
+            Property._debug("ReadProperty(%s) %s arrayIndex=%r",
+                self.identifier, obj, arrayIndex
+                )
+
         # get the value
         value = obj._values[self.identifier]
         
@@ -131,8 +146,11 @@ class Property(Logging):
         return value
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
-        if _debug: Property._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
-        
+        if _debug:
+            Property._debug("WriteProperty(%s) %s %r arrayIndex=%r priority=%r",
+                self.identifier, obj, value, arrayIndex, priority
+                )
+
         # see if it must be provided
         if not self.optional and value is None:
             raise ValueError, "%s value required" % (self.identifier,)
@@ -140,7 +158,7 @@ class Property(Logging):
         # see if it can be changed
         if not self.mutable:
             raise RuntimeError, "%s immutable property" % (self.identifier,)
-            
+
         # if it's atomic or already the correct type, leave it alone
         if issubclass(self.datatype, Atomic) or isinstance(value, self.datatype):
             pass
@@ -160,10 +178,10 @@ class Property(Logging):
         else:
             # coerce the value
             value = self.datatype(value)
-            
+
         # seems to be OK
         obj._values[self.identifier] = value
-        
+
 #
 #   ObjectIdentifierProperty
 #
@@ -253,6 +271,7 @@ class Object(Logging):
         for key, value in kwargs.items():
             pname = map_name(key)
             if pname not in self._properties:
+                if _debug: Object._debug("    - not a property: %r", pname)
                 raise PropertyError, pname
             initargs[pname] = value
 
@@ -262,20 +281,30 @@ class Object(Logging):
         # initialize the object
         for prop in self._properties.values():
             propid = prop.identifier
+
             if initargs.has_key(propid):
+                if _debug: Object._debug("    - setting %s from initargs", propid)
+
                 # defer to the property object for error checking
                 prop.WriteProperty(self, initargs[propid])
             elif prop.default is not None:
+                if _debug: Object._debug("    - setting %s from default", propid)
+
                 # default values bypass property interface
                 self._values[propid] = prop.default
             elif not prop.optional:
+                if _debug: Object._debug("    - property %s value required", propid)
+
                 raise PropertyError, "%s required" % (propid,)
             else:
                 self._values[propid] = None
 
+        if _debug: Object._debug("    - done __init__")
+
     def _attr_to_property(self, attr):
         """Common routine to translate a python attribute name to a property name and 
         return the appropriate property."""
+
         # get the property
         property = map_name(attr)
         prop = self._properties.get(property)
@@ -286,18 +315,31 @@ class Object(Logging):
         return prop
 
     def __getattr__(self, attr):
-        if attr.startswith('_') or attr[0].isupper():
+        if _debug: Object._debug("__getattr__ %r", attr)
+
+        # do not redirect private attrs or functions
+        if attr.startswith('_') or attr[0].isupper() or (attr == 'debug_contents'):
             return object.__getattribute__(self, attr)
 
         # defer to the property to get the value
-        return self._attr_to_property(attr).ReadProperty(self)
+        prop = self._attr_to_property(attr)
+        if _debug: Object._debug("    - deferring to %r", prop)
+
+        # defer to the property to get the value
+        return prop.ReadProperty(self)
 
     def __setattr__(self, attr, value):
-        if attr.startswith('_') or attr[0].isupper():
+        if _debug: Object._debug("__setattr__ %r %r", attr, value)
+
+        if attr.startswith('_') or attr[0].isupper() or (attr == 'debug_contents'):
+            if _debug: Object._debug("    - special")
             return object.__setattr__(self, attr, value)
 
         # defer to the property to get the value
-        return self._attr_to_property(attr).WriteProperty(self, value)
+        prop = self._attr_to_property(attr)
+        if _debug: Object._debug("    - deferring to %r", prop)
+
+        return prop.WriteProperty(self, value)
 
     def ReadProperty(self, property, arrayIndex=None):
         if _debug: Object._debug("ReadProperty %r arrayIndex=%r", property, arrayIndex)
@@ -347,10 +389,10 @@ class Object(Logging):
         for prop in properties:
             value = prop.ReadProperty(self)
             if hasattr(value, "debug_contents"):
-                print "%s%s" % ("    " * indent, prop.identifier)
+                file.write("%s%s\n" % ("    " * indent, prop.identifier))
                 value.debug_contents(indent+1, file, _ids)
             else:
-                print "%s%s = %r" % ("    " * indent, prop.identifier, value)
+                file.write("%s%s = %r\n" % ("    " * indent, prop.identifier, value))
 
 #
 #   Standard Object Types
@@ -517,31 +559,30 @@ class LocalDeviceObject(DeviceObject, Logging):
         , 'apduTimeout': 3000
         , 'numberOfApduRetries': 3
         }
-        
+
     def __init__(self, **kwargs):
         if _debug: LocalDeviceObject._debug("__init__ %r", kwargs)
-        
-        # proceed as usual
-        DeviceObject.__init__(self, **kwargs)
-        
-        # create a default implementation of an object list for local devices.
-        # If it is specified in the kwargs, that overrides this default.  If
-        # a derived class provides its own implementation, this could be an 
-        # orphan (just sitting there with no access).
-        if (self._values['object-list'] is None) and ('objectList' not in kwargs):
-            try:
-                self.objectList = ArrayOf(ObjectIdentifier)()
-                
-                # make sure this device object is in its own list
-                self.objectList.append(self.objectIdentifier)
-            except:
-                pass
-        
-        # fill in the rest (if they haven't been supplied)
-        for attr, value in LocalDeviceObject.defaultProperties.items():
-            if attr not in kwargs:
-                self.__setattr__(attr, value)
-        
+
+        # default args
+        default_args = {}
+
+        # update with defaults
+        default_args.update(LocalDeviceObject.defaultProperties)
+
+        # update with the kwargs
+        default_args.update(kwargs)
+
+        # if an object list hasn't been provided, build one
+        if 'objectList' not in default_args:
+            # create an object identifier list with itself in it
+            objectList = ArrayOf(ObjectIdentifier)([kwargs['objectIdentifier']])
+            if _debug: LocalDeviceObject._debug("    - objectList: %r", objectList)
+
+            default_args['objectList'] = objectList
+
+        # proceed with initializtion
+        DeviceObject.__init__(self, **default_args)
+
 register_object_type(LocalDeviceObject)
 
 class EventEnrollmentObject(Object):
