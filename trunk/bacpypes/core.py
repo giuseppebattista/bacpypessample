@@ -26,7 +26,7 @@ sleeptime = 0.0
 #   run
 #
 
-SPIN = 5.0
+SPIN = 1.0
 
 def run():
     _log.debug("run")
