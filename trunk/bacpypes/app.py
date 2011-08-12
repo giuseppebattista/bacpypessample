@@ -135,25 +135,25 @@ class Application(ApplicationServiceElement, Logging):
         iAm.maxAPDULengthAccepted = self.localDevice.maxApduLengthAccepted
         iAm.segmentationSupported = self.localDevice.segmentationSupported
         iAm.vendorID = self.localDevice.vendorIdentifier
-        
+
         # blast it out
         iAm.pduDestination = GlobalBroadcast()
         self.request(iAm)
-        
+
     def do_IAmRequest(self, apdu):
         """Given an I-Am request, cache it."""
         if _debug: Application._debug("do_IAmRequest %r", apdu)
-            
+
         self.iAmCache[apdu.iAmDeviceIdentifier] = apdu
-        
+
     def do_ReadPropertyRequest(self, apdu):
         """Return the value of some property of one of our objects."""
         if _debug: Application._debug("do_ReadPropertyRequest %r", apdu)
-        
+
         # get the object
         obj = self.get_object_id(apdu.objectIdentifier)
         if _debug: Application._debug("    - object: %r", obj)
-        
+
         if not obj:
             resp = Error(errorClass='object', errorCode='unknown-object', context=apdu)
         else:
@@ -179,23 +179,24 @@ class Application(ApplicationServiceElement, Logging):
                 elif not isinstance(value, datatype):
                     raise TypeError, "invalid result datatype, expecting %s" % (datatype.__name__,)
                 if _debug: Application._debug("    - encodeable value: %r", value)
-                
+
                 # this is a ReadProperty ack
                 resp = ReadPropertyACK(context=apdu)
                 resp.objectIdentifier = apdu.objectIdentifier
                 resp.propertyIdentifier = apdu.propertyIdentifier
                 resp.propertyArrayIndex = apdu.propertyArrayIndex
-        
+
                 # save the result in the property value
                 resp.propertyValue = Any()
                 resp.propertyValue.cast_in(value)
-        
+
             except PropertyError:
                 resp = Error(errorClass='object', errorCode='unknown-property', context=apdu)
-        
+        if _debug: Application._debug("    - resp: %r", resp)
+
         # return the result
         self.response(resp)
-        
+
     def do_WritePropertyRequest(self, apdu):
         """Change the value of some property of one of our objects."""
         if _debug: Application._debug("do_WritePropertyRequest %r", apdu)
@@ -230,6 +231,7 @@ class Application(ApplicationServiceElement, Logging):
                 
             except PropertyError:
                 resp = Error(errorClass='object', errorCode='unknown-property', context=apdu)
+        if _debug: Application._debug("    - resp: %r", resp)
         
         # return the result
         self.response(resp)
