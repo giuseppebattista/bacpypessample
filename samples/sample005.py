@@ -17,9 +17,10 @@ from bacpypes.core import run
 
 from bacpypes.pdu import Address, GlobalBroadcast
 from bacpypes.app import BIPSimpleApplication
-from bacpypes.object import LocalDeviceObject
+from bacpypes.object import get_object_class, get_datatype, LocalDeviceObject
 
-from bacpypes.apdu import WhoIsRequest, IAmRequest, ReadPropertyRequest
+from bacpypes.apdu import WhoIsRequest, IAmRequest, ReadPropertyRequest, Error, AbortPDU, ReadPropertyACK
+from bacpypes.constructeddata import Array, Any
 
 # some debugging
 _debug = 0
@@ -35,11 +36,43 @@ thisApplication = None
 class TestApplication(BIPSimpleApplication, Logging):
 
     def request(self, apdu):
-        if _debug: TestApplication._debug("Request %r", apdu)
+        if _debug: TestApplication._debug("request %r", apdu)
+
+        # save a copy of the request
+        self._request = apdu
+
+        # forward it along
         BIPSimpleApplication.request(self, apdu)
 
     def confirmation(self, apdu):
-        if _debug: TestApplication._debug("Confirmation %r", apdu)
+        if _debug: TestApplication._debug("confirmation %r", apdu)
+
+        if isinstance(apdu, Error):
+            sys.stdout.write("error: %s\n" % (apdu.errorCode,))
+            sys.stdout.flush()
+
+        elif isinstance(apdu, AbortPDU):
+            apdu.debug_contents()
+
+        elif (isinstance(self._request, ReadPropertyRequest)) and (isinstance(apdu, ReadPropertyACK)):
+            # find the datatype
+            datatype = get_datatype(apdu.objectIdentifier[0], apdu.propertyIdentifier)
+            TestApplication._debug("    - datatype: %r", datatype)
+            if not datatype:
+                raise TypeError, "unknown datatype"
+
+            # special case for array parts, others are managed by cast_out
+            if issubclass(datatype, Array) and (apdu.propertyArrayIndex is not None):
+                if apdu.propertyArrayIndex == 0:
+                    value = apdu.propertyValue.cast_out(Unsigned)
+                else:
+                    value = apdu.propertyValue.cast_out(datatype.subtype)
+            else:
+                value = apdu.propertyValue.cast_out(datatype)
+            TestApplication._debug("    - value: %r", value)
+
+            sys.stdout.write(str(value) + '\n')
+            sys.stdout.flush()
 
 #
 #   isint
@@ -112,17 +145,26 @@ class TestConsoleCmd(ConsoleCmd, Logging):
         if _debug: TestConsoleCmd._debug("do_read %r", args)
 
         try:
-            addr, objType, objInst, propId = args[:4]
-            if isint(objType):
-                objType = int(objType)
-            objInst = int(objInst)
+            addr, obj_type, obj_inst, prop_id = args[:4]
+
+            if isint(obj_type):
+                obj_type = int(obj_type)
+            elif not get_object_class(obj_type):
+                raise ValueError, "unknown object type"
+
+            obj_inst = int(obj_inst)
+
+            datatype = get_datatype(obj_type, prop_id)
+            if not datatype:
+                raise ValueError, "invalid property for object type"
 
             # build a request
             request = ReadPropertyRequest(
-                objectIdentifier=(objType, objInst),
-                propertyIdentifier=propId,
+                objectIdentifier=(obj_type, obj_inst),
+                propertyIdentifier=prop_id,
                 )
             request.pduDestination = Address(addr)
+
             if len(args) == 5:
                 request.propertyArrayIndex = int(args[4])
             if _debug: TestConsoleCmd._debug("    - request: %r", request)
