@@ -2,18 +2,24 @@
 
 """
 sample014_client.py
+
+    Run it like this:
+    
+        $ python sample014_client.py http://localhost:9090/ http://localhost:9091/ ...
 """
 
 import sys
 import logging
 from pprint import pprint
 from time import sleep
+from random import seed, random
 
 import urllib
 import simplejson
 from threading import Thread, Lock
 
 from bacpypes.debugging import Logging, ModuleLogger
+from bacpypes.consolelogging import ConsoleLogHandler
 from bacpypes.consolecmd import ConsoleCmd
 
 from bacpypes.core import run
@@ -67,9 +73,13 @@ class MyCacheCmd(ConsoleCmd, Logging):
 
 class MyCacheThread(Thread, Logging):
 
-    def __init__(self):
-        if _debug: MyCacheThread._debug("__init__")
-        Thread.__init__(self, name="MyCacheThread")
+    def __init__(self, url):
+        if _debug: MyCacheThread._debug("__init__ %r", url)
+        Thread.__init__(self, name="MyCacheThread(%s)" % (url,))
+
+        # save the url
+        self.url = url
+        self.go = True
 
         # daemonic
         self.daemon = True
@@ -78,15 +88,21 @@ class MyCacheThread(Thread, Logging):
         self.start()
 
     def run(self):
-        if _debug: MyCacheThread._debug("run")
+        if _debug: MyCacheThread._debug("(%s) run", self.url)
 
-        while True:
-            sleep(5)
+        while self.go:
+            nap_time = 3.0 + random() * 2
+            if _debug: MyCacheThread._debug("(%s) sleeping %f", self.url, nap_time)
+
+            sleep(nap_time)
+            if _debug: MyCacheThread._debug("(%s) awake", self.url)
 
             try:
-                urlfile = urllib.urlopen("http://localhost:9090/")
+                urlfile = urllib.urlopen(self.url)
+                if _debug: MyCacheThread._debug("(%s) urlfile: %r", self.url, urlfile)
+
                 cache_update = simplejson.load(urlfile)
-                if _debug: MyCacheThread._debug("    - cache_update: %r", cache_update)
+                if _debug: MyCacheThread._debug("(%s) cache_update: %r", self.url, cache_update)
 
                 cache_lock.acquire()
                 my_cache.update(cache_update)
@@ -94,13 +110,28 @@ class MyCacheThread(Thread, Logging):
 
                 urlfile.close()
             except Exception, err:
-                sys.stderr.write("[exception %r]\n" % (err,))
+                sys.stderr.write("(%s) exception: %r\n" % (self.url, err))
+
+        if _debug: MyCacheThread._debug("(%s) fini", self.url)
 
 #
 #   __main__
 #
 
 try:
+    if ('--buggers' in sys.argv):
+        loggers = logging.Logger.manager.loggerDict.keys()
+        loggers.sort()
+        for loggerName in loggers:
+            sys.stdout.write(loggerName + '\n')
+        sys.exit(0)
+
+    if ('--debug' in sys.argv):
+        indx = sys.argv.index('--debug')
+        for i in range(indx+1, len(sys.argv)):
+            ConsoleLogHandler(sys.argv[i])
+        del sys.argv[indx:]
+
     _log.debug("initialization")
 
     # create a lock for the cache
@@ -109,13 +140,25 @@ try:
     # console
     MyCacheCmd()
 
-    # cache update thread
-    MyCacheThread()
+    # build a list of update threads
+    cache_threads = []
+    for url in sys.argv[1:]:
+        cache_thread = MyCacheThread(url)
+        _log.debug("    - cache_thread: %r", cache_thread)
+
+        cache_threads.append(cache_thread)
 
     _log.debug("running")
 
     # run until stopped
     run()
+
+    # stop all the threads
+    for cache_thread in cache_threads:
+        cache_thread.go = False
+
+    # wait for them
+    sleep(5)
 
 except Exception, e:
     _log.exception("an error has occurred: %s", e)
