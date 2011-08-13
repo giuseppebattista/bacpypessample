@@ -2,8 +2,13 @@
 
 """
 sample014_server.py
+
+    Run like this:
+
+    $ python sample014_server.py 9001
 """
 
+import sys
 from random import seed, choice, uniform
 from time import time as _time
 
@@ -16,6 +21,7 @@ varNames = [
     "spam",
     "eggs",
     ]
+port = None
 
 #
 #   ValueServer
@@ -25,6 +31,10 @@ class ValueServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         cache_update = {choice(varNames): uniform(0, 100)}
+
+        sys.stdout.write(str(port) + ': ' + str(cache_update) + '\n')
+        sys.stdout.flush()
+
         simplejson.dump(cache_update, self.wfile)
 
 #
@@ -32,8 +42,14 @@ class ValueServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
 #
 
 try:
+    # get a port
+    port = int(sys.argv[1])
+
+    # fresh random numbers please
     seed(_time())
-    httpd = SocketServer.TCPServer(('', 9090), ValueServer)
-    httpd.serve_forever()
+
+    # build and launch the server
+    SocketServer.TCPServer(('', port), ValueServer).serve_forever()
+
 except KeyboardInterrupt:
     pass
