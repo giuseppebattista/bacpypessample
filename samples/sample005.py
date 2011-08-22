@@ -21,6 +21,7 @@ from bacpypes.object import get_object_class, get_datatype, LocalDeviceObject
 
 from bacpypes.apdu import WhoIsRequest, IAmRequest, ReadPropertyRequest, Error, AbortPDU, ReadPropertyACK
 from bacpypes.constructeddata import Array, Any
+from bacpypes.basetypes import BACnetServicesSupported
 
 # some debugging
 _debug = 0
@@ -223,6 +224,12 @@ try:
             , segmentationSupported=config.get('BACpypes','segmentationSupported')
             , vendorIdentifier=config.getint('BACpypes','vendorIdentifier')
             )
+
+    thisDevice.protocolServicesSupported = BACnetServicesSupported()
+    thisDevice.protocolServicesSupported['who-Is'] = 1
+    thisDevice.protocolServicesSupported['i-Am'] = 1
+    thisDevice.protocolServicesSupported['readProperty'] = 1
+    thisDevice.protocolServicesSupported['writeProperty'] = 1
 
     # make a simple application
     thisApplication = TestApplication(thisDevice, addr)
