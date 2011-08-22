@@ -20,7 +20,7 @@ from debugging import DebugContents, Logging, function_debugging, ModuleLogger
 from pdu import PDU, Address
 from bvll import BVLPDU
 from npdu import NPDU, npdu_types
-from apdu import APDU, apdu_types, confirmed_request_types, UnconfirmedRequestTypes, complex_ack_types, error_types, \
+from apdu import APDU, apdu_types, confirmed_request_types, unconfirmed_request_types, complex_ack_types, error_types, \
     ConfirmedRequestPDU, UnconfirmedRequestPDU, SimpleAckPDU, ComplexAckPDU, SegmentAckPDU, ErrorPDU, RejectPDU, AbortPDU
 
 # some debugging
@@ -247,7 +247,7 @@ def decode_packet(data):
                 return apdu
 
         elif isinstance(apdu, UnconfirmedRequestPDU):
-            atype = UnconfirmedRequestTypes.get(apdu.apduService)
+            atype = unconfirmed_request_types.get(apdu.apduService)
             if not atype:
                 if _debug: decode_packet._debug("    - no unconfirmed request decoder: %r", apdu.apduService)
                 return apdu
