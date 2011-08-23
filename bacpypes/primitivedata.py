@@ -830,6 +830,8 @@ class BitString(Atomic):
                     self.value[bit] = 1
             else:
                 raise TypeError, "invalid constructor list element(s)"
+        elif isinstance(arg,BitString):
+            self.value = arg.value[:]
         else:
             raise TypeError, "invalid constructor datatype"
 
