@@ -225,11 +225,15 @@ try:
             , vendorIdentifier=config.getint('BACpypes','vendorIdentifier')
             )
 
-    thisDevice.protocolServicesSupported = BACnetServicesSupported()
-    thisDevice.protocolServicesSupported['who-Is'] = 1
-    thisDevice.protocolServicesSupported['i-Am'] = 1
-    thisDevice.protocolServicesSupported['readProperty'] = 1
-    thisDevice.protocolServicesSupported['writeProperty'] = 1
+    # build a bit string that knows about the bit names
+    pss = BACnetServicesSupported()
+    pss['who-Is'] = 1
+    pss['i-Am'] = 1
+    pss['readProperty'] = 1
+    pss['writeProperty'] = 1
+
+    # set the property value to be just the bits
+    thisDevice.protocolServicesSupported = pss.value
 
     # make a simple application
     thisApplication = TestApplication(thisDevice, addr)
