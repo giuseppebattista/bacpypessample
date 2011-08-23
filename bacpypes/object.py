@@ -159,9 +159,11 @@ class Property(Logging):
         if not self.mutable:
             raise RuntimeError, "%s immutable property" % (self.identifier,)
 
-        # if it's atomic or already the correct type, leave it alone
-        if issubclass(self.datatype, Atomic) or isinstance(value, self.datatype):
-            pass
+        # if it's atomic assume correct datatype
+        if issubclass(self.datatype, Atomic):
+            if _debug: Property._debug("    - property is atomic, assumed correct type")
+        elif isinstance(value, self.datatype):
+            if _debug: Property._debug("    - correct type")
         elif arrayIndex is not None:
             if not issubclass(self.datatype, Array):
                 raise TypeError, "%s is not an array" % (self.identifier,)
@@ -172,12 +174,14 @@ class Property(Logging):
                 raise ValueError, "%s uninitialized array" % (self.identifier,)
                 
             # seems to be OK, let the array object take over
+            if _debug: Property._debug("    - forwarding to array")
             arry[arrayIndex] = value
             
             return
         else:
             # coerce the value
             value = self.datatype(value)
+            if _debug: Property._debug("    - coerced the value: %r", value)
 
         # seems to be OK
         obj._values[self.identifier] = value
