@@ -483,6 +483,8 @@ class Null(Atomic):
         elif isinstance(arg,types.TupleType):
             if len(arg) != 0:
                 raise ValueError, "empty tuple required"
+        elif isinstance(arg, Null):
+            pass
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -515,6 +517,8 @@ class Boolean(Atomic):
             self.decode(arg)
         elif isinstance(arg,types.BooleanType):
             self.value = arg
+        elif isinstance(arg, Boolean):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -554,6 +558,8 @@ class Unsigned(Atomic):
             if (arg < 0):
                 raise ValueError, "unsigned integer required"
             self.value = arg
+        elif isinstance(arg, Unsigned):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -602,6 +608,8 @@ class Integer(Atomic):
             self.value = arg
         elif isinstance(arg,types.LongType):
             self.value = arg
+        elif isinstance(arg, Integer):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -666,6 +674,8 @@ class Real(Atomic):
             self.value = arg
         elif isinstance(arg,types.IntType) or isinstance(arg,types.LongType):
             self.value = float(arg)
+        elif isinstance(arg, Real):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -702,6 +712,8 @@ class Double(Atomic):
             self.value = arg
         elif isinstance(arg,types.IntType) or isinstance(arg,types.LongType):
             self.value = float(arg)
+        elif isinstance(arg, Double):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -736,6 +748,8 @@ class OctetString(Atomic):
             self.decode(arg)
         elif isinstance(arg,types.StringType):
             self.value = arg
+        elif isinstance(arg, OctetString):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -771,6 +785,9 @@ class CharacterString(Atomic):
             self.decode(arg)
         elif isinstance(arg,types.StringType):
             self.strValue = self.value = arg
+        elif isinstance(arg, CharacterString):
+            self.value = arg.value
+            self.strValue = arg.strValue
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -972,6 +989,8 @@ class Enumerated(Atomic):
                 self.value = arg
             else:
                 raise ValueError, "undefined enumeration '%s'" % (arg,)
+        elif isinstance(arg, Enumerated):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -1104,6 +1123,8 @@ class Date(Atomic):
             self.decode(arg)
         elif isinstance(arg, types.TupleType):
             self.value = arg
+        elif isinstance(arg, Date):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -1182,6 +1203,8 @@ class Time(Atomic):
             self.decode(arg)
         elif isinstance(arg, types.TupleType):
             self.value = arg
+        elif isinstance(arg, Time):
+            self.value = arg.value
         else:
             raise TypeError, "invalid constructor datatype"
 
@@ -1295,6 +1318,8 @@ class ObjectIdentifier(Atomic):
                 raise TypeError, "invalid constructor datatype"
         elif len(args) == 2:
             self.set_tuple(*args)
+        elif isinstance(arg, ObjectIdentifier):
+            self.value = arg.value
         else:
             raise ValueError, "invalid constructor parameters"
 
