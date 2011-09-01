@@ -319,12 +319,12 @@ class ClientSSM(SSM, Logging):
         if self.segmentCount > 1:
             if (self.ssmSAP.segmentationSupported != 'segmented-transmit') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
                 if _debug: ClientSSM._debug("    - local device can't send segmented messages")
-                abort = self.abort(BACnetAbortReason.SEGMENTATION_NOT_SUPPORTED)
+                abort = self.abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.response(abort)
                 return
             if (self.remoteDevice.segmentationSupported != 'segmented-receive') and (self.remoteDevice.segmentationSupported != 'segmented-both'):
                 if _debug: ClientSSM._debug("    - remote device can't receive segmented messages")
-                abort = self.abort(BACnetAbortReason.SEGMENTATION_NOT_SUPPORTED)
+                abort = self.abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.response(abort)
                 return
 
@@ -436,7 +436,7 @@ class ClientSSM(SSM, Logging):
             if _debug: ClientSSM._debug("    - simple ack")
 
             if not self.sentAllSegments:
-                abort = self.abort(BACnetAbortReason.INVALID_APDU_IN_THIS_STATE)
+                abort = self.abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
                 self.request(abort)     # send it to the device
                 self.response(abort)    # send it to the application
             else:
@@ -447,7 +447,7 @@ class ClientSSM(SSM, Logging):
             if _debug: ClientSSM._debug("    - complex ack")
 
             if not self.sentAllSegments:
-                abort = self.abort(BACnetAbortReason.INVALID_APDU_IN_THIS_STATE)
+                abort = self.abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
                 self.request(abort)     # send it to the device
                 self.response(abort)    # send it to the application
 
@@ -488,7 +488,7 @@ class ClientSSM(SSM, Logging):
         else:
             if _debug: ClientSSM._debug("    - abort, no response from the device")
 
-            abort = self.abort(BACnetAbortReason.NO_RESPONSE)
+            abort = self.abort(BACnetAbortReason.NORESPONSE)
             self.response(abort)
 
     def await_confirmation(self, apdu):
@@ -518,7 +518,7 @@ class ClientSSM(SSM, Logging):
 
             elif (self.ssmSAP.segmentationSupported != 'segmented-receive') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
                 if _debug: ClientSSM._debug("    - local device can't receive segmented messages")
-                abort = self.abort(BACnetAbortReason.SEGMENTATION_NOT_SUPPORTED)
+                abort = self.abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.response(abort)
 
             elif apdu.apduSeq == 0:
@@ -539,7 +539,7 @@ class ClientSSM(SSM, Logging):
             else:
                 if _debug: ClientSSM._debug("    - invalid APDU in this state")
 
-                abort = self.abort(BACnetAbortReason.INVALID_APDU_IN_THIS_STATE)
+                abort = self.abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
                 self.request(abort) # send it to the device
                 self.response(abort) # send it to the application
 
@@ -565,7 +565,7 @@ class ClientSSM(SSM, Logging):
             self.retryCount = saveCount
         else:
             if _debug: ClientSSM._debug("    - retry count exceeded")
-            abort = self.abort(BACnetAbortReason.NO_RESPONSE)
+            abort = self.abort(BACnetAbortReason.NORESPONSE)
             self.response(abort)
 
     def segmented_confirmation(self, apdu):
@@ -575,7 +575,7 @@ class ClientSSM(SSM, Logging):
         if (apdu.apduType != ComplexAckPDU.pduType):
             if _debug: ClientSSM._debug("    - complex ack required")
 
-            abort = self.abort(BACnetAbortReason.INVALID_APDU_IN_THIS_STATE)
+            abort = self.abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
             self.request(abort) # send it to the device
             self.response(abort) # send it to the application
             return
@@ -584,7 +584,7 @@ class ClientSSM(SSM, Logging):
         if not apdu.apduSeg:
             if _debug: ClientSSM._debug("    - must be segmented")
 
-            abort = self.abort(BACnetAbortReason.INVALID_APDU_IN_THIS_STATE)
+            abort = self.abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
             self.request(abort) # send it to the device
             self.response(abort) # send it to the application
             return
@@ -633,7 +633,7 @@ class ClientSSM(SSM, Logging):
     def segmented_confirmation_timeout(self):
         if _debug: ClientSSM._debug("segmented_confirmation_timeout")
 
-        abort = self.abort(BACnetAbortReason.NO_RESPONSE)
+        abort = self.abort(BACnetAbortReason.NORESPONSE)
         self.response(abort)
 
 #
@@ -746,11 +746,11 @@ class ServerSSM(SSM):
                 if _debug: ServerSSM._debug("    - segmentation required, %d segemnts", self.segmentCount)
 
                 if (self.ssmSAP.segmentationSupported != 'segmented-transmit') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
-                    abort = self.abort(BACnetAbortReason.SEGMENTATION_NOT_SUPPORTED)
+                    abort = self.abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
                     self.request(abort)
                     return
                 if (self.remoteDevice.segmentationSupported != 'segmented-receive') and (self.remoteDevice.segmentationSupported != 'segmented-both'):
-                    abort = self.abort(BACnetAbortReason.SEGMENTATION_NOT_SUPPORTED)
+                    abort = self.abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
                     self.request(abort)
                     return
 
@@ -831,7 +831,7 @@ class ServerSSM(SSM):
 
         # make sure we support segmented requests
         if (self.ssmSAP.segmentationSupported != 'segmented-receive') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
-            abort = self.abort(BACnetAbortReason.SEGMENTATION_NOT_SUPPORTED)
+            abort = self.abort(BACnetAbortReason.SEGMENTATIONNOTSUPPORTED)
             self.response(abort)
             return
 
@@ -864,14 +864,14 @@ class ServerSSM(SSM):
 
         # the only messages we should be getting are confirmed requests
         elif (apdu.apduType != ConfirmedRequestPDU.pduType):
-            abort = self.abort(BACnetAbortReason.INVALID_APDU_IN_THIS_STATE)
+            abort = self.abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
             self.request(abort) # send it to the device
             self.response(abort) # send it to the application
             return
 
         # it must be segmented
         elif not apdu.apduSeg:
-            abort = self.abort(BACnetAbortReason.INVALID_APDU_IN_THIS_STATE)
+            abort = self.abort(BACnetAbortReason.INVALIDAPDUINTHISSTATE)
             self.request(abort) # send it to the application
             self.response(abort) # send it to the device
             return
@@ -951,7 +951,7 @@ class ServerSSM(SSM):
         given up."""
         if _debug: ServerSSM._debug("await_response_timeout")
 
-        abort = self.abort(BACnetAbortReason.SERVER_TIMEOUT)
+        abort = self.abort(BACnetAbortReason.SERVERTIMEOUT)
         self.request(abort)
 
     def segmented_response(self, apdu):
