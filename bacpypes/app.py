@@ -102,7 +102,7 @@ class Application(ApplicationServiceElement, Logging):
         # send back a reject for unrecognized services
         if not helperFn:
             if isinstance(apdu, ConfirmedRequestPDU):
-                response = RejectPDU( apdu.apduInvokeID, BACnetRejectReason.UNRECOGNIZED_SERVICE, context=apdu)
+                response = RejectPDU( apdu.apduInvokeID, BACnetRejectReason.UNRECOGNIZEDSERVICE, context=apdu)
                 self.response(response)
             return
         
