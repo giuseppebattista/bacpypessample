@@ -889,3 +889,60 @@ class Any(Logging):
     def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
         self.tagList.debug_contents(indent, file, _ids)
 
+#
+#   AnyAtomic
+#
+
+class AnyAtomic(Logging):
+
+    def __init__(self, element=None):
+        self.valueTag = None
+
+        # cast in the arg
+        if element:
+            self.cast_in(element)
+
+    def encode(self, taglist):
+        if _debug: AnyAtomic._debug("encode %r", taglist)
+
+        taglist.append(self.valueTag)
+
+    def decode(self, taglist):
+        if _debug: AnyAtomic._debug("decode %r", taglist)
+
+        if len(taglist) == 0:
+            raise DecodingError, "application tagged atomic value expected"
+
+        tag = taglist.Peek()
+        if tag.tagClass != Tag.applicationTagClass:
+            raise DecodingError, "application tagged atomic value expected"
+
+        self.valueTag = taglist.Pop()
+
+    def cast_in(self, element):
+        """encode the element into the internal tag list."""
+        if _debug: AnyAtomic._debug("cast_in %r", element)
+
+        t = TagList()
+        if not isinstance(element, Atomic):
+            raise RuntimeError, "atomic element expected"
+
+        self.valueTag = Tag()
+        element.encode(self.valueTag)
+
+    def cast_out(self, klass):
+        """Interpret the content as a particular class."""
+        if _debug: AnyAtomic._debug("cast_out %r", klass)
+
+        if not issubclass(klass, Atomic):
+            raise RuntimeError, "atomic class expected"
+
+        # a helper cooperates between the atomic value and the tag
+        helper = klass(self.valueTag)
+
+        # return the value
+        return helper.value
+
+    def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
+        if self.valueTag:
+            self.valueTag.debug_contents(indent, file, _ids)
