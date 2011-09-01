@@ -648,7 +648,7 @@ class BACnetScale(Choice):
 class BACnetTimeValue(Sequence):
     sequenceElements = \
         [ Element('time', Time)
-        , Element('value', Any)
+        , Element('value', AnyAtomic)
         ]
 
 class BACnetDailySchedule(Sequence):
