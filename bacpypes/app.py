@@ -212,23 +212,23 @@ class Application(ApplicationServiceElement, Logging):
                 # get the datatype
                 datatype = obj.get_datatype(apdu.propertyIdentifier)
                 if _debug: Application._debug("    - datatype: %r", datatype)
-                
+
                 # special case for array parts, others are managed by cast_out
                 if issubclass(datatype, Array) and (apdu.propertyArrayIndex is not None):
                     if apdu.propertyArrayIndex == 0:
-                        value = resp.propertyValue.cast_out(Unsigned)
+                        value = apdu.propertyValue.cast_out(Unsigned)
                     else:
-                        value = resp.propertyValue.cast_out(datatype.subtype)
+                        value = apdu.propertyValue.cast_out(datatype.subtype)
                 else:
-                    value = resp.propertyValue.cast_out(datatype)
+                    value = apdu.propertyValue.cast_out(datatype)
                 if _debug: Application._debug("    - value: %r", value)
-                
+
                 # change the value
                 value = obj.WriteProperty(apdu.propertyIdentifier, value, apdu.propertyArrayIndex, apdu.priority)
-                    
+
                 # success
                 resp = SimpleAckPDU(context=apdu)
-                
+
             except PropertyError:
                 resp = Error(errorClass='object', errorCode='unknown-property', context=apdu)
         if _debug: Application._debug("    - resp: %r", resp)
