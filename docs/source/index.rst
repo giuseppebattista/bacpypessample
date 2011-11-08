@@ -26,6 +26,11 @@ tickets and monitor the project development.  There is also a
 can add to your circles have have release notifications show up in your
 stream.
 
+For an overview of the current project activity, there is a 
+`Trello <https://trello.com/board/bacpypes/4ea6038072bf960d4b036f34>`_ board,
+feel free to become a member and share what you are doing with the
+rest of the BACpypes community.
+
 Welcome aboard!
 
 Tutorial
