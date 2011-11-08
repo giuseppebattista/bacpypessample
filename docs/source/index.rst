@@ -21,7 +21,10 @@ And then use the setup utility to install it::
 If you would like to participate in its development, please join the
 `developers mailing list <https://lists.sourceforge.net/lists/listinfo/bacpypes-developers>`_
 and use the `Trac <https://sourceforge.net/apps/trac/bacpypes>`_ to create 
-tickets and monitor the project development.
+tickets and monitor the project development.  There is also a
+`Google+ <https://plus.google.com/100756765082570761221/posts>`_ page that you
+can add to your circles have have release notifications show up in your
+stream.
 
 Welcome aboard!
 
