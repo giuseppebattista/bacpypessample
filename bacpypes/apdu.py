@@ -492,15 +492,15 @@ register_apdu_type(ErrorPDU)
 class BACnetRejectReason(Enumerated):
     enumerations = \
         { 'other':0
-        , 'buffer-overflow':1
-        , 'inconsistent-parameters':2
-        , 'invalid-parameter-datatype':3
-        , 'invalid-tag':4
-        , 'missing-required-parameter':5
-        , 'parameter-out-of-range':6
-        , 'too-many-arguments':7
-        , 'undefined-enumeration':8
-        , 'unrecognized-service':9
+        , 'bufferOverflow':1
+        , 'inconsistentParameters':2
+        , 'invalidParameterDatatype':3
+        , 'invalidTag':4
+        , 'missingRequiredParameter':5
+        , 'parameterOutOfRange':6
+        , 'tooManyArguments':7
+        , 'undefinedEnumeration':8
+        , 'unrecognizedService':9
         }
 
 expand_enumerations(BACnetRejectReason)
@@ -544,16 +544,22 @@ register_apdu_type(RejectPDU)
 class BACnetAbortReason(Enumerated):
     enumerations = \
         { 'other':0
-        , 'buffer-overflow':1
-        , 'invalid-apdu-in-this-state':2
-        , 'preepmted-by-higher-priority-task':3
-        , 'segmentation-not-supported':4
-        
+        , 'bufferOverflow':1
+        , 'invalidApduInThisState':2
+        , 'preemptedByHigherPriorityTask':3  #wtm corrected spelling
+        , 'segmentationNotSupported':4
+        , 'securityError':5
+        , 'insufficientSecurity':6
+        , 'windowSizeOutOfRange':7
+        , 'applicationExceededReplyTime':8
+        , 'outOfResources':9
+        , 'tsmTimeout':10
+        , 'apduTooLong':11
         # 64..255 are available for vendor codes
-        , 'server-timeout':64
-        , 'no-response':65
+        , 'serverTimeout':64
+        , 'noResponse':65
         }
-        
+
 expand_enumerations(BACnetAbortReason)
 
 class AbortPDU(_APDU):
@@ -678,80 +684,9 @@ class ErrorSequence(APCISequence, ErrorPDU):
 
 #------------------------------
 
-class ErrorClass(Enumerated):
-    enumerations = \
-        { 'device':0
-        , 'object':1
-        , 'property':2
-        , 'resources':3
-        , 'security':4
-        , 'services':5
-        , 'vt':6
-        }
-
-class ErrorCode(Enumerated):
-    enumerations = \
-        { 'other':0
-        , 'authentication-failed':1
-        , 'character-set-not-supported':41
-        , 'configuration-in-progress':2
-        , 'datatype-not-supported':47
-        , 'device-busy':3
-        , 'duplicate-name':48
-        , 'duplicate-object-id':49
-        , 'dynamic-creation-not-supported':4
-        , 'file-access-denied':5
-        , 'incompatible-security-levels':6
-        , 'inconsistent-parameters':7
-        , 'inconsistent-selection-criteria':8
-        , 'invalid-array-index':42
-        , 'invalid-configuration-data':46
-        , 'invalid-data-type':9
-        , 'invalid-file-access-method':10
-        , 'invalid-file-start-position':11
-        , 'invalid-operator-name':12
-        , 'invalid-parameter-datatype':13
-        , 'invalid-time-stamp':14
-        , 'key-generation-error':15
-        , 'missing-required-parameter':16
-        , 'no-objects-of-specified-type':17
-        , 'no-space-for-object':18
-        , 'no-space-to-add-list-element':19
-        , 'no-space-to-write-property':20
-        , 'no-vt-sessions-available':21
-        , 'object-deletion-not-premitted':23
-        , 'object-identifier-already-exists':24
-        , 'operational-problem':25
-        , 'optional-functionality-not-supported':45
-        , 'password-failure':26
-        , 'property-is-not-a-list':22
-        , 'property-is-not-an-array':50
-        , 'read-access-denied':27
-        , 'security-not-supported':28
-        , 'service-request-denied':29
-        , 'timeout':30
-        , 'unknown-object':31
-        , 'unknown-property':32
-        , 'unknown-vt-class':34
-        , 'unknown-vt-session':35
-        , 'unsupported-object-type':36
-        , 'value-out-of-range':37
-        , 'vt-session-already-closed':38
-        , 'vt-session-termination-failure':39
-        , 'write-access-denied':40
-        , 'cov-subscription-failed':43
-        , 'not-cov-property':44
-        }
-
-class ErrorType(Sequence):
-    sequenceElements = \
-        [ Element('errorClass', ErrorClass)
-        , Element('errorCode', ErrorCode)
-        ]
-
-class Error(ErrorSequence, ErrorType):
+class Error(ErrorSequence):
     sequenceElements = ErrorType.sequenceElements
-    
+
     def __str__(self):
         return str(self.errorClass) + ": " + str(self.errorCode)
         
@@ -793,7 +728,7 @@ error_types[18] = ConfirmedPrivateTransferError
 class WritePropertyMultipleError(ErrorSequence):
     sequenceElements = \
         [ Element('errorType', ErrorType, 0)
-        , Element('firstFailedWriteAttempt', BACnetObjectPropertyReference, 1)
+        , Element('firstFailedWriteAttempt', ObjectPropertyReference, 1)
         ]
 
 error_types[16] = WritePropertyMultipleError
@@ -812,7 +747,7 @@ class ReadPropertyRequest(ConfirmedRequestSequence):
     serviceChoice = 12
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
-        , Element('propertyIdentifier', BACnetPropertyIdentifier, 1)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
         , Element('propertyArrayIndex', Unsigned, 2, True)
         ]
 
@@ -822,7 +757,7 @@ class ReadPropertyACK(ComplexAckSequence):
     serviceChoice = 12
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
-        , Element('propertyIdentifier', BACnetPropertyIdentifier, 1)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
         , Element('propertyArrayIndex', Unsigned, 2, True)
         , Element('propertyValue', Any, 3)
         ]
@@ -834,7 +769,7 @@ register_complex_ack_type(ReadPropertyACK)
 class ReadAccessSpecification(Sequence):
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
-        , Element('listOfPropertyReferences', SequenceOf(BACnetPropertyReference), 1)
+        , Element('listOfPropertyReferences', SequenceOf(PropertyReference), 1)
         ]
 
 class ReadPropertyMultipleRequest(ConfirmedRequestSequence):
@@ -853,7 +788,7 @@ class ReadAccessResultElementChoice(Choice):
 
 class ReadAccessResultElement(Sequence):
     sequenceElements = \
-        [ Element('propertyIdentifier', BACnetPropertyIdentifier, 2)
+        [ Element('propertyIdentifier', PropertyIdentifier, 2)
         , Element('propertyArrayIndex', Unsigned, 3, True)
         , Element('readResult', ReadAccessResultElementChoice)
         ]
@@ -888,7 +823,7 @@ class RangeBySequenceNumber(Sequence):
 
 class RangeByTime(Sequence):
     sequenceElements = \
-        [ Element('referenceTime', BACnetDateTime)
+        [ Element('referenceTime', DateTime)
         , Element('count', Integer)
         ]
 
@@ -903,7 +838,7 @@ class ReadRangeRequest(ConfirmedRequestSequence):
     serviceChoice = 26
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
-        , Element('propertyIdentifier', BACnetPropertyIdentifier, 1)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
         , Element('propertyArrayIndex', Unsigned, 2, True)
         , Element('range', Range, optional=True)
         ]
@@ -914,9 +849,9 @@ class ReadRangeACK(ComplexAckSequence):
     serviceChoice = 26
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
-        , Element('propertyIdentifier', BACnetPropertyIdentifier, 1)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
         , Element('propertyArrayIndex', Unsigned, 2, True)
-        , Element('resultFlags', BACnetResultFlags, 3)
+        , Element('resultFlags', ResultFlags, 3)
         , Element('itemCount', Unsigned, 4)
         , Element('itemData', SequenceOf(Any), 5)
         , Element('firstSequenceNumber', Unsigned, 6, True)
@@ -930,7 +865,7 @@ class WritePropertyRequest(ConfirmedRequestSequence):
     serviceChoice = 15
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
-        , Element('propertyIdentifier', BACnetPropertyIdentifier, 1)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
         , Element('propertyArrayIndex', Unsigned, 2, True)
         , Element('propertyValue', Any, 3)
         , Element('priority', Integer, 4, True)
@@ -943,7 +878,7 @@ register_confirmed_request_type(WritePropertyRequest)
 class WriteAccessSpecification(Sequence):
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
-        , Element('listOfProperties', SequenceOf(BACnetPropertyValue), 1)
+        , Element('listOfProperties', SequenceOf(PropertyValue), 1)
         ]
 
 class WritePropertyMultipleRequest(ConfirmedRequestSequence):
@@ -961,7 +896,7 @@ class IAmRequest(UnconfirmedRequestSequence):
     sequenceElements = \
         [ Element('iAmDeviceIdentifier', ObjectIdentifier)
         , Element('maxAPDULengthAccepted', Unsigned)
-        , Element('segmentationSupported', BACnetSegmentation)
+        , Element('segmentationSupported', Segmentation)
         , Element('vendorID', Unsigned)
         ]
         
@@ -1015,40 +950,607 @@ register_unconfirmed_request_type(WhoIsRequest)
         
 #-----
 
-class ConfirmedEventNotificationRequest(ConfirmedRequestSequence):
-    serviceChoice = 2
+class EventNotificationParameters(Sequence):
     sequenceElements = \
         [ Element('processIdentifier', Unsigned, 0)
         , Element('initiatingDeviceIdentifier', ObjectIdentifier, 1)
         , Element('eventObjectIdentifier', ObjectIdentifier, 2)
-        , Element('timeStamp', BACnetTimeStamp, 3)
+        , Element('timeStamp', TimeStamp, 3)
         , Element('notificationClass', Unsigned, 4)
         , Element('priority', Unsigned, 5)
-        , Element('eventType', BACnetEventType, 6)
+        , Element('eventType', EventType, 6)
         , Element('messageText', CharacterString, 7, True)
-        , Element('notifyType', BACnetNotifyType, 8)
+        , Element('notifyType', NotifyType, 8)
         , Element('ackRequired', Boolean, 9, True)
-        , Element('fromState', BACnetEventState, 10, True)
-        , Element('toState', BACnetEventState, 11)
-        , Element('eventValues', BACnetNotificationParameters, 12, True)
+        , Element('fromState', EventState, 10, True)
+        , Element('toState', EventState, 11)
+        , Element('eventValues', NotificationParameters, 12, True)
         ]
+
+class ConfirmedEventNotificationRequest(ConfirmedRequestSequence):
+    serviceChoice = 2
+    sequenceElements = EventNotificationParameters.sequenceElements
 
 register_confirmed_request_type(ConfirmedEventNotificationRequest)
 
 class UnconfirmedEventNotificationRequest(Sequence):
-    sequenceElements = ConfirmedEventNotificationRequest.sequenceElements
+    serviceChoice = 3
+    sequenceElements = EventNotificationParameters.sequenceElements
 
-class UnconfirmedCOVNotificationRequest(UnconfirmedRequestSequence):
-    serviceChoice = 2
+register_unconfirmed_request_type(UnconfirmedEventNotificationRequest)
+
+#-----
+
+class COVNotificationParameters(Sequence):
     sequenceElements = \
         [ Element('subscriberProcessIdentifier', Unsigned, 0)
         , Element('initiatingDeviceIdentifier', ObjectIdentifier, 1)
         , Element('monitoredObjectIdentifier', ObjectIdentifier, 2)
         , Element('timeRemaining', Unsigned, 3)
-        , Element('listOfValues', SequenceOf(BACnetPropertyValue), 4)
+        , Element('listOfValues', SequenceOf(PropertyValue), 4)
         ]
 
+class ConfirmedCOVNotificationRequest(ConfirmedRequestSequence):
+    serviceChoice = 1
+    sequenceElements = COVNotificationParameters.sequenceElements
+
+register_confirmed_request_type(ConfirmedCOVNotificationRequest)
+
+class UnconfirmedCOVNotificationRequest(UnconfirmedRequestSequence):
+    serviceChoice = 2
+    sequenceElements = COVNotificationParameters.sequenceElements
+
 register_unconfirmed_request_type(UnconfirmedCOVNotificationRequest)
+
+#-----
+
+class UnconfirmedPrivateTransferRequest(UnconfirmedRequestSequence):
+    serviceChoice = 4
+    sequenceElements = \
+        [ Element('vendorID', Unsigned, 0)
+        , Element('serviceNumber', Unsigned, 1)
+        , Element('serviceParameters', Any, 2, True)
+        ]
+register_unconfirmed_request_type(UnconfirmedPrivateTransferRequest)
+
+
+class UnconfirmedTextMessageRequestMessageClass(Choice):
+    choiceElements = \
+        [ Element('numeric', Unsigned)
+        , Element('Character', CharacterString)
+        ]
+
+
+class UnconfirmedTextMessageRequestMessagePriority(Enumerated):
+    enumerations = \
+        { 'normal':0
+        , 'urgent':1
+        }
+
+
+class UnconfirmedTextMessageRequest(UnconfirmedRequestSequence):
+    serviceChoice = 5
+    sequenceElements = \
+        [ Element('textMessageSourceDevice', ObjectIdentifier, 0)
+        , Element('messageClass', UnconfirmedTextMessageRequestMessageClass, 1)
+        , Element('messagePriority', UnconfirmedTextMessageRequestMessagePriority, 2)
+        , Element('message', CharacterString, 3)
+        ]
+register_unconfirmed_request_type(UnconfirmedTextMessageRequest)
+
+class TimeSynchronizationRequest(UnconfirmedRequestSequence):
+    serviceChoice = 6
+    sequenceElements = \
+        [ Element('time', DateTime, 0)
+        ]
+
+register_unconfirmed_request_type(TimeSynchronizationRequest)
+
+class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
+    serviceChoice = 9
+    sequenceElements = \
+        [ Element('time', DateTime, 0)
+        ]
+register_unconfirmed_request_type(UTCTimeSynchronizationRequest)
         
 #-----
 
+class AcknowledgeAlarmRequest(ConfirmedRequestSequence):
+    serviceChoice = 0
+    sequenceElements = \
+        [ Element('acknowledgingProcessIdentifier', Unsigned, 0)
+        , Element('eventObjectIdentifier', ObjectIdentifier, 1)
+        , Element('eventStateAcknowledged', EventState, 2)
+        , Element('timeStamp', TimeStamp, 3)
+        , Element('acknowledgmentSource', CharacterString, 4)
+        , Element('timeOfAcknowledgment', TimeStamp, 5)
+        ]
+register_confirmed_request_type(AcknowledgeAlarmRequest)
+
+class GetAlarmSummaryACK(ConfirmedRequestSequence):
+    serviceChoice = 3
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier,)
+        , Element('alarmState', EventState,)
+        , Element('acknowledgedTransitions', EventTransitionBits)
+        ]
+register_confirmed_request_type(GetAlarmSummaryACK)
+
+class GetEnrollmentSummaryRequestAcknowledgmentFilterType:
+    enumerations = \
+        { 'all':0
+        , 'acked':1
+        , 'notAcked':2
+        }
+
+class GetEnrollmentSummaryRequestEventStateFilterType:
+    enumerations = \
+        { 'offnormal':0
+        , 'fault':1
+        , 'normal':2
+        , 'all':3
+        , 'active':4
+        }
+
+class GetEnrollmentSummaryRequestPriorityFilterType:
+    sequenceElements = \
+        [ Element('minPriority', Unsigned, 0)
+        , Element('maxPriority', Unsigned, 1)
+        ]
+
+class GetEnrollmentSummaryRequest(ConfirmedRequestSequence):
+    serviceChoice = 4
+    sequenceElements = \
+        [ Element('acknowledgmentFilter', GetEnrollmentSummaryRequestAcknowledgmentFilterType, 0, True)
+        , Element('enrollmentFilter', RecipientProcess, 1, True)
+        , Element('eventStateFilter', GetEnrollmentSummaryRequestEventStateFilterType, 2, True)
+        , Element('eventTypeFilter', EventType, 3, True)
+        , Element('priorityFilter', GetEnrollmentSummaryRequestPriorityFilterType, 4, True)
+        , Element('notificationClassFilter', Unsigned, 5, True)
+        ]
+register_confirmed_request_type(GetEnrollmentSummaryRequest)
+
+class GetEnrollmentSummaryACK(Sequence):
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier,)
+        , Element('eventType', EventType,)
+        , Element('eventState', EventState,)
+        , Element('priority', Unsigned,)
+        , Element('notificationClass', Unsigned)
+        ]
+
+class GetEventInformationRequest(ConfirmedRequestSequence):
+    serviceChoice = 29
+    sequenceElements = \
+        [ Element('lastReceivedObjectIdentifier', ObjectIdentifier, 0)
+        ]
+register_confirmed_request_type(GetEventInformationRequest)
+
+class GetEventInformationRequestACKListOfEventSummaries(Sequence):
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('eventState', EventState, 1)
+        , Element('acknowledgedTransitions', EventTransitionBits, 2)
+        , Element('eventTimeStamps', SequenceOf(TimeStamp), 3)
+        , Element('notifyType', NotifyType, 4)
+        , Element('eventEnable', EventTransitionBits, 5)
+        , Element('eventPriorities', SequenceOf(Unsigned), 6)
+        ]
+
+class GetEventInformationACK(Sequence): 
+    sequenceElements = \
+        [ Element('listOfEventSummaries', GetEventInformationRequestACKListOfEventSummaries, 0)
+        , Element('moreEvents', Boolean, 1)
+        ]
+
+class LifeSafetyOperationRequest(ConfirmedRequestSequence):
+    serviceChoice = 27
+    sequenceElements = \
+        [ Element('requestingProcessIdentifier', Unsigned, 0)
+        , Element('requestingSource', CharacterString, 1)
+        , Element('request', LifeSafetyOperation, 2)
+        , Element('objectIdentifier', ObjectIdentifier, 3)
+        ]
+
+register_confirmed_request_type(LifeSafetyOperationRequest)
+
+class SubscribeCOVRequest(ConfirmedRequestSequence):
+    serviceChoice = 5
+    sequenceElements = \
+        [ Element('subscriberProcessIdentifier', Unsigned, 0)
+        , Element('monitoredObjectIdentifier', ObjectIdentifier, 1)
+        , Element('issueConfirmedNotifications', Boolean, 2)
+        , Element('lifetime', Unsigned, 3)
+        ]
+
+register_confirmed_request_type(SubscribeCOVRequest)
+
+class SubscribeCOVPropertyRequest(ConfirmedRequestSequence):
+    serviceChoice = 28
+    sequenceElements = \
+        [ Element('subscriberProcessIdentifier', Unsigned, 0)
+        , Element('monitoredObjectIdentifier', ObjectIdentifier, 1)
+        , Element('issueConfirmedNotifications', Boolean, 2)
+        , Element('lifetime', Unsigned, 3)
+        , Element('monitoredPropertyIdentifier', PropertyReference, 4)
+        , Element('covIncrement', Real, 5)
+        ]
+register_confirmed_request_type(SubscribeCOVPropertyRequest)
+
+class AtomicReadFileRequestAccessMethodChoiceStreamAccess(Sequence):
+    sequenceElements = \
+        [ Element('fileStartPosition', Integer)
+        , Element('fileData', OctetString)
+        ]
+
+class AtomicReadFileRequestAccessMethodChoiceRecordAccess(Sequence):
+    sequenceElements = \
+        [ Element('fileStartRecord', Integer)
+        , Element('recordCount', Unsigned)
+        , Element('fileRecordData', SequenceOf(OctetString))
+        ]
+
+class AtomicReadFileRequestAccessMethodChoice(Choice):
+    choiceElements = \
+        [ Element('recordAccess', AtomicReadFileRequestAccessMethodChoiceRecordAccess, 0)
+        , Element('streamAccess', AtomicReadFileRequestAccessMethodChoiceStreamAccess, 1)
+        ]
+
+class AtomicReadFileRequest(ConfirmedRequestSequence):
+    serviceChoice = 6
+    sequenceElements = \
+        [ Element('fileIdentifier', ObjectIdentifier, 0)
+        , Element('accessMethod', AtomicReadFileRequestAccessMethodChoice)
+        ]
+register_confirmed_request_type(AtomicReadFileRequest)
+
+class AtomicReadFileACKAccessMethodStreamAccess(Sequence):
+    sequenceElements = \
+        [ Element('fileStartPosition', Integer, 0)
+        , Element('fileData', OctetString, 1)
+        ]
+
+class AtomicReadFileACKAccessMethodRecordAccess(Sequence):
+    sequenceElements = \
+        [ Element('fileStartRecord', Integer, 0)
+        , Element('returnedRecordCount', Unsigned, 1)
+        , Element('fileRecordData', SequenceOf(OctetString), 2)
+        ]
+
+class AtomicReadFileACKAccessMethodChoice(Choice):
+    choiceElements = \
+        [ Element('streamAccess', AtomicReadFileACKAccessMethodStreamAccess, 0)
+        , Element('recordAccess', AtomicReadFileACKAccessMethodRecordAccess, 1)
+        ]
+
+class AtomicReadFileACK(Sequence):
+    sequenceElements = \
+        [ Element('endOfFile', Boolean)
+        , Element('accessMethod', AtomicReadFileACKAccessMethodChoice)
+        ]
+
+class AtomicWriteFileRequestAccessMethodChoiceStreamAccess(Sequence):
+    sequenceElements = \
+        [ Element('fileStartPosition', Integer)
+        , Element('fileData', OctetString)
+        ]
+
+class AtomicWriteFileRequestAccessMethodChoiceRecordAccess(Sequence):
+    sequenceElements = \
+        [ Element('fileStartRecord', Integer)
+        , Element('recordCount', Unsigned)
+        , Element('fileRecordData', SequenceOf(OctetString))
+        ]
+
+class AtomicWriteFileRequestAccessMethodChoice(Choice):
+    choiceElements = \
+        [ Element('recordAccess', AtomicWriteFileRequestAccessMethodChoiceRecordAccess, 0)
+        , Element('streamAccess', AtomicWriteFileRequestAccessMethodChoiceStreamAccess, 1)
+        ]
+
+class AtomicWriteFileRequest(ConfirmedRequestSequence):
+    serviceChoice = 7
+    sequenceElements = \
+        [ Element('fileIdentifier', ObjectIdentifier, 0)
+        , Element('accessMethod', AtomicWriteFileRequestAccessMethodChoice)
+        ]
+
+register_confirmed_request_type(AtomicWriteFileRequest)
+
+class AtomicWriteFileACKAccessMethodStreamAccess(Sequence):
+    sequenceElements = \
+        [ Element('fileStartPosition', Integer, 0)
+        , Element('fileData', OctetString, 1)
+        ]
+
+class AtomicWriteFileACKAccessMethodRecordAccess(Sequence):
+    sequenceElements = \
+        [ Element('fileStartRecord', Integer, 0)
+        , Element('returnedRecordCount', Unsigned, 1)
+        , Element('fileRecordData', SequenceOf(OctetString), 2)
+        ]
+
+class AtomicWriteFileACKAccessMethodChoice(Choice):
+    choiceElements = \
+        [ Element('streamAccess', AtomicWriteFileACKAccessMethodStreamAccess, 0)
+        , Element('recordAccess', AtomicWriteFileACKAccessMethodRecordAccess, 1)
+        ]
+
+class AtomicWriteFileACK(Sequence):
+    sequenceElements = \
+        [ Element('endOfFile', Boolean)
+        , Element('accessMethod', AtomicWriteFileACKAccessMethodChoice)
+        ]
+
+class AddListElementRequest(ConfirmedRequestSequence):
+    serviceChoice = 8
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
+        , Element('propertyArrayIndex', Unsigned, 2, True)
+        , Element('listOfElements', Any, 3)
+        ]
+
+register_confirmed_request_type(AddListElementRequest)
+
+class CreateObjectRequestobjectSpecifier(Choice):
+    choiceElements = \
+        [ Element('objectType', ObjectType, 0)
+        , Element('objectIdentifier',ObjectIdentifier, 1)
+        ]
+
+class CreateObjectRequest(ConfirmedRequestSequence):
+    serviceChoice = 10
+    sequenceElements = \
+        [ Element('objectSpecifier', CreateObjectRequestobjectSpecifier, 0)
+        , Element('listOfInitialValues', SequenceOf(PropertyValue), 1, True)
+        ]
+
+register_confirmed_request_type(CreateObjectRequest)
+
+class CreateObjectACK(ConfirmedRequestSequence):ObjectIdentifier
+
+class DeleteObjectRequest(ConfirmedRequestSequence):
+    serviceChoice = 11
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier)
+        ]
+
+register_confirmed_request_type(DeleteObjectRequest)
+
+class RemoveListElementRequest(ConfirmedRequestSequence):
+    serviceChoice = 9
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
+        , Element('propertyArrayIndex', Unsigned, 2)
+        , Element('listOfElements', Any, 3)
+        ]
+
+register_confirmed_request_type(RemoveListElementRequest)
+
+#-----
+
+class DeviceCommunicationControlRequestEnableDisable(Enumerated):
+    enumerations = \
+        { 'enable':0
+        , 'disable':1
+        , 'defaultInitiation':2
+        }
+
+class DeviceCommunicationControlRequest(ConfirmedRequestSequence):
+    serviceChoice = 17
+    sequenceElements = \
+        [ Element('timeDuration', Unsigned, 0, True)
+        , Element('enableDisable', DeviceCommunicationControlRequestEnableDisable, 1, True)
+        , Element('password', CharacterString, 2, True)
+        ]
+
+register_confirmed_request_type(DeviceCommunicationControlRequest)
+
+class ConfirmedPrivateTransferRequest(ConfirmedRequestSequence):
+    serviceChoice = 18
+    sequenceElements = \
+        [ Element('vendorID', Unsigned, 0)
+        , Element('serviceNumber', Unsigned, 1)
+        , Element('serviceParameters', Any, 2)
+        ]
+
+register_confirmed_request_type(ConfirmedPrivateTransferRequest)
+
+class ConfirmedPrivateTransferACK(Sequence):
+    sequenceElements = \
+        [ Element('vendorID', Unsigned, 0)
+        , Element('serviceNumber', Unsigned, 1)
+        , Element('resultBlock', Any, 2)
+        ]
+
+class ConfirmedTextMessageRequestMessageClass(Choice):
+    choiceElements = \
+        [ Element('numeric', Unsigned, 0)
+        , Element('character', CharacterString, 1)
+        ]
+
+class ConfirmedTextMessageRequestMessagePriority(Enumerated):
+    enumerations = \
+        { 'normal':0
+        , 'urgent':1
+        }
+
+class ConfirmedTextMessageRequest(ConfirmedRequestSequence):
+    serviceChoice = 19
+    sequenceElements = \
+        [ Element('textMessageSourceDevice', ObjectIdentifier, 0)
+        , Element('messageClass', ConfirmedTextMessageRequestMessageClass, True)
+        , Element('messagePriority', ConfirmedTextMessageRequestMessagePriority, 2)
+        , Element('message', CharacterString, 3)
+        ]
+
+register_confirmed_request_type(ConfirmedTextMessageRequest)
+
+class ReinitializeDeviceRequestReinitializedStateOfDevice(Enumerated):
+    enumerations = \
+        { 'coldstart':0
+        , 'warmstart':1
+        , 'startbackup':2
+        , 'endbackup':3
+        , 'startrestore':4
+        , 'endrestore':5
+        , 'abortrestore':6
+        }
+
+class ReinitializeDeviceRequest(ConfirmedRequestSequence):
+    serviceChoice = 20
+    sequenceElements = \
+        [ Element('reinitializedStateOfDevice', ReinitializeDeviceRequestReinitializedStateOfDevice, 0)
+        , Element('password', CharacterString, 1, True)
+        ]
+
+register_confirmed_request_type(ReinitializeDeviceRequest)
+
+#-----
+
+class VTOpenRequest(ConfirmedRequestSequence):
+    serviceChoice = 21
+    sequenceElements = \
+        [ Element('vtClass', VTClass,)
+        , Element('localVTSessionIdentifier', Unsigned)
+        ]
+
+register_confirmed_request_type(VTOpenRequest)
+
+class VTOpenACK(ConfirmedRequestSequence):
+    serviceChoice = 21
+    sequenceElements = \
+        [ Element('remoteVTSessionIdentifier', Unsigned)
+        ]
+
+register_confirmed_request_type(VTOpenACK)
+
+class VTCloseRequest(ConfirmedRequestSequence):
+    serviceChoice = 22
+    sequenceElements = \
+        [ Element('listOfRemoteVTSessionIdentifiers', SequenceOf(Unsigned))
+        ]
+
+register_confirmed_request_type(VTCloseRequest)
+class VTDataRequest(ConfirmedRequestSequence):
+    serviceChoice = 23
+    sequenceElements = \
+        [ Element('vtSessionIdentifier', Unsigned,)
+        , Element('vtNewData', OctetString)
+        , Element('vtDataFlag', Unsigned)
+        ]
+
+register_confirmed_request_type(VTDataRequest)
+
+class VTDataACK(Sequence):
+    sequenceElements = \
+        [ Element('allNewDataAccepted', Boolean, 0)
+        , Element('acceptedOctetCount', Unsigned, 1)
+        ]
+
+class AuthenticateRequest(ConfirmedRequestSequence):
+    serviceChoice = 24
+    sequenceElements = \
+        [ Element('pseudoRandomNumber', Unsigned, 0)
+        , Element('expectedInvokeID', Unsigned, 1)
+        , Element('operatorName', CharacterString, 2)
+        , Element('operatorPassword', CharacterString, 3)
+        , Element('startEncipheredSession', Boolean, 4)
+        ]
+
+register_confirmed_request_type(AuthenticateRequest)
+
+class AuthenticateACK(Sequence):
+    sequenceElements = \
+        [ Element('modifiedRandomNumber', Unsigned)
+        ]
+
+class RequestKeyRequest(ConfirmedRequestSequence):
+    serviceChoice = 25
+    sequenceElements = \
+        [ Element('requestingDeviceIdentifier', ObjectIdentifier)
+        , Element('requestingDeviceAddress', DeviceAddress)
+        , Element('remoteDeviceIdentifier', ObjectIdentifier)
+        , Element('remoteDeviceAddress', DeviceAddress)
+        ]
+
+register_confirmed_request_type(RequestKeyRequest)
+
+class UnconfirmedServiceChoice(Enumerated):
+    enumerations = \
+        { 'iAm':0
+        , 'iHave':1
+        , 'unconfirmedCOVNotification':2
+        , 'unconfirmedEventNotification':3
+        , 'unconfirmedPrivateTransfer':4
+        , 'unconfirmedTextMessage':5
+        , 'timeSynchronization':6
+        , 'whoHas':7
+        , 'whoIs':8
+        , 'utcTimeSynchronization':9
+        }
+
+class UnconfirmedServiceRequest(Choice):
+    choiceElements = \
+        [ Element('iAm', IAmRequest, 0)
+        , Element('iHave', IHaveRequest, 1)
+        , Element('unconfirmedCOVNotification', UnconfirmedCOVNotificationRequest, 2)
+        , Element('unconfirmedEventNotification', UnconfirmedEventNotificationRequest, 3)
+        , Element('unconfirmedPrivateTransfer', UnconfirmedPrivateTransferRequest, 4)
+        , Element('unconfirmedTextMessage', UnconfirmedTextMessageRequest, 5)
+        , Element('timeSynchronization', TimeSynchronizationRequest, 6)
+        , Element('whoHas', WhoHasRequest, 7)
+        , Element('whoIs', WhoIsRequest, 8)
+        , Element('utcTimeSynchronization', UTCTimeSynchronizationRequest, 9)
+        ]
+
+class UnconfirmedPrivateTransferRequest(ConfirmedRequestSequence):
+    serviceChoice = 4
+    sequenceElements = \
+        [ Element('vendorID', Unsigned, 0)
+        , Element('serviceNumber', Unsigned, 1)
+        , Element('serviceParameters', Any, 2)
+        ]
+
+register_confirmed_request_type(UnconfirmedPrivateTransferRequest)
+
+class UnconfirmedTextMessageRequestMessageClass(Choice):
+    choiceElements = \
+        [ Element('numeric', Unsigned, 0)
+        , Element('character', CharacterString, 1)
+        ]
+
+class UnconfirmedTextMessageRequestMessagePriority(Enumerated):
+    enumerations = \
+        { 'normal':0
+        , 'urgent':1
+        }
+
+class UnconfirmedTextMessageRequestMessageClass(ConfirmedRequestSequence):
+    serviceChoice = 5
+    sequenceElements = \
+        [ Element('textMessageSourceDevice', ObjectIdentifier, 0)
+        , Element('messageClass', UnconfirmedTextMessageRequestMessageClass, 1, True)
+        , Element('messagePriority', UnconfirmedTextMessageRequestMessagePriority, 2)
+        , Element('message', CharacterString, 3)
+        ]
+
+register_unconfirmed_request_type(UnconfirmedTextMessageRequestMessageClass)
+
+class TimeSynchronizationRequest(UnconfirmedRequestSequence):
+    serviceChoice = 6
+    sequenceElements = \
+        [ Element('time', DateTime)
+        ]
+
+register_unconfirmed_request_type(TimeSynchronizationRequest)
+
+class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
+    serviceChoice = 9
+    sequenceElements = \
+        [ Element('time', DateTime)
+        ]
+
+register_unconfirmed_request_type(UTCTimeSynchronizationRequest)
