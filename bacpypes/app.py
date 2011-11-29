@@ -242,7 +242,7 @@ class Application(ApplicationServiceElement, Logging):
         if _debug: Application._debug("    - object: %r", obj)
 
         if not obj:
-            resp = Error(errorClass='object', errorCode='unknown-object', context=apdu)
+            resp = Error(errorClass='object', errorCode='unknownObject', context=apdu)
         else:
             try:
                 # get the datatype
@@ -278,7 +278,7 @@ class Application(ApplicationServiceElement, Logging):
                 resp.propertyValue.cast_in(value)
 
             except PropertyError:
-                resp = Error(errorClass='object', errorCode='unknown-property', context=apdu)
+                resp = Error(errorClass='object', errorCode='unknownProperty', context=apdu)
         if _debug: Application._debug("    - resp: %r", resp)
 
         # return the result
@@ -293,7 +293,7 @@ class Application(ApplicationServiceElement, Logging):
         if _debug: Application._debug("    - object: %r", obj)
         
         if not obj:
-            resp = Error(errorClass='object', errorCode='unknown-object', context=apdu)
+            resp = Error(errorClass='object', errorCode='unknownObject', context=apdu)
         else:
             try:
                 # get the datatype
@@ -317,7 +317,7 @@ class Application(ApplicationServiceElement, Logging):
                 resp = SimpleAckPDU(context=apdu)
 
             except PropertyError:
-                resp = Error(errorClass='object', errorCode='unknown-property', context=apdu)
+                resp = Error(errorClass='object', errorCode='unknownProperty', context=apdu)
         if _debug: Application._debug("    - resp: %r", resp)
         
         # return the result
