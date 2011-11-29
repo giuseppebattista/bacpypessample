@@ -15,8 +15,7 @@ from bacpypes.consolelogging import ConsoleLogHandler
 
 from bacpypes.core import run
 
-from bacpypes.app import BIPSimpleApplication
-from bacpypes.object import LocalDeviceObject
+from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
 
 # some debugging
 _debug = 0
