@@ -216,7 +216,7 @@ class BTR(Client, Server, DebugContents, Logging):
         if _debug: BTR._debug("delete_peer %r", peerAddr)
         
         # get the peer networks
-        networks = self.peers[peerAddr]
+        # networks = self.peers[peerAddr]
 
         ### send a control message upstream that these are no longer reachable
 

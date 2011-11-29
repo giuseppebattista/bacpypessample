@@ -5,7 +5,6 @@ Object
 """
 
 import sys
-import re
 import types
 
 from errors import ConfigurationError
