@@ -171,7 +171,7 @@ class Application(ApplicationServiceElement, Logging):
                     value = datatype(value)
                 elif issubclass(datatype, Array) and (apdu.propertyArrayIndex is not None):
                     if apdu.propertyArrayIndex == 0:
-                        value = Integer(value)
+                        value = Unsigned(value)
                     elif issubclass(datatype.subtype, Atomic):
                         value = datatype.subtype(value)
                     elif not isinstance(value, datatype.subtype):
