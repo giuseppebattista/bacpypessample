@@ -205,7 +205,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
         for rkey in delrlist:
             try:
                 del self.routers[rkey]
-            except KeyError, err:
+            except KeyError:
                 if _debug: NetworkServiceAccessPoint._debug("    - rkey not in self.routers: %r", rkey)
         for nkey in delnlist:
             try:

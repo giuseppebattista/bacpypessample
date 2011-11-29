@@ -923,7 +923,6 @@ class AnyAtomic(Logging):
         """encode the element into the internal tag list."""
         if _debug: AnyAtomic._debug("cast_in %r", element)
 
-        t = TagList()
         if not isinstance(element, Atomic):
             raise RuntimeError, "atomic element expected"
 
