@@ -489,7 +489,7 @@ register_apdu_type(ErrorPDU)
 #   RejectPDU
 #
 
-class BACnetRejectReason(Enumerated):
+class RejectReason(Enumerated):
     enumerations = \
         { 'other':0
         , 'bufferOverflow':1
@@ -503,7 +503,7 @@ class BACnetRejectReason(Enumerated):
         , 'unrecognizedService':9
         }
 
-expand_enumerations(BACnetRejectReason)
+expand_enumerations(RejectReason)
 
 class RejectPDU(_APDU):
     pduType = 6
@@ -513,7 +513,7 @@ class RejectPDU(_APDU):
         self.apduType = RejectPDU.pduType
         self.apduInvokeID = invokeID
         if isinstance(reason, str):
-            reason = BACnetRejectReason(reason).get_long()
+            reason = RejectReason(reason).get_long()
         self.apduAbortRejectReason = reason
 
         # use the context to fill in most of the fields
@@ -529,7 +529,7 @@ class RejectPDU(_APDU):
 
         sname = self.__module__ + '.' + self.__class__.__name__
         try:
-            reason = BACnetRejectReason._xlate_table[self.apduAbortRejectReason]
+            reason = RejectReason._xlate_table[self.apduAbortRejectReason]
         except:
             reason = str(self.apduAbortRejectReason) + '?'
 
@@ -541,7 +541,7 @@ register_apdu_type(RejectPDU)
 #   AbortPDU
 #
 
-class BACnetAbortReason(Enumerated):
+class AbortReason(Enumerated):
     enumerations = \
         { 'other':0
         , 'bufferOverflow':1
@@ -560,7 +560,7 @@ class BACnetAbortReason(Enumerated):
         , 'noResponse':65
         }
 
-expand_enumerations(BACnetAbortReason)
+expand_enumerations(AbortReason)
 
 class AbortPDU(_APDU):
     pduType = 7
@@ -571,7 +571,7 @@ class AbortPDU(_APDU):
         self.apduSrv = srv
         self.apduInvokeID = invokeID
         if isinstance(reason, str):
-            reason = BACnetAbortReason(reason).get_long()
+            reason = AbortReason(reason).get_long()
         self.apduAbortRejectReason = reason
 
         # use the context to fill in most of the fields
@@ -583,7 +583,7 @@ class AbortPDU(_APDU):
             
     def __str__(self):
         try:
-            reason = BACnetAbortReason._xlate_table[self.apduAbortRejectReason]
+            reason = AbortReason._xlate_table[self.apduAbortRejectReason]
         except:
             reason = str(self.apduAbortRejectReason) + '?'
         return reason

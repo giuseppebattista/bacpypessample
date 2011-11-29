@@ -17,7 +17,7 @@ from netservice import NetworkServiceAccessPoint, NetworkServiceElement
 from bvllservice import BIPSimple, BIPForeign, AnnexJCodec, UDPMultiplexer
 
 from object import PropertyError
-from apdu import ConfirmedRequestPDU, SimpleAckPDU, RejectPDU, BACnetRejectReason
+from apdu import ConfirmedRequestPDU, SimpleAckPDU, RejectPDU, RejectReason
 from apdu import IAmRequest, ReadPropertyACK, Error
 
 # some debugging
@@ -102,7 +102,7 @@ class Application(ApplicationServiceElement, Logging):
         # send back a reject for unrecognized services
         if not helperFn:
             if isinstance(apdu, ConfirmedRequestPDU):
-                response = RejectPDU( apdu.apduInvokeID, BACnetRejectReason.UNRECOGNIZEDSERVICE, context=apdu)
+                response = RejectPDU( apdu.apduInvokeID, RejectReason.UNRECOGNIZEDSERVICE, context=apdu)
                 self.response(response)
             return
         
