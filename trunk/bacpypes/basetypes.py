@@ -15,16 +15,10 @@ _debug = 0
 _log = ModuleLogger(globals())
 
 #
-#   Arrays
+#   Bit Strings
 #
 
-ArrayOfObjectIdentifier = ArrayOf(ObjectIdentifier)
-
-#
-#   Base Type Bit Strings
-#
-
-class BACnetDaysOfWeek(BitString):
+class DaysOfWeek(BitString):
     bitNames = \
         { 'monday':0
         , 'tuesday':1
@@ -35,65 +29,90 @@ class BACnetDaysOfWeek(BitString):
         , 'sunday':6
         }
 
-class BACnetEventTransitionBits(BitString):
+class EventTransitionBits(BitString):
     bitNames = \
-        { 'to-offnormal':0
-        , 'to-fault':1
-        , 'to-normal':2
+        { 'toOffnormal':0
+        , 'toFault':1
+        , 'toNormal':2
         }
 
-class BACnetLimitEnable(BitString):
+class LimitEnable(BitString):
     bitNames = \
         { 'lowLimitEnable':0
         , 'highLimitEnable':1
         }
 
-class BACnetObjectTypesSupported(BitString):
+class LogStatus(BitString):
     bitNames = \
-        { 'analog-input':0
-        , 'analog-output':1
-        , 'analog-value':2
-        , 'binary-input':3
-        , 'binary-output':4
-        , 'binary-value':5
+        { 'logDisabled':0
+        , 'bufferPurged':1
+        , 'logInterrupted':2
+        }
+    bitLen = 3
+
+class ObjectTypesSupported(BitString):
+    bitNames = \
+        { 'analogInput':0 
+        , 'analogOutput':1
+        , 'analogValue':2
+        , 'binaryInput':3
+        , 'binaryOutput':4
+        , 'binaryValue':5
         , 'calendar':6
         , 'command':7
         , 'device':8
-        , 'event-enrollment':9
+        , 'eventEnrollment':9
         , 'file':10
         , 'group':11
         , 'loop':12
-        , 'multi-state-input':13
-        , 'multi-state-output':14
-        , 'notification-class':15
+        , 'multiStateInput':13
+        , 'multiStateOutput':14
+        , 'notificationClass':15
         , 'program':16
         , 'schedule':17
-# Objects added after 1995
         , 'averaging':18
-        , 'multi-state-value':19
-        , 'trend-log':20
-        , 'life-safety-point':21
-        , 'life-safety-zone':22
-# Objects added after 2001
+        , 'multiStateValue':19
+        , 'trendLog':20
+        , 'lifeSafetyPoint':21
+        , 'lifeSafetyZone':22
         , 'accumulator':23
-        , 'pulse-converter':24
-# Objects added after 2004
-        , 'event-log':25
-        , 'trend-log-multiple':27
-        , 'load-control':28
-        , 'structured-view':29
-        , 'access-door':30
+        , 'pulseConverter':24
+        , 'eventLog':25
+        , 'globalGroup':26
+        , 'trendLogMultiple':27
+        , 'loadControl':28
+        , 'structuredView':29
+        , 'accessDoor':30
+        , 'accessPoint':33
+        , 'accessRights':34
+        , 'accessUser':35
+        , 'accessZone':36
+        , 'credentialDataInput':37
+        , 'networkSecurity':38
+        , 'bitstringValue':39
+        , 'characterstringValue':40
+        , 'datePatternValue':41
+        , 'dateValue':42
+        , 'datetimePatternValue':43
+        , 'datetimeValue':44
+        , 'integerValue':45
+        , 'largeAnalogValue':46
+        , 'octetstringValue':47
+        , 'positiveIntegerValue':48
+        , 'timePatternValue':49
+        , 'timeValue':50
         }
-    bitLen = 31
+    bitLen = 51
 
-class BACnetResultFlags(BitString):
+class ResultFlags(BitString):
     bitNames = \
-        { 'first-item':0
-        , 'last-item':1
-        , 'more-items':2
+        { 'firstItem':0
+        , 'lastItem':1
+        , 'moreItems':2
         }
-        
-class BACnetServicesSupported(BitString):
+    bitLen = 3
+
+class ServicesSupported(BitString):
     bitNames = \
         { 'acknowledgeAlarm':0
         , 'confirmedCOVNotification':1
@@ -108,7 +127,7 @@ class BACnetServicesSupported(BitString):
         , 'createObject':10
         , 'deleteObject':11
         , 'readProperty':12
-        , 'readPropertyConditional':13
+      # , 'readPropertyConditional':13      # removed in version 1 revision 12
         , 'readPropertyMultiple':14
         , 'writeProperty':15
         , 'writePropertyMultiple':16
@@ -119,17 +138,17 @@ class BACnetServicesSupported(BitString):
         , 'vtOpen':21
         , 'vtClose':22
         , 'vtData':23
-        , 'authenticate':24
-        , 'requestKey':25
-        , 'i-Am':26
-        , 'i-Have':27
+      # , 'authenticate':24                 # removed in version 1 revision 11
+      # , 'requestKey':25                   # removed in version 1 revision 11
+        , 'iAm':26
+        , 'iHave':27
         , 'unconfirmedCOVNotification':28
         , 'unconfirmedEventNotification':29
         , 'unconfirmedPrivateTransfer':30
         , 'unconfirmedTextMessage':31
         , 'timeSynchronization':32
-        , 'who-Has':33
-        , 'who-Is':34
+        , 'whoHas':33
+        , 'whoIs':34
         , 'readRange':35
         , 'utcTimeSynchronization':36
         , 'lifeSafetyOperation':37
@@ -138,20 +157,146 @@ class BACnetServicesSupported(BitString):
         }
     bitLen = 40
 
-class BACnetStatusFlags(BitString):
+class StatusFlags(BitString):
     bitNames = \
-        { 'in-alarm':0
+        { 'inAlarm':0
         , 'fault':1
         , 'overridden':2
-        , 'out-of-service':3
+        , 'outOfService':3
         }
     bitLen = 4
 
 #
-#   Base Type Enumerations
+#   Enumerations
 #
 
-class BACnetAccumulatorStatus(Enumerated):
+class AccessAuthenticationFactorDisable(Enumerated):
+    enumerations = \
+        { 'none':0
+        , 'disabled':1
+        , 'disabledLost':2
+        , 'disabledStolen':3
+        , 'disabledDamaged':4
+        , 'disabledDestroyed':5
+        }
+
+class AccessCredentialDisable(Enumerated):
+    enumerations = \
+        { 'none':0
+        , 'disable':1
+        , 'disableManual':2
+        , 'disableLockout':3
+        }
+
+class AccessCredentialDisableReason(Enumerated):
+    enumerations = \
+        { 'disabled':0
+        , 'disabledNeedsProvisioning':1
+        , 'disabledUnassigned':2
+        , 'disabledNotYetActive':3
+        , 'disabledExpired':4
+        , 'disabledLockout':5
+        , 'disabledMaxDays':6
+        , 'disabledMaxUses':7
+        , 'disabledInactivity':8
+        , 'disabledManual':9
+        }
+
+class AccessEvent(Enumerated):
+    enumerations = \
+        { 'none':0
+        , 'granted':1
+        , 'muster':2
+        , 'passbackDetected':3
+        , 'duress':4
+        , 'trace':5
+        , 'lockoutMaxAttempts':6
+        , 'lockoutOther':7
+        , 'lockoutRelinquished':8
+        , 'lockedByHigherPriority':9
+        , 'outOfService':10
+        , 'outOfServiceRelinquished':11
+        , 'accompanimentBy':12
+        , 'authenticationFactorRead':13
+        , 'authorizationDelayed':14
+        , 'verificationRequired':15
+        , 'deniedDenyAll':128
+        , 'deniedUnknownCredential':129
+        , 'deniedAuthenticationUnavailable':130
+        , 'deniedAuthenticationFactorTimeout':131
+        , 'deniedIncorrectAuthenticationFactor':132
+        , 'deniedZoneNoAccessRights':133
+        , 'deniedPointNoAccessRights':134
+        , 'deniedNoAccessRights':135
+        , 'deniedOutOfTimeRange':136
+        , 'deniedThreatLevel':137
+        , 'deniedPassback':138
+        , 'deniedUnexpectedLocationUsage':139
+        , 'deniedMaxAttempts':140
+        , 'deniedLowerOccupancyLimit':141
+        , 'deniedUpperOccupancyLimit':142
+        , 'deniedAuthenticationFactorLost':143
+        , 'deniedAuthenticationFactorStolen':144
+        , 'deniedAuthenticationFactorDamaged':145
+        , 'deniedAuthenticationFactorDestroyed':146
+        , 'deniedAuthenticationFactorDisabled':147
+        , 'deniedAuthenticationFactorError':148
+        , 'deniedCredentialUnassigned':149
+        , 'deniedCredentialNotProvisioned':150
+        , 'deniedCredentialNotYetActive':151
+        , 'deniedCredentialExpired':152
+        , 'deniedCredentialManualDisable':153
+        , 'deniedCredentialLockout':154
+        , 'deniedCredentialMaxDays':155
+        , 'deniedCredentialMaxUses':156
+        , 'deniedCredentialInactivity':157
+        , 'deniedCredentialDisabled':158
+        , 'deniedNoAccompaniment':159
+        , 'deniedIncorrectAccompaniment':160
+        , 'deniedLockout':161
+        , 'deniedVerificationFailed':162
+        , 'deniedVerificationTimeout':163
+        , 'deniedOther':164
+        }
+
+class AccessPassbackMode(Enumerated):
+    enumerations = \
+        { 'passbackOff':0
+        , 'hardPassback':1
+        , 'softPassback':2
+        }
+
+class AccessRuleTimeRangeSpecifier(Enumerated):
+    enumerations = \
+        { 'specified':0
+        , 'always':1
+        }
+
+class AccessRuleLocationSpecifier(Enumerated):
+    enumerations = \
+        { 'specified':0
+        , 'all':1
+        }
+
+class AccessUserType(Enumerated):
+    enumerations = \
+        { 'asset':0
+        , 'group':1
+        , 'person':2
+        }
+
+class AccessZoneOccupancyState(Enumerated):
+    enumerations = \
+        { 'normal':0
+        , 'belowLowerLimit':1
+        , 'atLowerLimit':2
+        , 'atUpperLimit':3
+        , 'aboveUpperLimit':4
+        , 'disabled':5
+        , 'notSupported':6
+        }
+
+class AccumulatorRecordAccumulatorStatus(Enumerated):
     enumerations = \
         { 'normal':0
         , 'starting':1
@@ -160,34 +305,133 @@ class BACnetAccumulatorStatus(Enumerated):
         , 'failed':4
         }
 
-class BACnetAction(Enumerated):
+class Action(Enumerated):
     enumerations = \
         { 'direct':0
-        , 'inverse':1
+        , 'reverse':1
         }
 
-class BACnetBinaryPV(Enumerated):
+class AuthenticationFactorType(Enumerated):
+    enumerations = \
+        { 'undefined':0
+        , 'error':1
+        , 'custom':2
+        , 'simpleNumber16':3
+        , 'simpleNumber32':4
+        , 'simpleNumber56':5
+        , 'simpleAlphaNumeric':6
+        , 'abaTrack2':7
+        , 'wiegand26':8
+        , 'wiegand37':9
+        , 'wiegand37facility':10
+        , 'facility16card32':11
+        , 'facility32card32':12
+        , 'fascN':13
+        , 'fascNbcd':14
+        , 'fascNlarge':15
+        , 'fascNlargeBcd':16
+        , 'gsa75':17
+        , 'chuid':18
+        , 'chuidFull':19
+        , 'guid':20
+        , 'cbeffA':21
+        , 'cbeffB':22
+        , 'cbeffC':23
+        , 'userPassword':24
+        }
+
+class AuthenticationStatus(Enumerated):
+    enumerations = \
+        { 'notReady':0
+        , 'ready':1
+        , 'disabled':2
+        , 'waitingForAuthenticationFactor':3
+        , 'waitingForAccompaniment':4
+        , 'waitingForVerification':5
+        , 'inProgress':6
+        }
+
+class AuthorizationMode(Enumerated):
+    enumerations = \
+        { 'authorize':0
+        , 'grantActive':1
+        , 'denyAll':2
+        , 'verificationRequired':3
+        , 'authorizationDelayed':4
+        , 'none':5
+        }
+
+class BackupState(Enumerated):
+    enumerations = \
+        { 'idle':0
+        , 'preparingForBackup':1
+        , 'preparingForRestore':2
+        , 'performingABackup':3
+        , 'performingARestore':4
+        , 'backupFailure':5
+        , 'restoreFailure':5
+        }
+
+class BinaryPV(Enumerated):
     enumerations = \
         { 'inactive':0
         , 'active':1
         }
 
-class BACnetDeviceStatus(Enumerated):
+class DeviceStatus(Enumerated):
     enumerations = \
         { 'operational':0
-        , 'operational-read-only':1
-        , 'download-required':2
-        , 'download-in-progress':3
-        , 'non-operational':4
+        , 'operationalReadOnly':1
+        , 'downloadRequired':2
+        , 'downloadInProgress':3
+        , 'nonOperational':4
         }
 
-class BACnetEngineeringUnits(Enumerated):
-    enumerations = {
-    # Area
-          'square-meters':0
-        , 'square-feet':1
-        
-    # Currency
+class DoorAlarmState(Enumerated):
+    enumerations = \
+        { 'normal':0
+        , 'alarm':1
+        , 'doorOpenTooLong':2
+        , 'forcedOpen':3
+        , 'tamper':4
+        , 'doorFault':5
+        , 'lockDown':6
+        , 'freeAccess':7
+        , 'egressOpen':8
+        }
+
+class DoorSecuredStatus(Enumerated):
+    enumerations = \
+        { 'secured':0
+        , 'unsecured':1
+        , 'unknown':2
+        }
+
+class DoorStatus(Enumerated):
+    enumerations = \
+        { 'closed':0
+        , 'opened':1
+        , 'unknown':2
+        }
+
+class DoorValue(Enumerated):
+    enumerations = \
+        { 'lock':0
+        , 'unlock':1
+        , 'pulseUnlock':2
+        , 'extendedPulseUnlock':3
+        }
+
+class EngineeringUnits(Enumerated):
+    enumerations = \
+        {
+        #Acceleration
+          'metersPerSecondPerSecond':166
+        , 'squareMeters':0
+        , 'squareCentimeters':116
+        , 'squareFeet':1
+        , 'squareInches':115
+        #Currency
         , 'currency1':105
         , 'currency2':106
         , 'currency3':107
@@ -198,51 +442,423 @@ class BACnetEngineeringUnits(Enumerated):
         , 'currency8':112
         , 'currency9':113
         , 'currency10':114
-
-    # Electrical
+        #Electrical
         , 'milliamperes':2
         , 'amperes':3
+        , 'amperesPerMeter':167
+        , 'amperesPerSquareMeter':168
+        , 'ampereSquareMeters':169
+        , 'decibels':199
+        , 'decibelsMillivolt':200
+        , 'decibelsVolt':201
+        , 'farads':170
+        , 'henrys':171
         , 'ohms':4
+        , 'ohmMeters':172
+        , 'milliohms':145
         , 'kilohms':122
         , 'megohms':123
+        , 'microSiemens':190
+        , 'millisiemens':202
+        , 'siemens':173
+        , 'siemensPerMeter':174
+        , 'teslas':175
         , 'volts':5
         , 'millivolts':124
         , 'kilovolts':6
         , 'megavolts':7
-        , 'volt-amperes':8
-        , 'kilovolt-amperes':9
-        , 'megavolt-amperes':10
-
-    # Other
+        , 'voltAmperes':8
+        , 'kilovoltAmperes':9
+        , 'megavoltAmperes':10
+        , 'voltAmperesReactive':11
+        , 'kilovoltAmperesReactive':12
+        , 'megavoltAmperesReactive':13
+        , 'voltsPerDegreeKelvin':176
+        , 'voltsPerMeter':177
+        , 'degreesPhase':14
+        , 'powerFactor':15
+        , 'webers':178
+        # Energy
+        , 'joules':16
+        , 'kilojoules':17
+        , 'kilojoulesPerKilogram':125
+        , 'megajoules':126
+        , 'wattHours':18
+        , 'kilowattHours':19
+        , 'megawattHours':146
+        , 'wattHoursReactive':203
+        , 'kilowattHoursReactive':204
+        , 'megawattHoursReactive':205
+        , 'btus':20
+        , 'kiloBtus':147
+        , 'megaBtus':148
+        , 'therms':21
+        , 'tonHours':22
+        # Enthalpy 
+        , 'joulesPerKilogramDryAir':23
+        , 'kilojoulesPerKilogramDryAir':149
+        , 'megajoulesPerKilogramDryAir':150
+        , 'btusPerPoundDryAir':24
+        , 'btusPerPound':117
+        , 'joulesPerDegreeKelvin':127
+        # Entropy
+        , 'kilojoulesPerDegreeKelvin':151
+        , 'megajoulesPerDegreeKelvin':152
+        , 'joulesPerKilogramDegreeKelvin':128
+        # Force
+        , 'newton':153
+        # Frequency
+        , 'cyclesPerHour':25
+        , 'cyclesPerMinute':26
+        , 'hertz':27
+        , 'kilohertz':129
+        , 'megahertz':130
+        , 'perHour':131
+        , 'gramsOfWaterPerKilogramDryAir':28
+        , 'percentRelativeHumidity':29
+        , 'micrometers':194
+        , 'millimeters':30
+        , 'centimeters':118
+        , 'kilometers':193
+        , 'meters':31
+        , 'inches':32
+        , 'feet':33
+        , 'candelas':179
+        , 'candelasPerSquareMeter':180
+        , 'wattsPerSquareFoot':34
+        , 'wattsPerSquareMeter':35
+        , 'lumens':36
+        , 'luxes':37
+        , 'footCandles':38
+        , 'milligrams':196
+        , 'grams':195
+        , 'kilograms':39
+        , 'poundsMass':40
+        , 'tons':41
+        , 'gramsPerSecond':154
+        , 'gramsPerMinute':155
+        , 'kilogramsPerSecond':42
+        , 'kilogramsPerMinute':43
+        , 'kilogramsPerHour':44
+        , 'poundsMassPerSecond':119
+        , 'poundsMassPerMinute':45
+        , 'poundsMassPerHour':46
+        , 'tonsPerHour':156
+        , 'milliwatts':132
+        , 'watts':47
+        , 'kilowatts':48
+        , 'megawatts':49
+        , 'btusPerHour':50
+        , 'kiloBtusPerHour':157
+        , 'horsepower':51
+        , 'tonsRefrigeration':52
+        , 'pascals':53
+        , 'hectopascals':133
+        , 'kilopascals':54
+        , 'millibars':134
+        , 'bars':55
+        , 'poundsForcePerSquareInch':56
+        , 'millimetersOfWater':206
+        , 'centimetersOfWater':57
+        , 'inchesOfWater':58
+        , 'millimetersOfMercury':59
+        , 'centimetersOfMercury':60
+        , 'inchesOfMercury':61
+        , 'degreesCelsius':62
+        , 'degreesKelvin':63
+        , 'degreesKelvinPerHour':181
+        , 'degreesKelvinPerMinute':182
+        , 'degreesFahrenheit':64
+        , 'degreeDaysCelsius':65
+        , 'degreeDaysFahrenheit':66
+        , 'deltaDegreesFahrenheit':120
+        , 'deltaDegreesKelvin':121
+        , 'years':67
+        , 'months':68
+        , 'weeks':69
+        , 'days':70
+        , 'hours':71
+        , 'minutes':72
+        , 'seconds':73
+        , 'hundredthsSeconds':158
+        , 'milliseconds':159
+        , 'newtonMeters':160
+        , 'millimetersPerSecond':161
+        , 'millimetersPerMinute':162
+        , 'metersPerSecond':74
+        , 'metersPerMinute':163
+        , 'metersPerHour':164
+        , 'kilometersPerHour':75
+        , 'feetPerSecond':76
+        , 'feetPerMinute':77
+        , 'milesPerHour':78
+        , 'cubicFeet':79
+        , 'cubicMeters':80
+        , 'imperialGallons':81
+        , 'milliliters':197
+        , 'liters':82
+        , 'usGallons':83
+        , 'cubicFeetPerSecond':142
+        , 'cubicFeetPerMinute':84
+        , 'cubicFeetPerHour':191
+        , 'cubicMetersPerSecond':85
+        , 'cubicMetersPerMinute':165
+        , 'cubicMetersPerHour':135
+        , 'imperialGallonsPerMinute':86
+        , 'millilitersPerSecond':198
+        , 'litersPerSecond':87
+        , 'litersPerMinute':88
+        , 'litersPerHour':136
+        , 'usGallonsPerMinute':89
+        , 'usGallonsPerHour':192
+        , 'degreesAngular':90
+        , 'degreesCelsiusPerHour':91
+        , 'degreesCelsiusPerMinute':92
+        , 'degreesFahrenheitPerHour':93
+        , 'degreesFahrenheitPerMinute':94
+        , 'jouleSeconds':183
+        , 'kilogramsPerCubicMeter':186
+        , 'kilowattHoursPerSquareMeter':137
+        , 'kilowattHoursPerSquareFoot':138
+        , 'megajoulesPerSquareMeter':139
+        , 'megajoulesPerSquareFoot':140
+        , 'noUnits':95
+        , 'newtonSeconds':187
+        , 'newtonsPerMeter':188
+        , 'partsPerMillion':96
+        , 'partsPerBillion':97
+        , 'percent':98
+        , 'percentObscurationPerFoot':143
+        , 'percentObscurationPerMeter':144
+        , 'percentPerSecond':99
+        , 'perMinute':100
+        , 'perSecond':101
+        , 'psiPerDegreeFahrenheit':102
+        , 'radians':103
+        , 'radiansPerSecond':184
+        , 'revolutionsPerMinute':104
+        , 'squareMetersPerNewton':185
+        , 'wattsPerMeterPerDegreeKelvin':189
+        , 'wattsPerSquareMeterDegreeKelvin':141
+        , 'perMille':207
+        , 'gramsPerGram':208
+        , 'kilogramsPerKilogram':209
+        , 'gramsPerKilogram':210
+        , 'milligramsPerGram':211
+        , 'milligramsPerKilogram':212
+        , 'gramsPerMilliliter':213
+        , 'gramsPerLiter':214
+        , 'milligramsPerLiter':215
+        , 'microgramsPerLiter':216
+        , 'gramsPerCubicMeter':217
+        , 'milligramsPerCubicMeter':218
+        , 'microgramsPerCubicMeter':219
+        , 'nanogramsPerCubicMeter':220
+        , 'gramsPerCubicCentimeter':221
+        , 'becquerels':222
+        , 'kilobecquerels':223
+        , 'megabecquerels':224
+        , 'gray':225
+        , 'milligray':226
+        , 'microgray':227
+        , 'sieverts':228
+        , 'millisieverts':229
+        , 'microsieverts':230
+        , 'microsievertsPerHour':231
+        , 'decibelsA':232
+        , 'nephelometricTurbidityUnit':233
+        , 'pH':234
+        , 'gramsPerSquareMeter':235
+        , 'minutesPerDegreeKelvin':236
         }
 
-class BACnetEventState(Enumerated):
+class ErrorClass(Enumerated):
+    enumerations = \
+        { 'device':0
+        , 'object':1
+        , 'property':2
+        , 'resources':3
+        , 'security':4
+        , 'services':5
+        , 'vt':6
+        }
+
+class ErrorCode(Enumerated):
+    enumerations = \
+        { 'abortApduTooLong':123
+        , 'abortApplicationExceededReplyTime':124
+        , 'abortBufferOverflow':51
+        , 'abortInsufficientSecurity':135
+        , 'abortInvalidApduInThisState':52
+        , 'abortOther':56
+        , 'abortOutOfResources':125
+        , 'abortPreemptedByHigherPriorityTask':53
+        , 'abortProprietary':55
+        , 'abortSecurityError':136
+        , 'abortSegmentationNotSupported':54
+        , 'abortProprietary':55
+        , 'abortOther':56
+        , 'abortTsmTimeout':126
+        , 'abortWindowSizeOutOfRange':127
+        , 'accessDenied':85
+        , 'addressingError':115
+        , 'badDestinationAddress':86
+        , 'badDestinationDeviceId':87
+        , 'badSignature':88
+        , 'badSourceAddress':89
+        , 'badTimestamp':90
+        , 'busy':82
+        , 'cannotUseKey':91
+        , 'cannotVerifyMessageId':92
+        , 'characterSetNotSupported':41
+        , 'communicationDisabled':83
+        , 'configurationInProgress':2
+        , 'correctKeyRevision':93
+        , 'covSubscriptionFailed':43 
+        , 'datatypeNotSupported':47
+        , 'deleteFdtEntryFailed':120
+        , 'deviceBusy':3
+        , 'destinationDeviceIdRequired':94
+        , 'distributeBroadcastFailed':121
+        , 'duplicateMessage':95
+        , 'duplicateName':48
+        , 'duplicateObjectId':49
+        , 'dynamicCreationNotSupported':4
+        , 'encryptionNotConfigured':96
+        , 'encryptionRequired':97
+        , 'fileAccessDenied':5
+        , 'fileFull':128
+        , 'inconsistentConfiguration':129
+        , 'inconsistentObjectType':130
+        , 'inconsistentParameters':7
+        , 'inconsistentSelectionCriterion':8
+        , 'incorrectKey':98
+        , 'internalError':131
+        , 'invalidArrayIndex':42
+        , 'invalidConfigurationData':46
+        , 'invalidDataType':9
+        , 'invalidEventState':73
+        , 'invalidFileAccessMethod':10
+        , 'invalidFileStartPosition':11
+        , 'invalidKeyData':99
+        , 'invalidParameterDataType ':13
+        , 'invalidTag, ':57
+        , 'invalidTimeStamp':14
+        , 'keyUpdateInProgress':100
+        , 'listElementNotFound':81
+        , 'logBufferFull':75
+        , 'loggedValuePurged':76
+        , 'malformedMessage':101
+        , 'messageTooLong':113
+        , 'missingRequiredParameter ':16
+        , 'networkDown':58
+        , 'noAlarmConfigured':74
+        , 'noObjectsOfSpecifiedType':17
+        , 'noPropertySpecified':77
+        , 'no space for object':18
+        , 'noSpaceToAddListElement':19
+        , 'noSpaceToWriteProperty':20
+        , 'noVtSessionsAvailable':21
+        , 'notConfigured':132
+        , 'notConfiguredForTriggeredLogging':78
+        , 'notCovProperty':44 
+        , 'notKeyServer':102
+        , 'notRouterToDnet':110
+        , 'objectDeletionNotPermitted':23
+        , 'objectIdentifierAlreadyExists':24
+        , 'other':0
+        , 'operationalProblem':25
+        , 'optionalFunctionalityNotSupported':45
+        , 'outOfMemory':133
+        , 'parameterOutOfRange':80
+        , 'passwordFailure':26
+        , 'propertyIsNotAList':22
+        , 'propertyIsNotAnArray':50
+        , 'readAccessDenied':27
+        , 'readBdtFailed':117
+        , 'readFdtFailed':119
+        , 'registerForeignDeviceFailed':118
+        , 'rejectBufferOverflow':59
+        , 'rejectInconsistentParameters':60
+        , 'rejectInvalidParameterDataType':61
+        , 'rejectInvalidTag':62
+        , 'rejectMissingRequiredParameter':63
+        , 'rejectParameterOutOfRange':64
+        , 'rejectTooManyArguments':65
+        , 'rejectUndefinedEnumeration':66
+        , 'rejectUnrecognizedService':67
+        , 'rejectProprietary':68
+        , 'rejectOther':69
+        , 'routerBusy':111
+        , 'securityError':114
+        , 'securityNotConfigured':103
+        , 'serviceRequestDenied':29
+        , 'sourceSecurityRequired':104
+        , 'success':84
+        , 'timeout':30
+        , 'tooManyKeys':105
+        , 'unknownAuthenticationType':106
+        , 'unknownDevice':70
+        , 'unknownFileSize':122
+        , 'unknownKey':107
+        , 'unknownKeyRevision':108
+        , 'unknownNetworkMessage':112
+        , 'unknownObject':31
+        , 'unknownProperty':32
+        , 'unknownSubscription':79
+        , 'umknownRoute':71
+        , 'unknownSourceMessage':109
+        , 'unknownVtClass':34
+        , 'unknownVtSession':35
+        , 'unsupportedObjectType':36
+        , 'valueNotInitialized':72
+        , 'valueOutOfRange':37
+        , 'valueTooLong':134 
+        , 'vtSessionAlreadyClosed':38
+        , 'vtSessionTermination -failure':39
+        , 'writeAccessDenied':40
+        , 'writeBdtFailed':116
+        }
+
+class EventState(Enumerated):
     enumerations = \
         { 'normal':0
         , 'fault':1
         , 'offnormal':2
-        , 'high-limit':3
-        , 'low-limit':4
+        , 'highLimit':3
+        , 'lowLimit':4
+        , 'lifeSafetyAlarm':5
         }
 
-class BACnetEventType(Enumerated):
+class EventType(Enumerated):
     enumerations = \
-        { 'change-of-bitstring':0
-        , 'change-of-state':1
-        , 'change-of-value':2
-        , 'command-failure':3
-        , 'floating-limit':4
-        , 'out-of-range':5
+        { 'changeOfBitstring':0
+        , 'changeOfState':1
+        , 'changeOfValue':2
+        , 'commandFailure':3
+        , 'floatingLimit':4
+        , 'outOfRange':5
+        # -- context tag 7 is deprecated
+        , 'changeOfLifeSafety':8
+        , 'extended':9
+        , 'bufferReady':10
+        , 'unsignedRange':11
+        # -- enumeration value 12 is reserved for future addenda 
+        , 'accessEvent':13
+        , 'doubleOutOfRange':14
+        , 'signed--outOfRange':15
+        , 'unsignedOutOfRange':16
+        , 'changeOfCharacterstring':17
+        , 'changeOfStatusFlags':18
         }
 
-class BACnetFileAccessMethod(Enumerated):
+class FileAccessMethod(Enumerated):
     enumerations = \
-        { 'record-access':0
-        , 'stream-access':1
-        , 'record-and-stream-access':2
+        { 'recordAccess':0
+        , 'streamAccess':1
         }
 
-class BACnetLifeSafetyMode(Enumerated):
+class LifeSafetyMode(Enumerated):
     enumerations = \
         { 'off':0
         , 'on':1
@@ -257,318 +873,76 @@ class BACnetLifeSafetyMode(Enumerated):
         , 'disconnected':10
         , 'enabled':11
         , 'disabled':12
-        , 'automatic-release-disabled':13
+        , 'automaticReleaseDisabled':13
         , 'default':14
         }
 
-class BACnetProgramError(Enumerated):
+class LifeSafetyOperation(Enumerated):
     enumerations = \
-        { 'normal':0
-        , 'load-failed':1
-        , 'internal':2
-        , 'program':3
-        , 'other':4
+        { 'none':0
+        , 'silence':1
+        , 'silenceAudible':2
+        , 'silenceVisual':3
+        , 'reset':4
+        , 'resetAlarm':5
+        , 'resetFault':6
+        , 'unsilence':7
+        , 'unsilenceAudible':8
+        , 'unsilenceVisual':9
         }
 
-class BACnetProgramRequest(Enumerated):
+class LifeSafetyState(Enumerated):
     enumerations = \
-        { 'ready':0
-        , 'load':1
-        , 'run':2
-        , 'halt':3
-        , 'restart':4
-        , 'unload':5
+        { 'quiet':0
+        , 'preAlarm':1
+        , 'alarm':2
+        , 'fault':3
+        , 'faultPreAlarm':4
+        , 'faultAlarm':5
+        , 'notReady':6
+        , 'active':7
+        , 'tamper':8
+        , 'testAlarm':9
+        , 'testActive':10
+        , 'testFault':11
+        , 'testFaultAlarm':12
+        , 'holdup':13
+        , 'duress':14
+        , 'tamperAlarm':15
+        , 'abnormal':16
+        , 'emergencyPower':17
+        , 'delayed':18
+        , 'blocked':19
+        , 'localAlarm':20
+        , 'generalAlarm':21
+        , 'supervisory':22
+        , 'testSupervisory':23
         }
 
-class BACnetProgramState(Enumerated):
+class LockStatus(Enumerated):
     enumerations = \
-        { 'idle':0
-        , 'loading':1
-        , 'running':2
-        , 'waiting':3
-        , 'halted':4
-        , 'unloading':5
+        { 'locked':0
+        , 'unlocked':1
+        , 'fault':2
+        , 'unknown':3
         }
 
-class BACnetPropertyIdentifier(Enumerated):
+class LoggingType(Enumerated):
     enumerations = \
-        { 'accepted-modes':175
-        , 'acked-transitions':0
-        , 'ack-required':1
-        , 'action':2
-        , 'action-text':3
-        , 'active-text':4
-        , 'active-vt-sessions':5
-        , 'active-cov-subscriptions':152
-        , 'actual-sched-level':212
-        , 'adjust-value':176
-        , 'alarm-value':6
-        , 'alarm-values':7
-        , 'align-intervals':193
-        , 'all':8
-        , 'all-writes-successful':9
-        , 'apdu-segment-timeout':10
-        , 'apdu-timeout':11
-        , 'application-software-version':12
-        , 'archive':13
-        , 'attempted-samples':124
-        , 'auto-slave-discovery':169
-        , 'average-value':125
-        , 'backup-failure-timeout':153
-        , 'bias':14
-        , 'buffer-size':126
-        , 'change-of-state-count':15
-        , 'change-of-state-time':16
-        , 'client-cov-increment':127
-        , 'configuration-files':154
-        , 'controlled-variable-reference':19
-        , 'controlled-variable-units':20
-        , 'controlled-variable-value':21
-        , 'count':177
-        , 'count-before-change':178
-        , 'count-change-time':179
-        , 'cov-increment':22
-        , 'cov-period':180
-        , 'cov-resubscription-interval':128
-        , 'database-revision':155
-        , 'date-list':23
-        , 'daylight-savings-status':24
-        , 'deadband':25
-        , 'derivative-constant':26
-        , 'derivative-constant-units':27
-        , 'description':28
-        , 'description-of-halt':29
-        , 'device-address-binding':30
-        , 'device-type':31
-        , 'direct-reading':156
-        , 'door-alarm-state':226
-        , 'door-extended-pulse-time':227
-        , 'door-members':228
-        , 'door-open-too-long-time':229
-        , 'door-pulse-time':230
-        , 'door-status':231
-        , 'door-unlock-delay-time':232
-        , 'duty-window':213
-        , 'effective-period':32
-        , 'elapsed-active-time':33
-        , 'enable':133
-        , 'error-limit':34
-        , 'event-enable':35
-        , 'event-state':36
-        , 'event-time-stamps':130
-        , 'event-type':37
-        , 'event-parameters':83
-        , 'exception-schedule':38
-        , 'expected-sched-level':214
-        , 'fault-values':39
-        , 'feedback-value':40
-        , 'file-access-method':41
-        , 'file-size':42
-        , 'file-type':43
-        , 'firmware-revision':44
-        , 'full-duty-baseline':213
-        , 'high-limit':45
-        , 'inactive-text':46
-        , 'in-process':47
-        , 'input-reference':181
-        , 'instance-of':48
-        , 'integral-constant':49
-        , 'integral-constant-units':50
-        , 'interval-offset':195
-        , 'last-notify-record':173
-        , 'last-restart-reason':196
-        , 'last-restore-time':157
-        , 'life-safety-alarm-values':166
-        , 'limit-enable':52
-        , 'limit-monitoring-interval':182
-        , 'list-of-group-members':53
-        , 'list-of-object-property-references':54
-        , 'list-of-session-keys':55
-        , 'local-date':56
-        , 'local-time':57
-        , 'location':58
-        , 'lock-status':233
-        , 'log-buffer':131
-        , 'log-device-object-property':132
-        # 'log-enable' renamed to 'enable'
-        , 'log-interval':134
-        , 'logging-object':183
-        , 'logging-record':184
-        , 'logging-type':197
-        , 'low-limit':59
-        , 'maintenance-required':158
-        , 'manipulated-variable-reference':60
-        , 'manual-slave-address-binding':170
-        , 'masked-alarm-values':234
-        , 'maximum-output':61
-        , 'maximum-value':135
-        , 'maximum-value-timestamp':149
-        , 'max-apdu-length-accepted':62
-        , 'max-info-frames':63
-        , 'max-master':64
-        , 'max-pres-value':65
-        , 'max-segments-accepted':167
-        , 'member-of':159
-        , 'minimum-off-time':66
-        , 'minimum-on-time':67
-        , 'minimum-output':68
-        , 'minimum-value':136
-        , 'minimum-value-timestamp':150
-        , 'min-pres-value':69
-        , 'mode':160
-        , 'model-name':70
-        , 'modification-date':71
-        , 'node-subtype':207
-        , 'node-type':208
-        , 'notification-class':17
-        , 'notification-threshold':137
-        , 'notify-type':72
-        , 'number-of-apdu-retries':73 # number-of-APDU-retries
-        , 'number-of-states':74
-        , 'object-identifier':75
-        , 'object-list':76
-        , 'object-name':77
-        , 'object-property-reference':78
-        , 'object-type':79
-        , 'operation-expected':161
-        , 'optional':80
-        , 'out-of-service':81
-        , 'output-units':82
-        , 'polarity':84
-        , 'prescale':185
-        , 'present-value':85
-        , 'priority':86
-        , 'pulse-rate':186
-        , 'priority-array':87
-        , 'priority-for-writing':88
-        , 'process-identifier':89
-        , 'profile-name':168
-        , 'program-change':90
-        , 'program-location':91
-        , 'program-state':92
-        , 'proportional-constant':93
-        , 'proportional-constant-units':94
-        , 'protocol-conformance-class':95 # deleted in version 1 revision 2
-        , 'protocol-object-types-supported':96
-        , 'protocol-revision':139
-        , 'protocol-services-supported':97
-        , 'protocol-version':98
-        , 'read-only':99
-        , 'reason-for-halt':100
-        , 'recipient-list':102
-        , 'records-since-notification':140
-        , 'record-count':141
-        , 'reliability':103
-        , 'relinquish-default':104
-        , 'requested-sched-level':218
-        , 'required':105
-        , 'resolution':106
-        , 'restart-notification-recipients':202
-        , 'scale':187
-        , 'scale-factor':188
-        , 'schedule-default':174
-        , 'secured-status':235
-        , 'segmentation-supported':107
-        , 'setpoint':108
-        , 'setpoint-reference':109
-        , 'setting':162
-        , 'sched-duration':219
-        , 'sched-level-descriptions':220
-        , 'sched-levels':221
-        , 'silenced':163
-        , 'slave-address-binding':171
-        , 'slave-proxy-enable':172
-        , 'start-time':142
-        , 'state-text':110
-        , 'status-flags':111
-        , 'stop-time':143
-        , 'stop-when-full':144
-        , 'structured-object-list':209
-        , 'subordinate-annotations':210
-        , 'subordinate-list':211
-        , 'system-status':112
-        , 'time-delay':113
-        , 'time-of-active-time-reset':114
-        , 'time-of-device-restart':203
-        , 'time-of-state-count-reset':115
-        , 'time-synchronization-interval':204
-        , 'time-synchronization-recipients':116
-        , 'total-record-count':145
-        , 'tracking-value':164
-        , 'trigger':205
-        , 'units':117
-        , 'update-interval':118
-        , 'update-time':189
-        , 'utc-offset':119
-        , 'utc-time-synchronization-recipients':206
-        , 'valid-samples':146
-        , 'value-before-change':190
-        , 'value-set':191
-        , 'value-change-time':192
-        , 'variance-value':151
-        , 'vendor-identifier':120
-        , 'vendor-name':121
-        , 'vt-classes-supported':122
-        , 'weekly-schedule':123
-        , 'window-interval':147
-        , 'window-samples':148
-        , 'zone-members':165
+        { 'polled':0
+        , 'cov':1
+        , 'triggered':2
         }
 
-class BACnetNotifyType(Enumerated):
+class Maintenance(Enumerated):
     enumerations = \
-        { 'alarm':0
-        , 'event':1
-        , 'ack-notification':2
+        { 'none':0
+        , 'periodicTest':1
+        , 'needServiceOperational':2
+        , 'needServiceInoperative':3
         }
 
-class BACnetPolarity(Enumerated):
-    enumerations = \
-        { 'normal':0
-        , 'reverse':1
-        }
-
-class BACnetPrescale(Sequence):
-    sequenceElements = \
-        [ Element('multiplier', Unsigned, 0)
-        , Element('moduloDivide', Unsigned, 1)
-        ]
-
-class BACnetReliability(Enumerated):
-    enumerations = \
-        { 'no-fault-detected':0
-        , 'no-sensor':1
-        , 'over-range':2
-        , 'under-range':3
-        , 'open-loop':4
-        , 'shorted-loop':5
-        , 'no-output':6
-        , 'unreliable-other':7
-        , 'process-error':8
-        , 'multi-state-fault':9
-        , 'configuration-error':10
-        }
-
-class BACnetSegmentation(Enumerated):
-    enumerations = \
-        { 'segmented-both':0
-        , 'segmented-transmit':1
-        , 'segmented-receive':2
-        , 'no-segmentation':3
-        }
-
-class BACnetVTClass(Enumerated):
-    enumerations = \
-        { 'default-terminal':0
-        , 'ansi-x3-64':1
-        , 'dec-vt52':2
-        , 'dec-vt100':3
-        , 'dec-vt220':4
-        , 'hp-700-94':5
-        , 'ibm-3130':6
-        }
-
-class BACnetNodeType(Enumerated):
+class NodeType(Enumerated):
     enumerations = \
         { 'unknown':0
         , 'system':1
@@ -584,15 +958,612 @@ class BACnetNodeType(Enumerated):
         , 'other':11
         }
 
+class NotifyType(Enumerated):
+    enumerations = \
+        { 'alarm':0
+        , 'event':1
+        , 'ackNotification':2
+        }
+
+class Polarity(Enumerated):
+    enumerations = \
+        { 'normal':0
+        , 'reverse':1
+        }
+
+class ProgramError(Enumerated):
+    enumerations = \
+        { 'normal':0
+        , 'loadFailed':1
+        , 'internal':2
+        , 'program':3
+        , 'other':4
+        }
+
+class ProgramRequest(Enumerated):
+    enumerations = \
+        { 'ready':0
+        , 'load':1
+        , 'run':2
+        , 'halt':3
+        , 'restart':4
+        , 'unload':5
+        }
+
+class ProgramState(Enumerated):
+    enumerations = \
+        { 'idle':0
+        , 'loading':1
+        , 'running':2
+        , 'waiting':3
+        , 'halted':4
+        , 'unloading':5
+        }
+
+class PropertyIdentifier(Enumerated):
+    enumerations = \
+        { 'absenteeLimit':244
+        , 'acceptedModes':175
+        , 'accessAlarmEvents':245
+        , 'accessDoors':246
+        , 'accessEvent':247
+        , 'accessEventAuthenticationFactor':248
+        , 'accessEventCredential':249
+        , 'accessEventTag':322
+        , 'accessEventTime':250
+        , 'accessTransactionEvents':251
+        , 'accompaniment':252
+        , 'accompanimentTime':253
+        , 'ackRequired':1
+        , 'ackedTransitions':0
+        , 'action':2
+        , 'actionText':3
+        , 'activationTime':254
+        , 'activeAuthenticationPolicy':255
+        , 'activeCovSubscriptions':152
+        , 'activeText':4
+        , 'activeVtSessions':5
+        , 'actualShedLevel':212
+        , 'adjustValue':176
+        , 'alarmValue':6
+        , 'alarmValues':7
+        , 'alignIntervals':193
+        , 'all':8
+        , 'allWritesSuccessful':9
+        , 'apduSegmentTimeout':10
+        , 'apduTimeout':11
+        , 'applicationSoftwareVersion':12
+        , 'archive':13
+        , 'assignedAccessRights':256
+        , 'attemptedSamples':124
+        , 'authenticationFactors':257
+        , 'authenticationPolicyList':258
+        , 'authenticationPolicyNames':259
+        , 'authenticationStatus':260
+        , 'authorizationMode':261
+        , 'autoSlaveDiscovery':169
+        , 'averageValue':125
+        , 'backupAndRestoreState':338
+        , 'backupFailureTimeout':153
+        , 'backupPreparationTime':339
+        , 'baseDeviceSecurityPolicy':327
+        , 'belongsTo':262
+        , 'bias':14
+        , 'bitMask':342
+        , 'bitText':343
+        , 'bufferSize':126
+        , 'changeOfStateCount':15
+        , 'changeOfStateTime':16
+        , 'clientCovIncrement':127
+        , 'configurationFiles':154
+        , 'controlledVariableReference':19
+        , 'controlledVariableUnits':20
+        , 'controlledVariableValue':21
+        , 'count':177
+        , 'countBeforeChange':178
+        , 'countChangeTime':179
+        , 'covIncrement':22
+        , 'covPeriod':180
+        , 'covResubscriptionInterval':128
+        , 'covuPeriod':349
+        , 'covuRecipients':350
+        , 'credentialDisable':263
+        , 'credentialStatus':264
+        , 'credentials':265
+        , 'credentialsInZone':266
+        , 'databaseRevision':155
+        , 'dateList':23
+        , 'daylightSavingsStatus':24
+        , 'daysRemaining':267
+        , 'deadband':25
+        , 'derivativeConstant':26
+        , 'derivativeConstantUnits':27
+        , 'description':28
+        , 'descriptionOfHalt':29
+        , 'deviceAddressBinding':30
+        , 'deviceType':31
+        , 'directReading':156
+        , 'distributionKeyRevision':328
+        , 'doNotHide':329
+        , 'doorAlarmState':226
+        , 'doorExtendedPulseTime':227
+        , 'doorMembers':228
+        , 'doorOpenTooLongTime':229
+        , 'doorPulseTime':230
+        , 'doorStatus':231
+        , 'doorUnlockDelayTime':232
+        , 'dutyWindow':213
+        , 'effectivePeriod':32
+        , 'elapsedActiveTime':33
+        , 'entryPoints':268
+        , 'enable':133
+        , 'errorLimit':34
+        , 'eventEnable':35
+        , 'eventMessageTexts':351
+        , 'eventState':36
+        , 'eventTimeStamps':130
+        , 'eventType':37
+        , 'eventParameters':83
+        , 'exceptionSchedule':38
+        , 'exitPoints':269
+        , 'expectedShedLevel':214
+        , 'expiryTime':270
+        , 'extendedTimeEnable':271
+        , 'failedAttemptEvents':272
+        , 'failedAttempts':273
+        , 'failedAttemptsTime':274
+        , 'faultValues':39
+        , 'feedbackValue':40
+        , 'fileAccessMethod':41
+        , 'fileSize':42
+        , 'fileType':43
+        , 'firmwareRevision':44
+        , 'fullDutyBaseline':215
+        , 'globalIdentifier':323
+        , 'groupMembers':345
+        , 'groupMemberNames':346
+        , 'highLimit':45
+        , 'inactiveText':46
+        , 'inProcess':47
+        , 'inputReference':181
+        , 'instanceOf':48
+        , 'integralConstant':49
+        , 'integralConstantUnits':50
+        , 'intervalOffset':195
+        , 'isUtc':344
+        , 'keySets':330
+        , 'lastAccessEvent':275
+        , 'lastAccessPoint':276
+        , 'lastCredentialAdded':277
+        , 'lastCredentialAddedTime':278
+        , 'lastCredentialRemoved':279
+        , 'lastCredentialRemovedTime':280
+        , 'lastKeyServer':331
+        , 'lastNotifyRecord':173
+        , 'lastRestartReason':196
+        , 'lastRestoreTime':157
+        , 'lastUseTime':281
+        , 'lifeSafetyAlarmValues':166
+        , 'limitEnable':52
+        , 'limitMonitoringInterval':182
+        , 'listOfGroupMembers':53
+        , 'listOfObjectPropertyReferences':54
+        , 'listOfSessionKeys':55
+        , 'localDate':56
+        , 'localTime':57
+        , 'location':58
+        , 'lockStatus':233
+        , 'lockout':282
+        , 'lockoutRelinquishTime':283
+        , 'logBuffer':131
+        , 'logDeviceObjectProperty':132
+        , 'logInterval':134
+        , 'loggingObject':183
+        , 'loggingRecord':184
+        , 'loggingType':197
+        , 'lowLimit':59
+        , 'maintenanceRequired':158
+        , 'manipulatedVariableReference':60
+        , 'manualSlaveAddressBinding':170
+        , 'maskedAlarmValues':234
+        , 'masterExemption':284
+        , 'maximumOutput':61
+        , 'maximumValue':135
+        , 'maximumValueTimestamp':149
+        , 'maxApduLengthAccepted':62
+        , 'maxFailedAttempts':285
+        , 'maxInfoFrames':63
+        , 'maxMaster':64
+        , 'maxPresValue':65
+        , 'maxSegmentsAccepted':167
+        , 'memberOf':159
+        , 'memberStatusFlags':347
+        , 'members':286
+        , 'minimumOffTime':66
+        , 'minimumOnTime':67
+        , 'minimumOutput':68
+        , 'minimumValue':136
+        , 'minimumValueTimestamp':150
+        , 'minPresValue':69
+        , 'mode':160
+        , 'modelName':70
+        , 'modificationDate':71
+        , 'musterPoint':287
+        , 'negativeAccessRules':288
+        , 'networkAccessSecurityPolicies':332
+        , 'nodeSubtype':207
+        , 'nodeType':208
+        , 'notificationClass':17
+        , 'notificationThreshold':137
+        , 'notifyType':72
+        , 'numberOfApduRetries':73
+        , 'numberOfAuthenticationPolicies':289
+        , 'numberOfStates':74
+        , 'objectIdentifier':75
+        , 'objectList':76
+        , 'objectName':77
+        , 'objectPropertyReference':78
+        , 'objectType':79
+        , 'occupancyCount':290
+        , 'occupancyCountAdjust':291
+        , 'occupancyCountEnable':292
+        , 'occupancyExemption':293
+        , 'occupancyLowerLimit':294
+        , 'occupancyLowerLimitEnforced':295
+        , 'occupancyState':296
+        , 'occupancyUpperLimit':297
+        , 'occupancyUpperLimitEnforced':298
+        , 'operationExpected':161
+        , 'optional':80
+        , 'outOfService':81
+        , 'outputUnits':82
+        , 'packetReorderTime':333
+        , 'passbackExemption':299
+        , 'passbackMode':300
+        , 'passbackTimeout':301
+        , 'polarity':84
+        , 'positiveAccessRules':302
+        , 'prescale':185
+        , 'presentValue':85
+        , 'priority':86
+        , 'priorityArray':87
+        , 'priorityForWriting':88
+        , 'processIdentifier':89
+        , 'profileName':168
+        , 'programChange':90
+        , 'programLocation':91
+        , 'programState':92
+        , 'proportionalConstant':93
+        , 'proportionalConstantUnits':94
+        , 'protocolObjectTypesSupported':96
+        , 'protocolRevision':139
+        , 'protocolServicesSupported':97
+        , 'protocolVersion':98
+        , 'pulseRate':186
+        , 'readOnly':99
+        , 'reasonForDisable':303
+        , 'reasonForHalt':100
+        , 'recipientList':102
+        , 'recordsSinceNotification':140
+        , 'recordCount':141
+        , 'reliability':103
+        , 'relinquishDefault':104
+        , 'requestedShedLevel':218
+        , 'requestedUpdateInterval':348
+        , 'required':105
+        , 'resolution':106
+        , 'restartNotificationRecipients':202
+        , 'restoreCompletionTime':340
+        , 'restorePreparationTime':341
+        , 'scale':187
+        , 'scaleFactor':188
+        , 'scheduleDefault':174
+        , 'securedStatus':235
+        , 'securityPduTimeout':334
+        , 'securityTimeWindow':335
+        , 'segmentationSupported':107
+        , 'setpoint':108
+        , 'setpointReference':109
+        , 'setting':162
+        , 'shedDuration':219
+        , 'shedLevelDescriptions':220
+        , 'shedLevels':221
+        , 'silenced':163
+        , 'slaveAddressBinding':171
+        , 'slaveProxyEnable':172
+        , 'startTime':142
+        , 'stateDescription':222
+        , 'stateText':110
+        , 'statusFlags':111
+        , 'stopTime':143
+        , 'stopWhenFull':144
+        , 'structuredObjectList':209
+        , 'subordinateAnnotations':210
+        , 'subordinateList':211
+        , 'supportedFormats':304
+        , 'supportedFormatClasses':305
+        , 'supportedSecurityAlgorithms':336
+        , 'systemStatus':112
+        , 'threatAuthority':306
+        , 'threatLevel':307
+        , 'timeDelay':113
+        , 'timeOfActiveTimeReset':114
+        , 'timeOfDeviceRestart':203
+        , 'timeOfStateCountReset':115
+        , 'timeSynchronizationInterval':204
+        , 'timeSynchronizationRecipients':116
+        , 'totalRecordCount':145
+        , 'traceFlag':308
+        , 'trackingValue':164
+        , 'transactionNotificationClass':309
+        , 'trigger':205
+        , 'units':117
+        , 'updateInterval':118
+        , 'updateKeySetTimeout':337
+        , 'updateTime':189
+        , 'userExternalIdentifier':310
+        , 'userInformationReference':311
+        , 'userName':317
+        , 'userType':318
+        , 'usesRemaining':319
+        , 'utcOffset':119
+        , 'utcTimeSynchronizationRecipients':206
+        , 'validSamples':146
+        , 'valueBeforeChange':190
+        , 'valueSet':191
+        , 'valueChangeTime':192
+        , 'varianceValue':151
+        , 'vendorIdentifier':120
+        , 'vendorName':121
+        , 'verificationTime':326
+        , 'vtClassesSupported':122
+        , 'weeklySchedule':123
+        , 'windowInterval':147
+        , 'windowSamples':148
+        , 'zoneFrom':320
+        , 'zoneMembers':165
+        , 'zoneTo':321
+        }
+
+class Reliability(Enumerated):
+    enumerations = \
+        { 'noFaultDetected':0
+        , 'noSensor':1
+        , 'overRange':2
+        , 'underRange':3
+        , 'openLoop':4
+        , 'shortedLoop':5
+        , 'noOutput':6
+        , 'unreliableOther':7
+        , 'processError':8
+        , 'multiStateFault':9
+        , 'configurationError':10
+        , 'communicationFailure':12
+        , 'numberFault':13
+        }
+
+class RestartReason(Enumerated):
+    enumerations = \
+        { 'unknown':0
+        , 'coldstart':1
+        , 'warmstart':2
+        , 'detectedPowerLost':3
+        , 'detectedPoweredOff':4
+        , 'hardwareWatchdog,':5
+        , 'softwareWatchdog':6
+        , 'suspended':7
+        }
+
+class SecurityLevel(Enumerated):
+    enumerations = \
+        { 'incapable':0
+        , 'plain':1
+        , 'signed':2
+        , 'encrypted':3
+        , 'signedEndToEnd':4
+        , 'encryptedEndToEnd':4
+        }
+
+class SecurityPolicy(Enumerated):
+    enumerations = \
+        { 'plainNonTrusted':0
+        , 'plainTrusted':1
+        , 'signedTrusted':2
+        , 'encryptedTrusted':3
+        }
+
+class ShedState(Enumerated):
+    enumerations = \
+        { 'shedInactive':0
+        , 'shedRequestPending':1
+        , 'shedCompliant':2
+        , 'shedNonCompliant':3
+        }
+
+class Segmentation(Enumerated):
+    enumerations = \
+        { 'segmentedBoth':0
+        , 'segmentedTransmit':1
+        , 'segmentedReceive':2
+        , 'noSegmentation':3
+        }
+
+class SilencedState(Enumerated):
+    enumerations = \
+        { 'unsilenced':0
+        , 'audibleSilenced':1
+        , 'visibleSilenced':2
+        , 'allSilenced':3
+        }
+
+class VTClass(Enumerated):
+    enumerations = \
+        { 'defaultTerminal':0
+        , 'ansiX3-64':1
+        , 'decVt52':2
+        , 'decVt100':3
+        , 'decVt220':4
+        , 'hp-700-94':5
+        , 'ibm-3130':6
+        }
+
 #
-#   Base Type Structures
+#   Forward Sequences
 #
 
-class BACnetActionCommand(Sequence):
+class DeviceAddress(Sequence):
+    sequenceElements = \
+        [ Element('networkNumber', Unsigned)
+        , Element('macAddress', OctetString)
+        ]
+
+class DeviceObjectPropertyReference(Sequence):
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
+        , Element('propertyArrayIndex', Unsigned, 2, True)
+        , Element('deviceIdentifier', ObjectIdentifier, 3, True)
+        ]
+
+class DeviceObjectReference(Sequence):
     sequenceElements = \
         [ Element('deviceIdentifier', ObjectIdentifier, 0, True)
         , Element('objectIdentifier', ObjectIdentifier, 1)
-        , Element('propertyIdentifier', BACnetPropertyIdentifier, 2)
+        ]
+
+class DateTime(Sequence):
+    sequenceElements = \
+        [ Element('date', Date)
+        , Element('time', Time)
+        ]
+
+class DateRange(Sequence):
+    sequenceElements = \
+        [ Element('startDate', Date)
+        , Element('endDate', Date)
+        ]
+
+class ErrorType(Sequence):
+    sequenceElements = \
+        [ Element('errorClass', ErrorClass)
+        , Element('errorCode', ErrorCode)
+        ]
+
+class ObjectPropertyReference(Sequence):
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
+        , Element('propertyArrayIndex', Unsigned, 2, True)
+        ]
+
+class PropertyStates(Choice):
+    choiceElements = \
+        [ Element('booleanValue', Boolean, 0)
+        , Element('binaryValue', BinaryPV, 1)
+        , Element('eventType', EventType, 2)
+        , Element('polarity', Polarity, 3)
+        , Element('programChange', ProgramRequest, 4)
+        , Element('programState', ProgramState, 5)
+        , Element('reasonForHalt', ProgramError, 6)
+        , Element('reliability', Reliability, 7)
+        , Element('state', EventState, 8)
+        , Element('systemStatus', DeviceStatus, 9)
+        , Element('units', EngineeringUnits, 10)
+        , Element('unsignedValue', Unsigned, 11)
+        , Element('lifeSafetyMode', LifeSafetyMode, 12)
+        , Element('lifeSafetyState', LifeSafetyState, 13)
+        , Element('restartReason', RestartReason, 14)
+        , Element('doorAlarmState', DoorAlarmState, 15)
+        , Element('action', Action, 16)
+        , Element('doorSecuredStatus', DoorSecuredStatus, 17)
+        , Element('doorStatus', DoorStatus, 18)
+        , Element('doorValue', DoorValue, 19)
+        , Element('fileAccessMethod', FileAccessMethod, 20)
+        , Element('lockStatus', LockStatus, 21)
+        , Element('lifeSafetyOperation', LifeSafetyOperation, 22)
+        , Element('maintenance', Maintenance, 23)
+        , Element('nodeType', NodeType, 24)
+        , Element('notifyType', NotifyType, 25)
+        , Element('securityLevel', SecurityLevel, 26)
+        , Element('shedState', ShedState, 27)
+        , Element('silencedState', SilencedState, 28)
+        , Element('accessEvent', AccessEvent, 30)
+        , Element('zoneOccupancyState', AccessZoneOccupancyState, 31)
+        , Element('accessCredentialDisableReason', AccessCredentialDisableReason, 32)
+        , Element('accessCredentialDisable', AccessCredentialDisable, 33)
+        , Element('authenticationStatus', AuthenticationStatus, 34)
+        , Element('backupState', BackupState, 36)
+        ]
+
+class PropertyValue(Sequence):
+    sequenceElements = \
+        [ Element('propertyIdentifier', PropertyIdentifier, 0)
+        , Element('propertyArrayIndex', Unsigned, 1, True)
+        , Element('value', Any, 2)
+        , Element('priority', Unsigned, 3, True)
+        ]
+
+class Recipient(Choice):
+    choiceElements = \
+        [ Element('device', ObjectIdentifier, 0)
+        , Element('address', DeviceAddress, 1)
+        ]
+
+class RecipientProcess(Sequence):
+    sequenceElements = \
+        [ Element('recipient', Recipient, 0)
+        , Element('processIdentifier', Unsigned, 1)
+        ]
+
+class TimeStamp(Choice):
+    choiceElements = \
+        [ Element('time', Time, 0)
+        , Element('sequenceNumber', Unsigned, 1)
+        , Element('dateTime', DateTime, 2)
+        ]
+
+class TimeValue(Sequence):
+    sequenceElements = \
+        [ Element('time', Time)
+        , Element('value', Any)
+        ]
+
+class WeekNDay(OctetString):
+    def __str__(self):
+        if len(self.value) != 3:
+            return "WeekNDay(?): " + OctetString.__str__(self)
+        else:
+            return "WeekNDay(%d, %d, %d)" % (ord(self.value[0]), ord(self.value[1]), ord(self.value[2]))
+
+#
+#   Sequences
+#
+
+class AccessRule(Sequence):
+    sequenceElements = \
+        [ Element('timeRangeSpecifier', AccessRuleTimeRangeSpecifier, 0)
+        , Element('timeRange', DeviceObjectPropertyReference, 1, True)
+        , Element('locationSpecifier', AccessRuleLocationSpecifier, 2)
+        , Element('location', DeviceObjectReference, 3, True)
+        , Element('enable', Boolean, 4)
+        ]
+
+class AccessThreatLevel(Unsigned):
+    pass
+
+class AccumulatorRecord(Sequence):
+    sequenceElements = \
+        [ Element('timestamp', DateTime, 0)
+        , Element('presentValue', Unsigned, 1)
+        , Element('accumulatedValue', Unsigned, 2)
+        , Element('accumulatorStatus', AccumulatorRecordAccumulatorStatus, 3)
+        ]
+
+class ActionCommand(Sequence):
+    sequenceElements = \
+        [ Element('deviceIdentifier', ObjectIdentifier, 0, True)
+        , Element('objectIdentifier', ObjectIdentifier, 1)
+        , Element('propertyIdentifier', PropertyIdentifier, 2)
         , Element('propertyArrayIndex', Unsigned, 3, True)
         , Element('propertyValue', Any, 4)
         , Element('priority', Unsigned, 5, True)
@@ -601,249 +1572,591 @@ class BACnetActionCommand(Sequence):
         , Element('writeSuccessFul', Boolean, 8)
         ]
 
-class BACnetActionList(Sequence):
+class ActionList(Sequence):
     sequenceElements = \
-        [ Element('action', SequenceOf(BACnetActionCommand))
+        [ Element('action', SequenceOf(ActionCommand))
         ]
 
-class BACnetAddress(Sequence):
-    sequenceElements = \
-        [ Element('networkNumber', Unsigned)
-        , Element('macAddress', OctetString)
-        ]
-
-class BACnetAddressBinding(Sequence):
+class AddressBinding(Sequence):
     sequenceElements = \
         [ Element('deviceObjectIdentifier', ObjectIdentifier)
-        , Element('deviceAddress', BACnetAddress)
+        , Element('deviceAddress', DeviceAddress)
         ]
 
-class BACnetDateRange(Sequence):
+class AssignedAccessRights(Sequence):
+    serviceChoice = 15
     sequenceElements = \
-        [ Element('startDate', Date)
-        , Element('endDate', Date)
+        [ Element('assignedAccessRights', DeviceObjectReference, 0)
+        , Element('enable', Boolean, 1)
         ]
 
-class BACnetWeekNDay(OctetString):
+class AuthenticationFactor(Sequence):
+    sequenceElements = \
+        [ Element('formatType', AuthenticationFactorType, 0)
+        , Element('formatClass', Unsigned, 1)
+        , Element('value', OctetString, 2)
+        ]
 
-    def __str__(self):
-        if len(self.value) != 3:
-            return "BACnetWeekNDay(?): " + OctetString.__str__(self)
-        else:
-            return "BACnetWeekNDay(%d, %d, %d)" % (ord(self.value[0]), ord(self.value[1]), ord(self.value[2]))
+class AuthenticationFactorFormat(Sequence):
+    sequenceElements = \
+        [ Element('formatType', AuthenticationFactorType, 0)
+        , Element('vendorId', Unsigned, 1, True)
+        , Element('vendorFormat', Unsigned, 2, True)
+        ]
 
-class BACnetCalendarEntry(Choice):
+class AuthenticationPolicyPolicy(Sequence):
+    sequenceElements = \
+        [ Element('credentialDataInput', DeviceObjectReference, 0)
+        , Element('index', Unsigned, 1)
+        ]
+
+class AuthenticationPolicy(Sequence):
+    sequenceElements = \
+        [ Element('policy', SequenceOf(AuthenticationPolicyPolicy), 0)
+        , Element('orderEnforced', Boolean, 1)
+        , Element('timeout', Unsigned, 2)
+        ]
+
+class CalendarEntry(Choice):
     choiceElements = \
         [ Element('date', Date, 0)
-        , Element('dateRange', BACnetDateRange, 1)
-        , Element('weekNDay', BACnetWeekNDay, 2)
+        , Element('dateRange', DateRange, 1)
+        , Element('weekNDay', WeekNDay, 2)
         ]
 
-class BACnetScale(Choice):
+class ClientCOV(Choice):
     choiceElements = \
-        [ Element('floatScale', Real)
-        , Element('integerScale', Integer)
+        [ Element('realIncrement', Real, 0)
+        , Element('defaultIncrement', Null, 0)
         ]
 
-class BACnetTimeValue(Sequence):
+class COVSubscription(Sequence):
     sequenceElements = \
-        [ Element('time', Time)
-        , Element('value', AnyAtomic)
+        [ Element('recipient', RecipientProcess, 0)
+        , Element('monitoredPropertyReference', ObjectPropertyReference, 1)
+        , Element('issueConfirmedNotifications', Boolean, 2)
+        , Element('timeRemaining', Unsigned, 3)
+        , Element('covIncrement', Real, 4, True)
         ]
 
-class BACnetDailySchedule(Sequence):
+class CredentialAuthenticationFactor(Sequence):
     sequenceElements = \
-        [ Element('daySchedule', SequenceOf(BACnetTimeValue), 0)
+        [ Element('disable', AccessAuthenticationFactorDisable, 0)
+        , Element('authenticationFactor', AuthenticationFactor, 1)
         ]
 
-class BACnetDateTime(Sequence):
+class DailySchedule(Sequence):
     sequenceElements = \
-        [ Element('date', Date)
-        , Element('time', Time)
+        [ Element('daySchedule', SequenceOf(TimeValue), 0)
         ]
 
-class BACnetRecipient(Choice):
-    choiceElements = \
-        [ Element('device', ObjectIdentifier, 0)
-        , Element('address', BACnetAddress, 1)
-        ]
-
-class BACnetDestination(Sequence):
+class Destination(Sequence):
     sequenceElements = \
-        [ Element('validDays', BACnetDaysOfWeek)
+        [ Element('validDays', DaysOfWeek)
         , Element('fromTime', Time)
         , Element('toTime', Time)
-        , Element('recipient', BACnetRecipient)
+        , Element('recipient', Recipient)
         , Element('processIdentifier', Unsigned)
         , Element('issueConfirmedNotifications', Boolean)
-        , Element('transitions', BACnetEventTransitionBits)
+        , Element('transitions', EventTransitionBits)
         ]
 
-#-----
+class DeviceObjectPropertyValue(Sequence):
+    sequenceElements = \
+        [ Element('deviceIdentifier', ObjectIdentifier, 0)
+        , Element('objectIdentifier', ObjectIdentifier, 1)
+        , Element('propertyIdentifier', PropertyIdentifier, 2)
+        , Element('arrayIndex', Unsigned, 3, True)
+        , Element('value', Any, 4)
+        ]
 
-class BACnetPropertyStates(Choice):
+class EventParameterChangeOfBitstring(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('bitmask', BitString, 1)
+        , Element('listOfBitstringValues', SequenceOf(BitString), 2)
+        ]
+
+class EventParameterChangeOfState(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('listOfValues', SequenceOf(PropertyStates), 1)
+        ]
+
+class EventParameterChangeOfValueCOVCriteria(Choice):
+    choiceElements = \
+        [ Element('bitmask', BitString, 0)
+        , Element('referencedPropertyIncrement', Real, 1)
+        ]
+
+class EventParameterChangeOfValue(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('covCriteria', EventParameterChangeOfValueCOVCriteria, 1)
+        ]
+
+class EventParameterCommandFailure(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('feedbackPropertyReference', DeviceObjectPropertyReference, 1)
+        ]
+
+class EventParameterFloatingLimit(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('setpointReference', DeviceObjectPropertyReference, 1)
+        , Element('lowDiffLimit', Real, 2)
+        , Element('highDiffLimit', Real, 3)
+        , Element('deadband', Real, 4)
+        ]
+
+class EventParameterOutOfRange(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('lowLimit', Real, 1)
+        , Element('highLimit', Real, 2)
+        , Element('deadband', Real, 3)
+        ]
+
+class EventParameterChangeOfLifeSafety(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('listOfLifeSafetyAlarmValues', SequenceOf(LifeSafetyState), 1)
+        , Element('listOfAlarmValues', SequenceOf(LifeSafetyState), 2)
+        , Element('modePropertyReference', DeviceObjectPropertyReference, 3)
+        ]
+
+class EventParameterExtendedParameters(Choice):
+    choiceElements = \
+        [ Element('null', Null, 0)
+        , Element('real', Real, 1)
+        , Element('integer', Unsigned, 2)
+        , Element('boolean', Boolean, 3)
+        , Element('double', Double, 4)
+        , Element('octet', OctetString, 5)
+        , Element('bitstring', BitString, 6)
+        , Element('enum', Enumerated, 7)
+        , Element('reference', DeviceObjectPropertyReference, 8)
+        ]
+
+class EventParameterExtended(Sequence):
+    sequenceElements = \
+        [ Element('vendorId', Unsigned, 0)
+        , Element('extendedEventType', Unsigned, 1)
+        , Element('parameters', SequenceOf(EventParameterExtendedParameters), 2)
+        ]
+
+class EventParameterBufferReady(Sequence):
+    sequenceElements = \
+        [ Element('notificationThreshold', Unsigned, 0)
+        , Element('previousNotificationCount', Unsigned, 1)
+        ]
+
+class EventParameterUnsignedRange(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('lowLimit', Unsigned, 1)
+        , Element('highLimit', Unsigned, 2)
+        ]
+
+class EventParameterAccessEventAccessEvent(Sequence):
+    sequenceevents = \
+        [ Element('listOfAccessEvents', SequenceOf(AccessEvent), 0)
+        , Element('accessEventTimeReference', DeviceObjectPropertyReference, 0)
+        ]
+
+class EventParameterAccessEvent(Sequence):
+    sequenceElements = \
+        [ Element('accessEvent', SequenceOf(EventParameterAccessEventAccessEvent), 0)
+        ]
+
+class EventParameterDoubleOutOfRange(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('lowLimit', Double, 1)
+        , Element('highLimit', Double, 2)
+        , Element('deadband', Double, 3)
+        ]
+
+class EventParameterSignedOutOfRange(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('lowLimit', Integer, 1)
+        , Element('highLimit', Integer, 2)
+        , Element('deadband', Unsigned, 3)
+        ]
+
+class EventParameterUnsignedOutOfRange(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('lowLimit', Unsigned, 1)
+        , Element('highLimit', Unsigned, 2)
+        , Element('deadband', Unsigned, 3)
+        ]
+
+class EventParameterChangeOfCharacterString(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('listOfAlarmValues', SequenceOf(CharacterString), 1)
+        ]
+
+class EventParameterChangeOfStatusFlags(Sequence):
+    sequenceElements = \
+        [ Element('timeDelay', Unsigned, 0)
+        , Element('selectedFlags', StatusFlags, 1)
+        ]
+
+class EventParameter(Choice):
+  choiceElements = \
+      [ Element('changeOfBitstring', 'EventParameterChangeOfBitstring', 0)
+      , Element('changeOfState', 'EventParameterChangeOfState', 1)
+      , Element('changeOfValue', 'EventParameterChangeOfValue', 2)
+      , Element('commandFailure', 'EventParameterCommandFailure', 3)
+      , Element('floatingLimit', 'EventParameterFloatingLimit', 4)
+      , Element('outOfRange', 'EventParameterOutOfRange', 5)
+      , Element('changeOfLifesafety', 'EventParameterChangeOfLifeSafety', 8)
+      , Element('extended', 'EventParameterExtended', 9)
+      , Element('bufferReady', 'EventParameterBufferReady', 10)
+      , Element('unsignedRange', 'EventParameterUnsignedRange', 11)
+      , Element('accessEvent', 'EventParameterAccessEvent', 13)
+      , Element('doubleOutOfRange', 'EventParameterDoubleOutOfRange', 14)
+      , Element('signedOutOfRange', 'EventParameterSignedOutOfRange', 15)
+      , Element('unsignedOutOfRange', 'EventParameterUnsignedOutOfRange', 16)
+      , Element('changeOfCharacterstring', 'EventParameterChangeOfCharacterString', 17)
+      , Element('changeOfStatusflags', 'EventParameterChangeOfStatusFlags', 18)
+      ]
+
+class KeyIdentifier(Sequence):
+    sequenceElements = \
+        [ Element('algorithm', Unsigned, 0)
+        , Element('keyId', Unsigned, 1)
+        ]
+
+class LogDataLogData(Choice):
     choiceElements = \
         [ Element('booleanValue', Boolean, 0)
-        , Element('binaryValue', BACnetBinaryPV, 1)
-        , Element('eventType', BACnetEventType, 2)
-        , Element('polarity', BACnetPolarity, 3)
-        , Element('programChange', BACnetProgramRequest, 4)
-        , Element('programState', BACnetProgramState, 5)
-        , Element('reasonForHalt', BACnetProgramError, 6)
-        , Element('reliability', BACnetReliability, 7)
-        , Element('state', BACnetEventState, 8)
-        , Element('systemStatus', BACnetDeviceStatus, 9)
-        , Element('units', BACnetEngineeringUnits, 10)
+        , Element('realValue', Real, 1)
+        , Element('enumValue', Enumerated, 2)
+        , Element('unsignedValue', Unsigned, 3)
+        , Element('signedValue', Integer, 4)
+        , Element('bitstringValue', BitString, 5)
+        , Element('nullValue', Null, 6)
+        , Element('failure', ErrorType, 7)
+        , Element('anyValue', Any, 8)
         ]
 
-class NotificationChangeOfBitstring(Sequence):
+class LogData(Choice):
+    choiceElements = \
+        [ Element('logStatus', LogStatus, 0)
+        , Element('logData', SequenceOf(LogDataLogData), 1)
+        , Element('timeChange', Real, 2)
+        ]
+
+class LogMultipleRecord(Sequence):
+    sequenceElements = \
+        [ Element('timestamp', DateTime, 0)
+        , Element('logData', LogData, 1)
+        ]
+
+class LogRecordLogDatum(Choice):
+    choiceElements = \
+        [ Element('logStatus', LogStatus, 0)
+        , Element('booleanValue', Boolean, 1)
+        , Element('realValue', Real, 2)
+        , Element('enumValue', Enumerated, 3)
+        , Element('unsignedValue', Unsigned, 4)
+        , Element('signedValue', Integer, 5)
+        , Element('bitstringValue', BitString, 6)
+        , Element('nullValue', Null, 7)
+        , Element('failure', ErrorType, 8)  
+        , Element('timeChange', Real, 9)
+        , Element('anyValue', Any, 10)
+        ]
+
+class LogRecord(Sequence):
+    sequenceElements = \
+        [ Element('timestamp', DateTime, 0)
+        , Element('logDatum', LogRecordLogDatum, 1)
+        , Element('statusFlags', StatusFlags, 2)
+        ]
+
+class NetworkSecurityPolicy(Sequence):
+    sequenceElements = \
+        [ Element('portId', Unsigned, 0)
+        , Element('securityLevel', SecurityPolicy, 1)
+        ]
+
+class NotificationParametersChangeOfBitstring(Sequence):
     sequenceElements = \
         [ Element('referencedBitstring', BitString, 0)
-        , Element('statusFlags', BACnetStatusFlags, 1)
+        , Element('statusFlags', StatusFlags, 1)
         ]
 
-class NotificationChangeOfState(Sequence):
+class NotificationParametersChangeOfState(Sequence):
     sequenceElements = \
-        [ Element('newState', BACnetPropertyStates, 0)
-        , Element('statusFlags', BACnetStatusFlags, 1)
+        [ Element('newState', PropertyStates, 0)
+        , Element('statusFlags', StatusFlags, 1)
         ]
         
-class NotificationChangeOfValueNewValue(Choice):
+class NotificationParametersChangeOfValueNewValue(Choice):
     sequenceElements = \
         [ Element('changedBits', BitString, 0)
         , Element('changedValue', Real, 1)
         ]
         
-class NotificationChangeOfValue(Sequence):
+class NotificationParametersChangeOfValue(Sequence):
     sequenceElements = \
-        [ Element('newValue', NotificationChangeOfValueNewValue, 0)
-        , Element('statusFlags', BACnetStatusFlags, 1)
+        [ Element('newValue', NotificationParametersChangeOfValueNewValue, 0)
+        , Element('statusFlags', StatusFlags, 1)
         ]
         
-class NotificationCommandFailure(Sequence):
+class NotificationParametersCommandFailure(Sequence):
     sequenceElements = \
         [ Element('commandValue', Any, 0)
-        , Element('statusFlags', BACnetStatusFlags, 1)
+        , Element('statusFlags', StatusFlags, 1)
         , Element('feedbackValue', Any, 2)
         ]
 
-class NotificationFloatingLimit(Sequence):
+class NotificationParametersFloatingLimit(Sequence):
     sequenceElements = \
         [ Element('referenceValue', Real, 0)
-        , Element('statusFlags', BACnetStatusFlags, 1)
+        , Element('statusFlags', StatusFlags, 1)
         , Element('setpointValue', Real, 2)
         , Element('errorLimit', Real, 3)
         ]
 
-class NotificationOutOfRange(Sequence):
+class NotificationParametersOutOfRange(Sequence):
     sequenceElements = \
         [ Element('exceedingValue', Real, 0)
-        , Element('statusFlags', BACnetStatusFlags, 1)
+        , Element('statusFlags', StatusFlags, 1)
         , Element('deadband', Real, 2)
         , Element('exceededLimit', Real, 3)
         ]
 
-class NotificationComplexEventType(Any): pass
-class NotificationChangeOfLifeSafety(Any): pass
-class NotificationExtended(Any): pass
-class NotificationBufferReady(Any): pass
-class NotificationUnsignedRange(Any): pass
-
-class BACnetNotificationParameters(Choice):
-    choiceElements = \
-        [ Element('changeOfBitstring', NotificationChangeOfBitstring, 0)
-        , Element('changeOfState', NotificationChangeOfState, 1)
-        , Element('changeOfValue', NotificationChangeOfValue, 2)
-        , Element('commandFailure', NotificationCommandFailure, 3)
-        , Element('floatingLimit', NotificationFloatingLimit, 4)
-        , Element('outOfRange', NotificationOutOfRange, 5)
-        , Element('complexEventType', NotificationComplexEventType, 6)
-        , Element('changeOfLifeSafety', NotificationChangeOfLifeSafety, 8)
-        , Element('extended', NotificationExtended, 9)
-        , Element('bufferReady', NotificationBufferReady, 10)
-        , Element('unsignedRange', NotificationUnsignedRange, 11)
-        ]
-
-#-----
-
-class BACnetObjectPropertyReference(Sequence):
-    sequenceElements = \
-        [ Element('objectIdentifier', ObjectIdentifier, 0)
-        , Element('propertyIdentifier', BACnetPropertyIdentifier, 1)
-        , Element('propertyArrayIndex', Unsigned, 2, True)
-        ]
-        
-class BACnetObjectPropertyValue(Sequence):
-    pass
-
-# already specified in primitivedata
-class BACnetObjectType(ObjectType):
-    pass
-
-class BACnetPriorityValue(Choice):
+class NotificationParametersExtendedParametersType(Choice):
     choiceElements = \
         [ Element('null', Null)
         , Element('real', Real)
-        , Element('binary', BACnetBinaryPV)
         , Element('integer', Unsigned)
-        , Element('constructedValue', Any, 0)
+        , Element('boolean', Boolean)
+        , Element('double', Double)
+        , Element('octet', OctetString)
+        , Element('bitstring', BitString)
+        , Element('enum', Enumerated)
+        , Element('propertyValue', DeviceObjectPropertyValue)
         ]
 
-BACnetPriorityArray = ArrayOf(BACnetPriorityValue)
-
-class BACnetPropertyReference(Sequence):
+class NotificationParametersExtended(Sequence):
     sequenceElements = \
-        [ Element('propertyIdentifier', BACnetPropertyIdentifier, 0)
-        , Element('propertyArrayIndex', Unsigned, 1, True)
+        [ Element('vendorId', Unsigned, 0)
+        , Element('extendedEventType', Unsigned, 1)
+        , Element('parameters', NotificationParametersExtendedParametersType, 2)
         ]
 
-class BACnetPropertyValue(Sequence):
+class NotificationParametersBufferReady(Sequence):
     sequenceElements = \
-        [ Element('propertyIdentifier', BACnetPropertyIdentifier, 0)
-        , Element('propertyArrayIndex', Unsigned, 1, True)
-        , Element('value', Any, 2)
-        , Element('priority', Unsigned, 3, True)
+        [ Element('bufferProperty', DeviceObjectPropertyReference, 0)
+        , Element('previousNotification', Unsigned, 1)
+        , Element('currentNotification', Unsigned, 2)
         ]
-
-class BACnetRecipientProcess(Sequence):
+ 
+class NotificationParametersUnsignedRange(Sequence):    
     sequenceElements = \
-        [ Element('recipient', BACnetRecipient, 0)
-        , Element('processIdentifier', Unsigned, 1)
+        [ Element('exceedingValue', Unsigned, 0)
+        , Element('statusFlags', StatusFlags, 1)
+        , Element('exceedingLimit', Unsigned, 2)
         ]
 
-class BACnetSessionKey(Sequence):
+class NotificationParametersComplexEventType(Sequence):
     sequenceElements = \
-        [ Element('sessionKey', OctetString)
-        , Element('peerAddress', BACnetAddress, 1)
+        [ Element('complexEventType', PropertyValue, 0)
         ]
 
-class BACnetSetpointReference(Sequence):
+class NotificationParametersChangeOfLifeSafety(Sequence):
     sequenceElements = \
-        [ Element('setpointReference', BACnetObjectPropertyReference, 0, True)
+        [ Element('newState', LifeSafetyState, 0)
+        , Element('newMode', LifeSafetyMode, 1)
+        , Element('statusFlags',StatusFlags, 2)
+        , Element('operationExpected', LifeSafetyOperation, 3)
         ]
 
-class BACnetSpecialEvent(Sequence):
+class NotificationParametersAccessEventType(Sequence):
+    sequenceElements = \
+        [ Element('accessEvent', AccessEvent, 0)
+        , Element('statusFlags', StatusFlags, 1)
+        , Element('accessEventTag', Unsigned, 2)
+        , Element('accessEventTime', TimeStamp, 3)
+        , Element('accessCredential', DeviceObjectReference, 4)
+        , Element('authenicationFactor', AuthenticationFactorType, 5, True)
+        ]
+
+class NotificationParametersDoubleOutOfRangeType(Sequence):
+    sequenceElements = \
+        [ Element('exceedingValue', Double, 0)
+        , Element('statusFlags', StatusFlags, 1)
+        , Element('deadband', Double, 2)
+        , Element('exceededLimit', Double, 3)
+        ]
+
+class NotificationParametersSignedOutOfRangeType(Sequence):
+    sequenceElements = \
+        [ Element('exceedingValue', Integer, 0)
+        , Element('statusFlags', StatusFlags, 1)
+        , Element('deadband', Unsigned, 2)
+        , Element('exceededLimit', Integer, 3)
+        ]
+
+class NotificationParametersUnsignedOutOfRangeType(Sequence):
+    sequenceElements = \
+        [ Element('exceedingValue', Unsigned, 0)
+        , Element('statusFlags', StatusFlags, 1)
+        , Element('deadband', Unsigned, 2)
+        , Element('exceededLimit', Unsigned, 3)
+        ]
+
+class NotificationParametersChangeOfCharacterstringType(Sequence):
+    sequenceElements = \
+        [ Element('changedValue', CharacterString, 0)
+        , Element('statusFlags', StatusFlags, 1)
+        , Element('alarmValue', CharacterString, 2)
+        ]
+
+class NotificationParametersChangeOfStatusFlagsType(Sequence):
+    sequenceElements = \
+        [ Element('presentValue', CharacterString, 0)
+        , Element('referencedFlags', StatusFlags, 1)
+        ]
+
+class NotificationParameters(Choice):
+    choiceElements = \
+        [ Element('changeOfBitstring', NotificationParametersChangeOfBitstring, 0)
+        , Element('changeOfState', NotificationParametersChangeOfState, 1)
+        , Element('changeOfValue', NotificationParametersChangeOfValue, 2)
+        , Element('commandFailure', NotificationParametersCommandFailure, 3)
+        , Element('floatingLimit', NotificationParametersFloatingLimit, 4)
+        , Element('outOfRange', NotificationParametersOutOfRange, 5)
+        , Element('complexEventType', NotificationParametersComplexEventType, 6)
+        , Element('changeOfLifeSafety', NotificationParametersChangeOfLifeSafety, 8)
+        , Element('extended', NotificationParametersExtended, 9)
+        , Element('bufferReady', NotificationParametersBufferReady, 10)
+        , Element('unsignedRange', NotificationParametersUnsignedRange, 11)
+        , Element('accessEvent', NotificationParametersAccessEventType, 13)
+        , Element('doubleOutOfRange', NotificationParametersDoubleOutOfRangeType, 14)
+        , Element('signedOutOfRange', NotificationParametersSignedOutOfRangeType, 15)
+        , Element('unsignedOutOfRange', NotificationParametersUnsignedOutOfRangeType, 16)
+        , Element('changeOfCharacterString', NotificationParametersChangeOfCharacterstringType, 17)
+        , Element('changeOfStatusFlags', NotificationParametersChangeOfStatusFlagsType, 18)
+        ]
+
+class ObjectPropertyValue(Sequence):
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
+        , Element('propertyArrayIndex', Unsigned, 2, True)
+        , Element('value', Any, 3)
+        , Element('priority', Unsigned, 4, True)
+        ]
+
+class ObjectType(ObjectType):
     pass
 
-class BACnetTimeStamp(Choice):
+class OptionalCharacterString(Choice):  
     choiceElements = \
-        [ Element('time', Time, 0)
-        , Element('sequenceNumber', Unsigned, 1)
-        , Element('dateTime', BACnetDateTime, 2)
+        [ Element('null', Null)
+        , Element('characterString', CharacterString)
         ]
 
-class BACnetVTSession(Sequence):
+class Prescale(Sequence):
     sequenceElements = \
-        [ Element('local-vtSessionID', Unsigned)
-        , Element('remote-vtSessionID', Unsigned)
-        , Element('remote-vtAddress', BACnetAddress)
+        [ Element('multiplier', Unsigned, 0)
+        , Element('moduloDivide', Unsigned, 1)
         ]
 
-#-----
+class PriorityValue(Choice):
+    choiceElements = \
+        [ Element('null', Null)
+        , Element('real', Real)
+        , Element('enumerated', Enumerated)
+        , Element('unsigned', Unsigned)
+        , Element('boolean', Boolean)
+        , Element('signed', Integer)
+        , Element('double', Double)
+        , Element('time', Time)
+        , Element('characterString', CharacterString)
+        , Element('octetString', OctetString)
+        , Element('bitString', BitString)
+        , Element('date', Date)
+        , Element('objectid', ObjectIdentifier)
+        , Element('constructedValue', Any)
+        , Element('datetime', DateTime)
+        ]
 
-class BACnetDeviceObjectReference(Sequence):
+class PriorityArray(ArrayOf(PriorityValue)):
+    pass
+
+class PropertyAccessResultAccessResult(Choice):
+    choiceElements = \
+        [ Element('propertyValue', Any, 4)
+        , Element('propertyAccessError', ErrorType, 5)
+        ]
+
+class PropertyAccessResult(Sequence):
     sequenceElements = \
-        [ Element('deviceIdentifier', ObjectIdentifier, 0, True)
-        , Element('objectIdentifier', ObjectIdentifier, 1)
+        [ Element('objectIdentifier', ObjectIdentifier, 0)
+        , Element('propertyIdentifier', PropertyIdentifier, 1)
+        , Element('propertyArrayIndex', Unsigned, 2, True)
+        , Element('deviceIdentifier', ObjectIdentifier, 3, True)
+        , Element('accessResult', PropertyAccessResultAccessResult)
         ]
 
+class PropertyReference(Sequence):
+    sequenceElements = \
+        [ Element('propertyIdentifier', PropertyIdentifier, 0)
+        , Element('propertyArrayIndex', Unsigned, 1, True)
+        ]
+
+class Scale(Choice):
+    choiceElements = \
+        [ Element('floatScale', Real)
+        , Element('integerScale', Integer)
+        ]
+
+class SecurityKeySet(Sequence):
+    sequenceElements = \
+        [ Element('keyRevision', Unsigned, 0)
+        , Element('activationTime', DateTime, 1)
+        , Element('expirationTime', DateTime, 2)
+        , Element('keyIds', SequenceOf(KeyIdentifier), 3)
+        ]
+
+class ShedLevel(Choice):
+    choiceElements = \
+        [ Element('percent', Unsigned, 0)
+        , Element('level', Unsigned, 1)
+        , Element('amount', Real, 2)
+        ]
+
+class SetpointReference(Sequence):
+    sequenceElements = \
+        [ Element('setpointReference', ObjectPropertyReference, 0, True)
+        ]
+
+class SpecialEventPeriod(Choice):
+    choiceElements = \
+        [ Element('calendarEntry', CalendarEntry, 0)
+        , Element('calendarReference', ObjectIdentifier, 1)
+        ]
+
+class SpecialEvent(Sequence):
+    sequenceElements = \
+        [ Element('period', SpecialEventPeriod)
+        , Element('listOfTimeValues', SequenceOf(TimeValue), 2)
+        , Element('eventPriority', Unsigned, 3)
+        ]
+
+class VTSession(Sequence):
+    sequenceElements = \
+        [ Element('localVtSessionID', Unsigned)
+        , Element('remoteVtSessionID', Unsigned)
+        , Element('remoteVtAddress', DeviceAddress)
+        ]
