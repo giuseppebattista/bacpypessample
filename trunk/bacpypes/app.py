@@ -16,13 +16,100 @@ from appservice import StateMachineAccessPoint, ApplicationServiceAccessPoint
 from netservice import NetworkServiceAccessPoint, NetworkServiceElement
 from bvllservice import BIPSimple, BIPForeign, AnnexJCodec, UDPMultiplexer
 
-from object import PropertyError
+from object import Property, PropertyError, DeviceObject
 from apdu import ConfirmedRequestPDU, SimpleAckPDU, RejectPDU, RejectReason
 from apdu import IAmRequest, ReadPropertyACK, Error
 
 # some debugging
 _debug = 0
 _log = ModuleLogger(globals())
+
+#
+#   CurrentDateProperty
+#
+
+class CurrentDateProperty(Property):
+
+    def __init__(self, identifier):
+        Property.__init__(self, identifier, Date, default=None, optional=True, mutable=False)
+
+    def ReadProperty(self, obj, arrayIndex=None):
+        # access an array
+        if arrayIndex is not None:
+            raise TypeError, "%s is unsubscriptable" % (self.identifier,)
+
+        # get the value
+        now = Date()
+        now.Now()
+        return now.value
+
+    def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
+        raise RuntimeError, "%s immutable property" % (self.identifier,)
+
+#
+#   CurrentTimeProperty
+#
+
+class CurrentTimeProperty(Property):
+
+    def __init__(self, identifier):
+        Property.__init__(self, identifier, Time, default=None, optional=True, mutable=False)
+
+    def ReadProperty(self, obj, arrayIndex=None):
+        # access an array
+        if arrayIndex is not None:
+            raise TypeError, "%s is unsubscriptable" % (self.identifier,)
+
+        # get the value
+        now = Time()
+        now.Now()
+        return now.value
+
+    def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
+        raise RuntimeError, "%s immutable property" % (self.identifier,)
+
+#
+#   LocalDeviceObject
+#
+
+class LocalDeviceObject(DeviceObject, Logging):
+    properties = \
+        [ CurrentTimeProperty('localTime')
+        , CurrentDateProperty('localDate')
+        ]
+
+    defaultProperties = \
+        { 'maxApduLengthAccepted': 1024
+        , 'segmentationSupported': 'segmented-both'
+        , 'maxSegmentsAccepted': 16
+        , 'apduSegmentTimeout': 20000
+        , 'apduTimeout': 3000
+        , 'numberOfApduRetries': 3
+        }
+
+    def __init__(self, **kwargs):
+        if _debug: LocalDeviceObject._debug("__init__ %r", kwargs)
+        
+        # proceed as usual
+        DeviceObject.__init__(self, **kwargs)
+        
+        # create a default implementation of an object list for local devices.
+        # If it is specified in the kwargs, that overrides this default.  If
+        # a derived class provides its own implementation, this could be an 
+        # orphan (just sitting there with no access).
+        if (self._values['objectList'] is None) and ('objectList' not in kwargs):
+            try:
+                self.objectList = ArrayOf(ObjectIdentifier)()
+                
+                # make sure this device object is in its own list
+                self.objectList.append(self.objectIdentifier)
+            except:
+                pass
+        
+        # fill in the rest (if they haven't been supplied)
+        for attr, value in LocalDeviceObject.defaultProperties.items():
+            if attr not in kwargs:
+                self.__setattr__(attr, value)
 
 #
 #   Application
@@ -114,7 +201,7 @@ class Application(ApplicationServiceElement, Logging):
             
             # send back an error
             if isinstance(apdu, ConfirmedRequestPDU):
-                resp = Error(errorClass='device', errorCode='operational-problem', context=apdu)
+                resp = Error(errorClass='device', errorCode='operationalProblem', context=apdu)
                 self.response(resp)
 
     def do_WhoIsRequest(self, apdu):

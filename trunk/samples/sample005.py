@@ -16,12 +16,13 @@ from bacpypes.consolecmd import ConsoleCmd
 from bacpypes.core import run
 
 from bacpypes.pdu import Address, GlobalBroadcast
-from bacpypes.app import BIPSimpleApplication
-from bacpypes.object import get_object_class, get_datatype, LocalDeviceObject
+from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
+from bacpypes.object import get_object_class, get_datatype
 
 from bacpypes.apdu import WhoIsRequest, IAmRequest, ReadPropertyRequest, Error, AbortPDU, ReadPropertyACK
+from bacpypes.primitivedata import Unsigned
 from bacpypes.constructeddata import Array, Any
-from bacpypes.basetypes import BACnetServicesSupported
+from bacpypes.basetypes import ServicesSupported
 
 # some debugging
 _debug = 0
@@ -226,9 +227,9 @@ try:
             )
 
     # build a bit string that knows about the bit names
-    pss = BACnetServicesSupported()
-    pss['who-Is'] = 1
-    pss['i-Am'] = 1
+    pss = ServicesSupported()
+    pss['whoIs'] = 1
+    pss['iAm'] = 1
     pss['readProperty'] = 1
     pss['writeProperty'] = 1
 

@@ -250,10 +250,9 @@ class Object(Logging):
         return the appropriate property."""
 
         # get the property
-        property = map_name(attr)
-        prop = self._properties.get(property)
+        prop = self._properties.get(attr)
         if not prop:
-            raise PropertyError, property
+            raise PropertyError, attr
 
         # found it
         return prop

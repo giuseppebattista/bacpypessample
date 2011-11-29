@@ -16,8 +16,8 @@ from bacpypes.consolelogging import ConsoleLogHandler
 from bacpypes.core import run
 
 from bacpypes.primitivedata import Real
-from bacpypes.app import BIPSimpleApplication
-from bacpypes.object import LocalDeviceObject, AnalogValueObject, Property, register_object_type
+from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
+from bacpypes.object import AnalogValueObject, Property, register_object_type
 from bacpypes.apdu import Error
 
 # some debugging
@@ -58,7 +58,7 @@ class RandomValueProperty(Property, Logging):
 class RandomAnalogValueObject(AnalogValueObject, Logging):
 
     properties = [
-        RandomValueProperty('present-value'),
+        RandomValueProperty('presentValue'),
         ]
 
     def __init__(self, _deviceid, _tagid, **kwargs):
@@ -118,18 +118,20 @@ try:
 
     # make a random input object
     ravo1 = RandomAnalogValueObject('device1', 'random1',
-        objectIdentifier=('analog-value', 1), objectName='Random1'
+        objectIdentifier=('analogValue', 1), objectName='Random1'
         )
     _log.debug("    - ravo1: %r", ravo1)
 
     ravo2 = RandomAnalogValueObject('device2', 'random2',
-        objectIdentifier=('analog-value', 2), objectName='Random2'
+        objectIdentifier=('analogValue', 2), objectName='Random2'
         )
     _log.debug("    - ravo2: %r", ravo2)
 
     # add it to the device
     thisApplication.add_object(ravo1)
     thisApplication.add_object(ravo2)
+    _log.debug("    - object list: %r", thisDevice.objectList)
+    thisDevice.objectList.debug_contents()
 
     _log.debug("running")
 

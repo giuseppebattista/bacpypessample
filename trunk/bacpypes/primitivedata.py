@@ -1257,35 +1257,35 @@ class Time(Atomic):
 
 class ObjectType(Enumerated):
     enumerations = \
-        { 'access-door':30
+        { 'accessDoor':30
         , 'accumulator':23
-        , 'analog-input':0
-        , 'analog-output':1
-        , 'analog-value':2
+        , 'analogInput':0
+        , 'analogOutput':1
+        , 'analogValue':2
         , 'averaging':18
-        , 'binary-input':3
-        , 'binary-output':4
-        , 'binary-value':5
+        , 'binaryInput':3
+        , 'binaryOutput':4
+        , 'binaryValue':5
         , 'calendar':6
         , 'command':7
         , 'device':8
-        , 'event-enrollment':9
-        , 'event-log':25
+        , 'eventEnrollment':9
+        , 'eventLog':25
         , 'file':10
         , 'group':11
-        , 'life-safety-point':21
-        , 'life-safety-zone':22
+        , 'lifeSafetyPoint':21
+        , 'lifeSafetyZone':22
         , 'loop':12
-        , 'multi-state-input':13
-        , 'multi-state-output':14
-        , 'multi-state-value':19
-        , 'notification-class':15
+        , 'multiStateInput':13
+        , 'multiStateOutput':14
+        , 'multiStateValue':19
+        , 'notificationClass':15
         , 'program':16
-        , 'pulse-converter':24
+        , 'pulseConverter':24
         , 'schedule':17
-        , 'structured-view':29
-        , 'trend-log':20
-        , 'trend-log-multiple':27
+        , 'structuredView':29
+        , 'trendLog':20
+        , 'trendLogMultiple':27
         }
 
 expand_enumerations(ObjectType)
