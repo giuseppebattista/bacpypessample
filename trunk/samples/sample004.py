@@ -39,7 +39,7 @@ class RandomValueProperty(Property, Logging):
 
         # access an array
         if arrayIndex is not None:
-            raise Error(errorClass='property', errorCode='property-is-not-an-array')
+            raise Error(errorClass='property', errorCode='propertyIsNotAnArray')
 
         # return a random value
         value = random.random() * 100.0
@@ -49,7 +49,7 @@ class RandomValueProperty(Property, Logging):
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
         if _debug: RandomValueProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
-        raise Error(errorClass='property', errorCode='write-access-denied')
+        raise Error(errorClass='property', errorCode='writeAccessDenied')
 
 #
 #   Random Value Object Type
