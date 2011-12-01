@@ -131,7 +131,6 @@ try:
     thisApplication.add_object(ravo1)
     thisApplication.add_object(ravo2)
     _log.debug("    - object list: %r", thisDevice.objectList)
-    thisDevice.objectList.debug_contents()
 
     _log.debug("running")
 
