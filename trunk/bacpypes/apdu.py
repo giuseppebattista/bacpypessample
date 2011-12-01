@@ -1177,17 +1177,18 @@ class SubscribeCOVPropertyRequest(ConfirmedRequestSequence):
         ]
 register_confirmed_request_type(SubscribeCOVPropertyRequest)
 
+#-----
+
 class AtomicReadFileRequestAccessMethodChoiceStreamAccess(Sequence):
     sequenceElements = \
         [ Element('fileStartPosition', Integer)
-        , Element('fileData', OctetString)
+        , Element('requestedOctetCount', Unsigned)
         ]
 
 class AtomicReadFileRequestAccessMethodChoiceRecordAccess(Sequence):
     sequenceElements = \
         [ Element('fileStartRecord', Integer)
-        , Element('recordCount', Unsigned)
-        , Element('fileRecordData', SequenceOf(OctetString))
+        , Element('requestedRecordCount', Unsigned)
         ]
 
 class AtomicReadFileRequestAccessMethodChoice(Choice):
@@ -1223,11 +1224,15 @@ class AtomicReadFileACKAccessMethodChoice(Choice):
         , Element('recordAccess', AtomicReadFileACKAccessMethodRecordAccess, 1)
         ]
 
-class AtomicReadFileACK(Sequence):
+class AtomicReadFileACK(ComplexAckSequence):
+    serviceChoice = 6
     sequenceElements = \
         [ Element('endOfFile', Boolean)
         , Element('accessMethod', AtomicReadFileACKAccessMethodChoice)
         ]
+register_complex_ack_type(AtomicReadFileACK)
+
+#-----
 
 class AtomicWriteFileRequestAccessMethodChoiceStreamAccess(Sequence):
     sequenceElements = \
@@ -1254,7 +1259,6 @@ class AtomicWriteFileRequest(ConfirmedRequestSequence):
         [ Element('fileIdentifier', ObjectIdentifier, 0)
         , Element('accessMethod', AtomicWriteFileRequestAccessMethodChoice)
         ]
-
 register_confirmed_request_type(AtomicWriteFileRequest)
 
 class AtomicWriteFileACKAccessMethodStreamAccess(Sequence):
@@ -1276,11 +1280,15 @@ class AtomicWriteFileACKAccessMethodChoice(Choice):
         , Element('recordAccess', AtomicWriteFileACKAccessMethodRecordAccess, 1)
         ]
 
-class AtomicWriteFileACK(Sequence):
+class AtomicWriteFileACK(ComplexAckSequence):
+    serviceChoice = 7
     sequenceElements = \
         [ Element('endOfFile', Boolean)
         , Element('accessMethod', AtomicWriteFileACKAccessMethodChoice)
         ]
+register_complex_ack_type(AtomicReadFileACK)
+
+#-----
 
 class AddListElementRequest(ConfirmedRequestSequence):
     serviceChoice = 8

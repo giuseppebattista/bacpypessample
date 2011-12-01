@@ -20,6 +20,13 @@ from object import Property, PropertyError, DeviceObject
 from apdu import ConfirmedRequestPDU, SimpleAckPDU, RejectPDU, RejectReason
 from apdu import IAmRequest, ReadPropertyACK, Error
 
+from apdu import \
+    AtomicReadFileRequest, \
+    AtomicReadFileACK, \
+        AtomicReadFileACKAccessMethodChoice, \
+            AtomicReadFileACKAccessMethodRecordAccess, \
+            AtomicReadFileACKAccessMethodStreamAccess
+
 # some debugging
 _debug = 0
 _log = ModuleLogger(globals())
@@ -322,7 +329,89 @@ class Application(ApplicationServiceElement, Logging):
         
         # return the result
         self.response(resp)
-        
+
+    def do_AtomicReadFileRequest(self, apdu):
+        """Return one of our records."""
+        if _debug: Application._debug("do_AtomicReadFileRequest %r", apdu)
+
+        # get the object
+        obj = self.get_object_id(apdu.fileIdentifier)
+        if _debug: Application._debug("    - object: %r", obj)
+
+        if not obj:
+            resp = Error(errorClass='object', errorCode='unknownObject', context=apdu)
+        elif apdu.accessMethod.recordAccess:
+            # check against the object
+            if obj.fileAccessMethod != 'recordAccess':
+                resp = Error(errorClass='services',
+                    errorCode='invalidFileAccessMethod',
+                    context=apdu
+                    )
+            ### verify start is valid - double check this (empty files?)
+            elif (apdu.accessMethod.recordAccess.fileStartRecord < 0) or \
+                    (apdu.accessMethod.recordAccess.fileStartRecord >= len(obj)):
+                resp = Error(errorClass='services',
+                    errorCode='invalidFileStartPosition',
+                    context=apdu
+                    )
+            else:
+                # pass along to the object
+                end_of_file, record_data = obj.ReadFile(
+                    apdu.accessMethod.recordAccess.fileStartRecord,
+                    apdu.accessMethod.recordAccess.requestedRecordCount,
+                    )
+                if _debug: Application._debug("    - record_data: %r", record_data)
+
+                # this is an ack
+                resp = AtomicReadFileACK(context=apdu,
+                    endOfFile=end_of_file,
+                    accessMethod=AtomicReadFileACKAccessMethodChoice(
+                        recordAccess=AtomicReadFileACKAccessMethodRecordAccess(
+                            fileStartRecord=apdu.accessMethod.recordAccess.fileStartRecord,
+                            returnedRecordCount=len(record_data),
+                            fileRecordData=record_data,
+                            ),
+                        ),
+                    )
+
+        elif apdu.accessMethod.streamAccess:
+            # check against the object
+            if obj.fileAccessMethod != 'streamAccess':
+                resp = Error(errorClass='services',
+                    errorCode='invalidFileAccessMethod',
+                    context=apdu
+                    )
+            ### verify start is valid - double check this (empty files?)
+            elif (apdu.accessMethod.recordAccess.fileStartRecord < 0) or \
+                    (apdu.accessMethod.recordAccess.fileStartRecord >= len(obj)):
+                resp = Error(errorClass='services',
+                    errorCode='invalidFileStartPosition',
+                    context=apdu
+                    )
+            else:
+                # pass along to the object
+                end_of_file, record_data = obj.ReadFile(
+                    apdu.accessMethod.streamAccess.fileStartPosition,
+                    apdu.accessMethod.streamAccess.requestedOctetCount,
+                    )
+                if _debug: Application._debug("    - record_data: %r", record_data)
+
+                # this is an ack
+                resp = AtomicReadFileACK(context=apdu,
+                    endOfFile=end_of_file,
+                    accessMethod=AtomicReadFileACKAccessMethodChoice(
+                        streamAccess=AtomicReadFileACKAccessMethodStreamAccess(
+                            fileStartPosition=apdu.accessMethod.streamAccess.fileStartPosition,
+                            fileData=record_data,
+                            ),
+                        ),
+                    )
+
+        if _debug: Application._debug("    - resp: %r", resp)
+
+        # return the result
+        self.response(resp)
+
 #
 #   BIPSimpleApplication
 #
