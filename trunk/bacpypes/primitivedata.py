@@ -1326,18 +1326,11 @@ class ObjectIdentifier(Atomic):
     def set_tuple(self, objType, objInstance):
         # allow a type name as well as an integer
         if isinstance(objType, types.IntType):
-            try:
-                # try and make it pretty
-                xType = self.objectTypeClass()[objType]
-                if xType is not None:
-                    objType = xType
-            except KeyError:
-                pass
+            # try and make it pretty
+            objType = self.objectTypeClass._xlate_table.get(objType, objType)
         elif isinstance(objType, types.StringType):
-            try:
-                # make sure the type is known
-                self.objectTypeClass()[objType]
-            except KeyError:
+            # make sure the type is known
+            if objType not in self.objectTypeClass._xlate_table:
                 raise ValueError, "unrecognized object type '%s'" % (objType,)
         else:
             raise TypeError, "invalid datatype for objType"
