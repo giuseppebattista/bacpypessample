@@ -72,6 +72,47 @@ class LocalRecordAccessFileObject(FileObject, Logging):
 register_object_type(LocalRecordAccessFileObject)
 
 #
+#   Local Stream Access File Object Type
+#
+
+class LocalStreamAccessFileObject(FileObject, Logging):
+
+    def __init__(self, **kwargs):
+        if _debug:
+            LocalStreamAccessFileObject._debug("__init__ %r",
+                kwargs,
+                )
+        FileObject.__init__(self,
+            fileAccessMethod='streamAccess',
+             **kwargs
+             )
+
+        self._file_data = ''.join(random.choice(string.ascii_letters)
+            for i in range(random.randint(100, 200)))
+        if _debug: LocalRecordAccessFileObject._debug("    - %d octets",
+                len(self._file_data),
+                )
+
+    def __len__(self):
+        """ Return the number of octets. """
+        if _debug: LocalStreamAccessFileObject._debug("__len__")
+
+        return len(self._file_data)
+
+    def ReadFile(self, start_position, octet_count):
+        if _debug: LocalStreamAccessFileObject._debug("ReadFile %r %r",
+                start_position, octet_count,
+                )
+
+        # end of file is true if last record is returned
+        end_of_file = (start_position+octet_count) >= len(self._file_data)
+
+        return end_of_file, \
+            self._file_data[start_position:start_position + octet_count]
+
+register_object_type(LocalStreamAccessFileObject)
+
+#
 #   __main__
 #
 
@@ -128,15 +169,23 @@ try:
         config.get('BACpypes','address'),
         )
 
-    # make a random input object
+    # make a record access file
     f1 = LocalRecordAccessFileObject(
         objectIdentifier=('file', 1),
         objectName='RecordAccessFile1'
         )
     _log.debug("    - f1: %r", f1)
 
-    # add it to the device
+    # make a stream access file
+    f2 = LocalStreamAccessFileObject(
+        objectIdentifier=('file', 2),
+        objectName='StreamAccessFile2'
+        )
+    _log.debug("    - f2: %r", f2)
+
+    # add them to the device
     thisApplication.add_object(f1)
+    thisApplication.add_object(f2)
 
     _log.debug("running")
 

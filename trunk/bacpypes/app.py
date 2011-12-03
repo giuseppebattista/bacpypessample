@@ -382,8 +382,8 @@ class Application(ApplicationServiceElement, Logging):
                     context=apdu
                     )
             ### verify start is valid - double check this (empty files?)
-            elif (apdu.accessMethod.recordAccess.fileStartRecord < 0) or \
-                    (apdu.accessMethod.recordAccess.fileStartRecord >= len(obj)):
+            elif (apdu.accessMethod.streamAccess.fileStartPosition < 0) or \
+                    (apdu.accessMethod.streamAccess.fileStartPosition >= len(obj)):
                 resp = Error(errorClass='services',
                     errorCode='invalidFileStartPosition',
                     context=apdu
