@@ -24,7 +24,12 @@ from bacpypes.apdu import Error, AbortPDU, \
         AtomicReadFileRequestAccessMethodChoice, \
             AtomicReadFileRequestAccessMethodChoiceRecordAccess, \
             AtomicReadFileRequestAccessMethodChoiceStreamAccess, \
-    AtomicReadFileACK
+    AtomicReadFileACK, \
+    AtomicWriteFileRequest, \
+        AtomicWriteFileRequestAccessMethodChoice, \
+            AtomicWriteFileRequestAccessMethodChoiceRecordAccess, \
+            AtomicWriteFileRequestAccessMethodChoiceStreamAccess, \
+    AtomicWriteFileACK
 from bacpypes.basetypes import ServicesSupported
 
 # some debugging
@@ -65,6 +70,17 @@ class TestApplication(BIPSimpleApplication, Logging):
                 value = apdu.accessMethod.recordAccess.fileRecordData
             elif apdu.accessMethod.streamAccess:
                 value = apdu.accessMethod.streamAccess.fileData
+            TestApplication._debug("    - value: %r", value)
+
+            sys.stdout.write(repr(value) + '\n')
+            sys.stdout.flush()
+
+        elif (isinstance(self._request, AtomicWriteFileRequest)) and (isinstance(apdu, AtomicWriteFileACK)):
+            # suck out the record data
+            if apdu.fileStartPosition is not None:
+                value = apdu.fileStartPosition
+            elif apdu.fileStartRecord is not None:
+                value = apdu.fileStartRecord
             TestApplication._debug("    - value: %r", value)
 
             sys.stdout.write(repr(value) + '\n')
@@ -139,6 +155,71 @@ class TestConsoleCmd(ConsoleCmd, Logging):
                     streamAccess=AtomicReadFileRequestAccessMethodChoiceStreamAccess(
                         fileStartPosition=start_position,
                         requestedOctetCount=octet_count,
+                        ),
+                    ),
+                )
+            request.pduDestination = Address(addr)
+            if _debug: TestConsoleCmd._debug("    - request: %r", request)
+
+            # give it to the application
+            thisApplication.request(request)
+
+        except Exception, e:
+            TestConsoleCmd._exception("exception: %r", e)
+
+    def do_writerecord(self, args):
+        """writerecord <addr> <inst> <start> <count> [ <data> ... ]"""
+        args = args.split()
+        if _debug: TestConsoleCmd._debug("do_writerecord %r", args)
+
+        try:
+            addr, obj_inst, start_record, record_count = args[0:4]
+
+            obj_type = 'file'
+            obj_inst = int(obj_inst)
+            start_record = int(start_record)
+            record_count = int(record_count)
+            record_data = list(args[4:])
+
+            # build a request
+            request = AtomicWriteFileRequest(
+                fileIdentifier=(obj_type, obj_inst),
+                accessMethod=AtomicWriteFileRequestAccessMethodChoice(
+                    recordAccess=AtomicWriteFileRequestAccessMethodChoiceRecordAccess(
+                        fileStartRecord=start_record,
+                        recordCount=record_count,
+                        fileRecordData=record_data,
+                        ),
+                    ),
+                )
+            request.pduDestination = Address(addr)
+            if _debug: TestConsoleCmd._debug("    - request: %r", request)
+
+            # give it to the application
+            thisApplication.request(request)
+
+        except Exception, e:
+            TestConsoleCmd._exception("exception: %r", e)
+
+    def do_writestream(self, args):
+        """writestream <addr> <inst> <start> <data>"""
+        args = args.split()
+        if _debug: TestConsoleCmd._debug("do_writestream %r", args)
+
+        try:
+            addr, obj_inst, start_position, data = args
+
+            obj_type = 'file'
+            obj_inst = int(obj_inst)
+            start_position = int(start_position)
+
+            # build a request
+            request = AtomicWriteFileRequest(
+                fileIdentifier=(obj_type, obj_inst),
+                accessMethod=AtomicWriteFileRequestAccessMethodChoice(
+                    streamAccess=AtomicWriteFileRequestAccessMethodChoiceStreamAccess(
+                        fileStartPosition=start_position,
+                        fileData=data,
                         ),
                     ),
                 )

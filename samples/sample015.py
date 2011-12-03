@@ -69,6 +69,9 @@ class LocalRecordAccessFileObject(FileObject, Logging):
         return end_of_file, \
             self._record_data[start_record:start_record + record_count]
 
+    def WriteFile(self, start_record, record_count, record_data):
+        return 99
+
 register_object_type(LocalRecordAccessFileObject)
 
 #
@@ -109,6 +112,9 @@ class LocalStreamAccessFileObject(FileObject, Logging):
 
         return end_of_file, \
             self._file_data[start_position:start_position + octet_count]
+
+    def WriteFile(self, start_position, data):
+        return 99
 
 register_object_type(LocalStreamAccessFileObject)
 

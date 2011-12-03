@@ -1261,32 +1261,13 @@ class AtomicWriteFileRequest(ConfirmedRequestSequence):
         ]
 register_confirmed_request_type(AtomicWriteFileRequest)
 
-class AtomicWriteFileACKAccessMethodStreamAccess(Sequence):
-    sequenceElements = \
-        [ Element('fileStartPosition', Integer, 0)
-        , Element('fileData', OctetString, 1)
-        ]
-
-class AtomicWriteFileACKAccessMethodRecordAccess(Sequence):
-    sequenceElements = \
-        [ Element('fileStartRecord', Integer, 0)
-        , Element('returnedRecordCount', Unsigned, 1)
-        , Element('fileRecordData', SequenceOf(OctetString), 2)
-        ]
-
-class AtomicWriteFileACKAccessMethodChoice(Choice):
-    choiceElements = \
-        [ Element('streamAccess', AtomicWriteFileACKAccessMethodStreamAccess, 0)
-        , Element('recordAccess', AtomicWriteFileACKAccessMethodRecordAccess, 1)
-        ]
-
 class AtomicWriteFileACK(ComplexAckSequence):
     serviceChoice = 7
     sequenceElements = \
-        [ Element('endOfFile', Boolean)
-        , Element('accessMethod', AtomicWriteFileACKAccessMethodChoice)
+        [ Element('fileStartPosition', Integer, 0, True)
+        , Element('fileStartRecord', Integer, 1, True)
         ]
-register_complex_ack_type(AtomicReadFileACK)
+register_complex_ack_type(AtomicWriteFileACK)
 
 #-----
 
