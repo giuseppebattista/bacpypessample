@@ -25,7 +25,12 @@ from apdu import \
     AtomicReadFileACK, \
         AtomicReadFileACKAccessMethodChoice, \
             AtomicReadFileACKAccessMethodRecordAccess, \
-            AtomicReadFileACKAccessMethodStreamAccess
+            AtomicReadFileACKAccessMethodStreamAccess, \
+    AtomicWriteFileRequest, \
+        AtomicWriteFileRequestAccessMethodChoice, \
+            AtomicWriteFileRequestAccessMethodChoiceRecordAccess, \
+            AtomicWriteFileRequestAccessMethodChoiceStreamAccess, \
+    AtomicWriteFileACK
 
 # some debugging
 _debug = 0
@@ -405,6 +410,62 @@ class Application(ApplicationServiceElement, Logging):
                             fileData=record_data,
                             ),
                         ),
+                    )
+
+        if _debug: Application._debug("    - resp: %r", resp)
+
+        # return the result
+        self.response(resp)
+
+    def do_AtomicWriteFileRequest(self, apdu):
+        """Return one of our records."""
+        if _debug: Application._debug("do_AtomicWriteFileRequest %r", apdu)
+
+        # get the object
+        obj = self.get_object_id(apdu.fileIdentifier)
+        if _debug: Application._debug("    - object: %r", obj)
+
+        if not obj:
+            resp = Error(errorClass='object', errorCode='unknownObject', context=apdu)
+        elif apdu.accessMethod.recordAccess:
+            # check against the object
+            if obj.fileAccessMethod != 'recordAccess':
+                resp = Error(errorClass='services',
+                    errorCode='invalidFileAccessMethod',
+                    context=apdu
+                    )
+            else:
+                # pass along to the object
+                start_record = obj.WriteFile(
+                    apdu.accessMethod.recordAccess.fileStartRecord,
+                    apdu.accessMethod.recordAccess.recordCount,
+                    apdu.accessMethod.recordAccess.fileRecordData,
+                    )
+                if _debug: Application._debug("    - start_record: %r", start_record)
+
+                # this is an ack
+                resp = AtomicWriteFileACK(context=apdu,
+                    fileStartRecord=start_record,
+                    )
+
+        elif apdu.accessMethod.streamAccess:
+            # check against the object
+            if obj.fileAccessMethod != 'streamAccess':
+                resp = Error(errorClass='services',
+                    errorCode='invalidFileAccessMethod',
+                    context=apdu
+                    )
+            else:
+                # pass along to the object
+                start_position = obj.WriteFile(
+                    apdu.accessMethod.streamAccess.fileStartPosition,
+                    apdu.accessMethod.streamAccess.fileData,
+                    )
+                if _debug: Application._debug("    - start_position: %r", start_position)
+
+                # this is an ack
+                resp = AtomicWriteFileACK(context=apdu,
+                    fileStartPosition=start_position,
                     )
 
         if _debug: Application._debug("    - resp: %r", resp)

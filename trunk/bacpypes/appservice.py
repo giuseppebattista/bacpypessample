@@ -1258,6 +1258,7 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
         else:
             if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type?!")
             return
+
         if _debug: ApplicationServiceAccessPoint._debug("    - xpdu: %r", xpdu)
 
         # forward the decoded packet
@@ -1285,8 +1286,11 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
                 raise e
 
         else:
+            if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type?!")
             return
         
+        if _debug: ApplicationServiceAccessPoint._debug("    - xpdu %r", xpdu)
+
         # forward the encoded packet
         self.request(xpdu)
         
@@ -1324,8 +1328,11 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             xpdu = apdu
             
         else:
+            if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type?!")
             return
         
+        if _debug: ApplicationServiceAccessPoint._debug("    - xpdu %r", xpdu)
+
         # forward the decoded packet
         self.sap_response(xpdu)
 
@@ -1350,8 +1357,11 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             xpdu = apdu
             
         else:
+            if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type?!")
             return
-        
+
+        if _debug: ApplicationServiceAccessPoint._debug("    - xpdu %r", xpdu)
+
         # forward the encoded packet
         self.response(xpdu)
 
