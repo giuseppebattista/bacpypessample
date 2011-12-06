@@ -34,6 +34,7 @@ _log = ModuleLogger(globals())
 class LocalRecordAccessFileObject(FileObject, Logging):
 
     def __init__(self, **kwargs):
+        """ Initialize a record accessed file object. """
         if _debug:
             LocalRecordAccessFileObject._debug("__init__ %r",
                 kwargs,
@@ -59,6 +60,7 @@ class LocalRecordAccessFileObject(FileObject, Logging):
         return len(self._record_data)
 
     def ReadFile(self, start_record, record_count):
+        """ Read a number of records starting at a specific record. """
         if _debug: LocalRecordAccessFileObject._debug("ReadFile %r %r",
                 start_record, record_count,
                 )
@@ -70,7 +72,24 @@ class LocalRecordAccessFileObject(FileObject, Logging):
             self._record_data[start_record:start_record + record_count]
 
     def WriteFile(self, start_record, record_count, record_data):
-        return 99
+        """ Write a number of records, starting at a specific record. """
+        # check for append
+        if (start_record < 0):
+            start_record = len(self._record_data)
+            self._record_data.extend(record_data)
+
+        # check to extend the file out to start_record records
+        elif (start_record > len(self._record_data)):
+            self._record_data.extend(['' for i in range(start_record - len(self._record_data))])
+            start_record = len(self._record_data)
+            self._record_data.extend(record_data)
+
+        # slice operation works for other cases
+        else:
+            self._record_data[start_record:start_record + record_count] = record_data
+
+        # return where the 'writing' actually started
+        return start_record
 
 register_object_type(LocalRecordAccessFileObject)
 
@@ -81,6 +100,7 @@ register_object_type(LocalRecordAccessFileObject)
 class LocalStreamAccessFileObject(FileObject, Logging):
 
     def __init__(self, **kwargs):
+        """ Initialize a stream accessed file object. """
         if _debug:
             LocalStreamAccessFileObject._debug("__init__ %r",
                 kwargs,
@@ -97,12 +117,13 @@ class LocalStreamAccessFileObject(FileObject, Logging):
                 )
 
     def __len__(self):
-        """ Return the number of octets. """
+        """ Return the number of octets in the file. """
         if _debug: LocalStreamAccessFileObject._debug("__len__")
 
         return len(self._file_data)
 
     def ReadFile(self, start_position, octet_count):
+        """ Read a chunk of data out of the file. """
         if _debug: LocalStreamAccessFileObject._debug("ReadFile %r %r",
                 start_position, octet_count,
                 )
@@ -114,7 +135,27 @@ class LocalStreamAccessFileObject(FileObject, Logging):
             self._file_data[start_position:start_position + octet_count]
 
     def WriteFile(self, start_position, data):
-        return 99
+        """ Write a number of octets, starting at a specific offset. """
+        # check for append
+        if (start_position < 0):
+            start_position = len(self._file_data)
+            self._file_data += data
+
+        # check to extend the file out to start_record records
+        elif (start_position > len(self._file_data)):
+            self._file_data += '\0' * (start_position - len(self._file_data))
+            start_position = len(self._file_data)
+            self._file_data += data
+
+        # no slice assignment, strings are immutable 
+        else:
+            data_len = len(data)
+            prechunk = self._file_data[:start_position]
+            postchunk = self._file_data[start_position + data_len:]
+            self._file_data = prechunk + data + postchunk
+
+        # return where the 'writing' actually started
+        return start_position
 
 register_object_type(LocalStreamAccessFileObject)
 
