@@ -339,6 +339,12 @@ class Application(ApplicationServiceElement, Logging):
         """Return one of our records."""
         if _debug: Application._debug("do_AtomicReadFileRequest %r", apdu)
 
+        if (apdu.fileIdentifier[0] != 'file'):
+            resp = Error(errorClass='services', errorCode='inconsistentObjectType', context=apdu)
+            if _debug: Application._debug("    - error resp: %r", resp)
+            self.response(resp)
+            return
+
         # get the object
         obj = self.get_object_id(apdu.fileIdentifier)
         if _debug: Application._debug("    - object: %r", obj)
@@ -421,6 +427,12 @@ class Application(ApplicationServiceElement, Logging):
         """Return one of our records."""
         if _debug: Application._debug("do_AtomicWriteFileRequest %r", apdu)
 
+        if (apdu.fileIdentifier[0] != 'file'):
+            resp = Error(errorClass='services', errorCode='inconsistentObjectType', context=apdu)
+            if _debug: Application._debug("    - error resp: %r", resp)
+            self.response(resp)
+            return
+
         # get the object
         obj = self.get_object_id(apdu.fileIdentifier)
         if _debug: Application._debug("    - object: %r", obj)
@@ -434,19 +446,22 @@ class Application(ApplicationServiceElement, Logging):
                     errorCode='invalidFileAccessMethod',
                     context=apdu
                     )
-            else:
-                # pass along to the object
-                start_record = obj.WriteFile(
-                    apdu.accessMethod.recordAccess.fileStartRecord,
-                    apdu.accessMethod.recordAccess.recordCount,
-                    apdu.accessMethod.recordAccess.fileRecordData,
-                    )
-                if _debug: Application._debug("    - start_record: %r", start_record)
+                if _debug: Application._debug("    - error resp: %r", resp)
+                self.response(resp)
+                return
 
-                # this is an ack
-                resp = AtomicWriteFileACK(context=apdu,
-                    fileStartRecord=start_record,
-                    )
+            # pass along to the object
+            start_record = obj.WriteFile(
+                apdu.accessMethod.recordAccess.fileStartRecord,
+                apdu.accessMethod.recordAccess.recordCount,
+                apdu.accessMethod.recordAccess.fileRecordData,
+                )
+            if _debug: Application._debug("    - start_record: %r", start_record)
+
+            # this is an ack
+            resp = AtomicWriteFileACK(context=apdu,
+                fileStartRecord=start_record,
+                )
 
         elif apdu.accessMethod.streamAccess:
             # check against the object
@@ -455,18 +470,21 @@ class Application(ApplicationServiceElement, Logging):
                     errorCode='invalidFileAccessMethod',
                     context=apdu
                     )
-            else:
-                # pass along to the object
-                start_position = obj.WriteFile(
-                    apdu.accessMethod.streamAccess.fileStartPosition,
-                    apdu.accessMethod.streamAccess.fileData,
-                    )
-                if _debug: Application._debug("    - start_position: %r", start_position)
+                if _debug: Application._debug("    - error resp: %r", resp)
+                self.response(resp)
+                return
 
-                # this is an ack
-                resp = AtomicWriteFileACK(context=apdu,
-                    fileStartPosition=start_position,
-                    )
+            # pass along to the object
+            start_position = obj.WriteFile(
+                apdu.accessMethod.streamAccess.fileStartPosition,
+                apdu.accessMethod.streamAccess.fileData,
+                )
+            if _debug: Application._debug("    - start_position: %r", start_position)
+
+            # this is an ack
+            resp = AtomicWriteFileACK(context=apdu,
+                fileStartPosition=start_position,
+                )
 
         if _debug: Application._debug("    - resp: %r", resp)
 
