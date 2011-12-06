@@ -615,7 +615,7 @@ class Integer(Atomic):
 
     def encode(self, tag):
         # rip apart the number
-        data = [ord(c) for c in struct.pack('>I',self.value)]
+        data = [ord(c) for c in struct.pack('>I', (self.value & 0xFFFFFFFF)]
 
         # reduce the value to the smallest number of bytes, be
         # careful about sign extension
