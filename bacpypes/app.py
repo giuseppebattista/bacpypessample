@@ -260,11 +260,13 @@ class Application(ApplicationServiceElement, Logging):
                 # get the datatype
                 datatype = obj.get_datatype(apdu.propertyIdentifier)
                 if _debug: Application._debug("    - datatype: %r", datatype)
-                
+
                 # get the value
                 value = obj.ReadProperty(apdu.propertyIdentifier, apdu.propertyArrayIndex)
                 if _debug: Application._debug("    - value: %r", value)
-                
+                if value is None:
+                    raise PropertyError, apdu.propertyIdentifier
+
                 # change atomic values into something encodeable
                 if issubclass(datatype, Atomic):
                     value = datatype(value)
