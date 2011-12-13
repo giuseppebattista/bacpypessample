@@ -274,9 +274,11 @@ class Application(ApplicationServiceElement, Logging):
                     elif issubclass(datatype.subtype, Atomic):
                         value = datatype.subtype(value)
                     elif not isinstance(value, datatype.subtype):
-                        raise TypeError, "invalid result datatype, expecting %s" % (datatype.subtype.__name__,)
+                        raise TypeError, "invalid result datatype, expecting %s and got %s" \
+                            % (datatype.subtype.__name__, type(value).__name__)
                 elif not isinstance(value, datatype):
-                    raise TypeError, "invalid result datatype, expecting %s" % (datatype.__name__,)
+                    raise TypeError, "invalid result datatype, expecting %s and got %s" \
+                        % (datatype.__name__, type(value).__name__)
                 if _debug: Application._debug("    - encodeable value: %r", value)
 
                 # this is a ReadProperty ack
