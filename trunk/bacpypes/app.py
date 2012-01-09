@@ -249,8 +249,16 @@ class Application(ApplicationServiceElement, Logging):
         """Return the value of some property of one of our objects."""
         if _debug: Application._debug("do_ReadPropertyRequest %r", apdu)
 
+        # extract the object identifier
+        objId = apdu.objectIdentifier
+
+        # check for wildcard
+        if (objId == ('device', 4194303)):
+            if _debug: Application._debug("    - wildcard device identifier")
+            objId = self.localDevice.objectIdentifier
+
         # get the object
-        obj = self.get_object_id(apdu.objectIdentifier)
+        obj = self.GetObjectID(objId)
         if _debug: Application._debug("    - object: %r", obj)
 
         if not obj:
@@ -285,7 +293,7 @@ class Application(ApplicationServiceElement, Logging):
 
                 # this is a ReadProperty ack
                 resp = ReadPropertyACK(context=apdu)
-                resp.objectIdentifier = apdu.objectIdentifier
+                resp.objectIdentifier = objId
                 resp.propertyIdentifier = apdu.propertyIdentifier
                 resp.propertyArrayIndex = apdu.propertyArrayIndex
 
