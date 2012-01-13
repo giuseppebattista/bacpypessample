@@ -18,7 +18,8 @@ except:
 from debugging import DebugContents, Logging, function_debugging, ModuleLogger
 
 from pdu import PDU, Address
-from bvll import BVLPDU
+from bvll import BVLPDU, bvl_pdu_types, ForwardedNPDU, \
+    DistributeBroadcastToNetwork, OriginalUnicastNPDU, OriginalBroadcastNPDU
 from npdu import NPDU, npdu_types
 from apdu import APDU, apdu_types, confirmed_request_types, unconfirmed_request_types, complex_ack_types, error_types, \
     ConfirmedRequestPDU, UnconfirmedRequestPDU, SimpleAckPDU, ComplexAckPDU, SegmentAckPDU, ErrorPDU, RejectPDU, AbortPDU
@@ -36,8 +37,8 @@ _protocols={socket.IPPROTO_TCP:'tcp',
 #   _hexify
 #
 
-def _hexify(s, sep=' '):
-    return sep.join('%.2X' % ord(c) for c in s)
+def _hexify(s, sep='.'):
+    return sep.join('%02X' % ord(c) for c in s)
 
 #
 #   strftimestamp
@@ -53,7 +54,7 @@ def strftimestamp(ts):
 
 @function_debugging
 def decode_ethernet(s):
-    if _debug: decode_ethernet._debug("decode_ethernet %r", s)
+    if _debug: decode_ethernet._debug("decode_ethernet %s...", _hexify(s[:14]))
 
     d={}
     d['destination_address'] = _hexify(s[0:6], ':')
@@ -69,7 +70,7 @@ def decode_ethernet(s):
 
 @function_debugging
 def decode_vlan(s):
-    if _debug: decode_vlan._debug("decode_vlan %r", s)
+    if _debug: decode_vlan._debug("decode_vlan %s...", _hexify(s[:4]))
 
     d = {}
     x = struct.unpack('!H',s[0:2])[0]
@@ -87,7 +88,7 @@ def decode_vlan(s):
 
 @function_debugging
 def decode_ip(s):
-    if _debug: decode_ip._debug("decode_ip %r", s)
+    if _debug: decode_ip._debug("decode_ip %r", _hexify(s[:20]))
 
     d = {}
     d['version'] = (ord(s[0]) & 0xf0) >> 4
@@ -116,7 +117,7 @@ def decode_ip(s):
 
 @function_debugging
 def decode_udp(s):
-    if _debug: decode_udp._debug("decode_udp %r", s)
+    if _debug: decode_udp._debug("decode_udp %s...", _hexify(s[:8]))
 
     d = {}
     d['source_port'] = struct.unpack('!H',s[0:2])[0]
@@ -188,9 +189,35 @@ def decode_packet(data):
         xpdu.decode(pdu)
         pdu = xpdu
 
+        # make a more focused interpretation
+        atype = bvl_pdu_types.get(pdu.bvlciFunction)
+        if not atype:
+            if _debug: decode_packet._debug("    - unknown BVLL type: %r", pdu.bvlciFunction)
+            return apdu
+
+        # decode it as one of the basic types
+        try:
+            xpdu = pdu
+            bpdu = atype()
+            bpdu.decode(pdu)
+            if _debug: decode_packet._debug("    - bpdu: %r", bpdu)
+
+            pdu = bpdu
+
+            # lift the address for forwarded NPDU's
+            if atype is ForwardedNPDU:
+                pdu.pduSource = bpdu.bvlciAddress
+            # no deeper decoding for some
+            elif atype not in (DistributeBroadcastToNetwork, OriginalUnicastNPDU, OriginalBroadcastNPDU):
+                return pdu
+
+        except Exception, err:
+            if _debug: decode_packet._debug("    - decoding Error: %r", err)
+            return xpdu
+
     # check for version number
     if (pdu.pduData[0] != '\x01'):
-        if _debug: decode_packet._debug("    - not a version 1 packet")
+        if _debug: decode_packet._debug("    - not a version 1 packet: %s...", _hexify(pdu.pduData[:30]))
         return None
 
     # it's an NPDU

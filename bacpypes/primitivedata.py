@@ -16,10 +16,10 @@ from pdu import *
 _debug = 0
 _log = ModuleLogger(globals())
 
-def _str_to_hex(x,sep=''):
+def _str_to_hex(x, sep=''):
     return sep.join(["%02X" % (ord(c),) for c in x])
 
-def _hex_to_str(x,sep=''):
+def _hex_to_str(x, sep=''):
     if sep:
         parts = x.split(sep)
     else:
