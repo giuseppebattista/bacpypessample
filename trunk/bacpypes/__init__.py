@@ -9,6 +9,7 @@
 import comm
 import exceptions
 import task
+import timeutil
 
 #
 #   Link Layer Modules
