@@ -112,7 +112,8 @@ def stop(*args):
         taskManager.trigger.set()
 
 # set a TERM signal handler
-signal.signal(signal.SIGTERM, stop)
+if hasattr(signal, 'SIGTERM'):
+    signal.signal(signal.SIGTERM, stop)
 
 #
 #   print_stack
@@ -150,7 +151,8 @@ def print_stack(sig, frame):
     sys.stderr.flush()
 
 # set a USR1 signal handler to print a stack trace
-signal.signal(signal.SIGUSR1, print_stack)
+if hasattr(signal, 'SIGUSR1'):
+    signal.signal(signal.SIGUSR1, print_stack)
 
 #
 #   deferred
