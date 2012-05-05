@@ -62,7 +62,8 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         # set a INT signal handler, ^C will only get sent to the 
         # main thread and there's no way to break the readline
         # call initiated by this thread - sigh
-        signal.signal(signal.SIGINT, console_interrupt)
+        if hasattr(signal, 'SIGINT'):
+            signal.signal(signal.SIGINT, console_interrupt)
 
         # start the thread
         self.start()
