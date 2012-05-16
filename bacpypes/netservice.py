@@ -444,6 +444,10 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
                 return
         else:
             if processLocally:
+                if npdu.npduNetMessage not in npdu_types:
+                    if _debug: NetworkServiceAccessPoint._debug("    - unknown npdu type: %r", npdu.npduNetMessage)
+                    return
+
                 # do a deeper decode of the NPDU
                 xpdu = npdu_types[npdu.npduNetMessage]()
                 xpdu.decode(_copy(npdu))

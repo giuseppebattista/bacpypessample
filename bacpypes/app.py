@@ -258,7 +258,7 @@ class Application(ApplicationServiceElement, Logging):
             objId = self.localDevice.objectIdentifier
 
         # get the object
-        obj = self.GetObjectID(objId)
+        obj = self.get_object_id(objId)
         if _debug: Application._debug("    - object: %r", obj)
 
         if not obj:

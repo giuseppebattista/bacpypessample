@@ -1899,7 +1899,7 @@ class NotificationParametersChangeOfState(Sequence):
         ]
         
 class NotificationParametersChangeOfValueNewValue(Choice):
-    sequenceElements = \
+    choiceElements = \
         [ Element('changedBits', BitString, 0)
         , Element('changedValue', Real, 1)
         ]
