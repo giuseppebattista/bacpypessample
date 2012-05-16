@@ -319,7 +319,6 @@ class _APDU(APDU):
         self.pduDestination = context.pduSource
         self.pduExpectingReply = 0
         self.pduNetworkPriority = context.pduNetworkPriority
-        self.apduService = context.apduService
         self.apduInvokeID = context.apduInvokeID
     
 #
@@ -384,8 +383,9 @@ class SimpleAckPDU(_APDU):
 
         # use the context to fill in most of the fields
         if context is not None:
+            self.apduService = context.apduService
             self.set_context(context)
-            
+
     def __repr__(self):
         xid = id(self)
         if (xid < 0): xid += (1L << 32)
@@ -518,11 +518,8 @@ class RejectPDU(_APDU):
 
         # use the context to fill in most of the fields
         if context is not None:
-            self.pduDestination = context.pduSource
-            self.pduExpectingReply = 0
-            self.pduNetworkPriority = context.pduNetworkPriority
-            self.apduInvokeID = context.apduInvokeID
-            
+            self.set_context(context)
+
     def __repr__(self):
         xid = id(self)
         if (xid < 0): xid += (1L << 32)
@@ -576,11 +573,8 @@ class AbortPDU(_APDU):
 
         # use the context to fill in most of the fields
         if context is not None:
-            self.pduDestination = context.pduSource
-            self.pduExpectingReply = 0
-            self.pduNetworkPriority = context.pduNetworkPriority
-            self.apduInvokeID = context.apduInvokeID
-            
+            self.set_context(context)
+
     def __str__(self):
         try:
             reason = AbortReason._xlate_table[self.apduAbortRejectReason]

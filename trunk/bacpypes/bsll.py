@@ -29,6 +29,7 @@ DEVICE_TO_DEVICE_SERVICE_ID     = 0x01
 ROUTER_TO_ROUTER_SERVICE_ID     = 0x02
 PROXY_SERVICE_ID                = 0x03
 LANE_SERVICE_ID                 = 0x04
+CLIENT_SERVER_SERVICE_ID        = 0x05
 
 #
 #   Hash Functions
@@ -85,6 +86,11 @@ class BSLCI(PCI, DebugContents, Logging):
     clientToLESBroadcastNPDU            = 0x0C
     lesToClientUnicastNPDU              = 0x0D
     lesToClientBroadcastNPDU            = 0x0E
+
+    clientToServerUnicastAPDU           = 0x0F
+    clientToServerBroadcastAPDU         = 0x10
+    serverToClientUnicastAPDU           = 0x11
+    serverToClientBroadcastAPDU         = 0x12
 
     def __init__(self, *args):
         PCI.__init__(self)
@@ -696,4 +702,184 @@ class LESToClientBroadcastNPDU(BSLPDU):
         self.pduData = bslpdu.get_data(len(bslpdu.pduData))
 
 register_bslpdu_type(LESToClientBroadcastNPDU)
+
+#
+#   ClientToServerUnicastAPDU
+#
+
+class ClientToServerUnicastAPDU(BSLPDU):
+
+    _debug_contents = ('bslciAddress',)
+
+    messageType = BSLCI.clientToServerUnicastAPDU
+
+    def __init__(self, addr=None, *args):
+        BVLPDU.__init__(self, *args)
+        self.bslciFunction = BSLCI.clientToServerUnicastAPDU
+        self.bslciLength = 5 + len(self.pduData)
+        self.bslciAddress = addr
+        if addr is not None:
+            self.bslciLength += addr.addrLen
+
+    def encode(self, bslpdu):
+        addrLen = self.bslciAddress.addrLen
+
+        # make sure the length is correct
+        self.bslciLength = 5 + addrLen + len(self.pduData)
+
+        BSLCI.update(bslpdu, self)
+
+        # encode the address
+        bslpdu.put(addrLen)
+        bslpdu.put_data( self.bslciAddress.addrAddr )
+
+        # encode the rest of the data
+        bslpdu.put_data( self.pduData )
+
+    def decode(self, bslpdu):
+        BSLCI.update(self, bslpdu)
+
+        # get the address
+        addrLen = bslpdu.get()
+        self.bslciAddress = LocalStation(bslpdu.get_data(addrLen))
+
+        # get the rest of the data
+        self.pduData = bslpdu.get_data(len(bslpdu.pduData))
+
+register_bslpdu_type(ClientToServerUnicastAPDU)
+
+#
+#   ClientToServerBroadcastAPDU
+#
+
+class ClientToServerBroadcastAPDU(BSLPDU):
+
+    _debug_contents = ('bslciAddress',)
+
+    messageType = BSLCI.clientToServerBroadcastAPDU
+
+    def __init__(self, addr=None, *args):
+        BSLPDU.__init__(self, *args)
+        self.bslciFunction = BSLCI.clientToServerBroadcastAPDU
+        self.bslciLength = 5 + len(self.pduData)
+        self.bslciAddress = addr
+        if addr is not None:
+            self.bslciLength += addr.addrLen
+
+    def encode(self, bslpdu):
+        addrLen = self.bslciAddress.addrLen
+
+        # make sure the length is correct
+        self.bslciLength = 5 + addrLen + len(self.pduData)
+
+        BSLCI.update(bslpdu, self)
+
+        # encode the address
+        bslpdu.put(addrLen)
+        bslpdu.put_data( self.bslciAddress.addrAddr )
+
+        # encode the rest of the data
+        bslpdu.put_data( self.pduData )
+
+    def decode(self, bslpdu):
+        BSLCI.update(self, bslpdu)
+
+        # get the address
+        addrLen = bslpdu.get()
+        self.bslciAddress = LocalStation(bslpdu.get_data(addrLen))
+
+        # get the rest of the data
+        self.pduData = bslpdu.get_data(len(bslpdu.pduData))
+
+register_bslpdu_type(ClientToServerBroadcastAPDU)
+
+#
+#   ServerToClientUnicastAPDU
+#
+
+class ServerToClientUnicastAPDU(BSLPDU):
+
+    _debug_contents = ('bslciAddress',)
+
+    messageType = BSLCI.serverToClientUnicastAPDU
+
+    def __init__(self, addr=None, *args):
+        BSLPDU.__init__(self, *args)
+        self.bslciFunction = BSLCI.serverToClientUnicastAPDU
+        self.bslciLength = 5 + len(self.pduData)
+        self.bslciAddress = addr
+        if addr is not None:
+            self.bslciLength += addr.addrLen
+
+    def encode(self, bslpdu):
+        addrLen = self.bslciAddress.addrLen
+
+        # make sure the length is correct
+        self.bslciLength = 5 + addrLen + len(self.pduData)
+
+        BSLCI.update(bslpdu, self)
+
+        # encode the address
+        bslpdu.put(addrLen)
+        bslpdu.put_data( self.bslciAddress.addrAddr )
+
+        # encode the rest of the data
+        bslpdu.put_data( self.pduData )
+
+    def decode(self, bslpdu):
+        BSLCI.update(self, bslpdu)
+
+        # get the address
+        addrLen = bslpdu.get()
+        self.bslciAddress = LocalStation(bslpdu.get_data(addrLen))
+
+        # get the rest of the data
+        self.pduData = bslpdu.get_data(len(bslpdu.pduData))
+
+register_bslpdu_type(ServerToClientUnicastAPDU)
+
+#
+#   ServerToClientBroadcastAPDU
+#
+
+class ServerToClientBroadcastAPDU(BSLPDU):
+
+    _debug_contents = ('bslciAddress',)
+
+    messageType = BSLCI.serverToClientBroadcastAPDU
+
+    def __init__(self, addr=None, *args):
+        BVLPDU.__init__(self, *args)
+        self.bslciFunction = BSLCI.serverToClientBroadcastAPDU
+        self.bslciLength = 5 + len(self.pduData)
+        self.bslciAddress = addr
+        if addr is not None:
+            self.bslciLength += addr.addrLen
+
+    def encode(self, bslpdu):
+        addrLen = self.bslciAddress.addrLen
+
+        # make sure the length is correct
+        self.bslciLength = 5 + addrLen + len(self.pduData)
+
+        BSLCI.update(bslpdu, self)
+
+        # encode the address
+        bslpdu.put(addrLen)
+        bslpdu.put_data( self.bslciAddress.addrAddr )
+
+        # encode the rest of the data
+        bslpdu.put_data( self.pduData )
+
+    def decode(self, bslpdu):
+        BSLCI.update(self, bslpdu)
+
+        # get the address
+        addrLen = bslpdu.get()
+        self.bslciAddress = LocalStation(bslpdu.get_data(addrLen))
+
+        # get the rest of the data
+        self.pduData = bslpdu.get_data(len(bslpdu.pduData))
+
+register_bslpdu_type(ServerToClientBroadcastAPDU)
 
