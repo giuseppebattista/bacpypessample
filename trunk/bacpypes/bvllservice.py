@@ -69,7 +69,7 @@ class UDPMultiplexer(Logging):
             self.addrTuple = self.address.addrTuple
             self.addrBroadcastTuple = self.address.addrBroadcastTuple
             if (self.addrTuple == self.addrBroadcastTuple):
-                self.addrBroadcastTuple = ('255.255.255.255', 47808)
+                self.addrBroadcastTuple = ('255.255.255.255', self.addrTuple[1])
             else:
                 specialBroadcast = True
             

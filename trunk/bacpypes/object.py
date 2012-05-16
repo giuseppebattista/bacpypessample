@@ -118,15 +118,16 @@ class Property(Logging):
 
         # get the value
         value = obj._values[self.identifier]
-        
+
         # access an array
         if arrayIndex is not None:
             if not issubclass(self.datatype, Array):
                 raise TypeError, "%s is not an array" % (self.identifier,)
-                
-            # dive in, the water's fine
-            value = value[arrayIndex]
-            
+
+            if value:
+                # dive in, the water's fine
+                value = value[arrayIndex]
+
         # all set
         return value
 

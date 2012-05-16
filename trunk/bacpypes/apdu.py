@@ -973,7 +973,7 @@ class ConfirmedEventNotificationRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(ConfirmedEventNotificationRequest)
 
-class UnconfirmedEventNotificationRequest(Sequence):
+class UnconfirmedEventNotificationRequest(UnconfirmedRequestSequence):
     serviceChoice = 3
     sequenceElements = EventNotificationParameters.sequenceElements
 
