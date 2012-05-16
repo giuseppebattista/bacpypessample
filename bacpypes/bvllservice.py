@@ -64,7 +64,7 @@ class UDPMultiplexer(Logging):
                 self.address = addr
             else:
                 self.address = Address(addr)
-            
+
             # check for a special broadcast address
             self.addrTuple = self.address.addrTuple
             self.addrBroadcastTuple = self.address.addrBroadcastTuple
@@ -72,17 +72,17 @@ class UDPMultiplexer(Logging):
                 self.addrBroadcastTuple = ('255.255.255.255', self.addrTuple[1])
             else:
                 specialBroadcast = True
-            
+
         if _debug:
             UDPMultiplexer._debug("    - address: %r", self.address)
             UDPMultiplexer._debug("    - addrTuple: %r", self.addrTuple)
             UDPMultiplexer._debug("    - addrBroadcastTuple: %r", self.addrBroadcastTuple)
-        
+
         # create and bind the direct address
         self.direct = _MultiplexClient(self)
         self.directPort = UDPDirector(self.addrTuple)
         bind(self.direct, self.directPort)
-        
+
         # create and bind the broadcast address
         if specialBroadcast and (not noBroadcast):
             self.broadcast = _MultiplexClient(self)
@@ -90,11 +90,11 @@ class UDPMultiplexer(Logging):
             bind(self.direct, self.broadcastPort)
         else:
             self.broadcast = None
-        
+
         # create and bind the Annex H and J servers
         self.annexH = _MultiplexServer(self)
         self.annexJ = _MultiplexServer(self)
-        
+
     def indication(self, server, pdu):
         if _debug: UDPMultiplexer._debug("indication %r %r", server, pdu)
 
@@ -105,9 +105,9 @@ class UDPMultiplexer(Logging):
         else:
             dest = unpack_ip_addr(pdu.pduDestination.addrAddr)
             if _debug: UDPMultiplexer._debug("    - requesting local station: %r", dest)
-        
+
         self.directPort.indication(PDU(pdu, destination=dest))
-        
+
     def confirmation(self, client, pdu):
         if _debug: UDPMultiplexer._debug("confirmation %r %r", client, pdu)
 
@@ -116,7 +116,7 @@ class UDPMultiplexer(Logging):
             if _debug: UDPMultiplexer._debug("    - from us!")
             return
         src = Address(pdu.pduSource)
-            
+
         # match the destination in case the stack needs it
         if client is self.direct:
             dest = self.address
@@ -124,11 +124,11 @@ class UDPMultiplexer(Logging):
             dest = LocalBroadcast()
         else:
             raise RuntimeError, "confirmation mismatch"
-            
+
         # check for the message type
         if not pdu.pduData:
             raise RuntimeError, "data expected"
-            
+
         if ord(pdu.pduData[0]) == 0x01:
             if self.annexH.serverPeer:
                 self.annexH.response(PDU(pdu, source=src, destination=dest))
@@ -214,7 +214,7 @@ class BTR(Client, Server, DebugContents, Logging):
     def delete_peer(self, peerAddr):
         """Delete a peer."""
         if _debug: BTR._debug("delete_peer %r", peerAddr)
-        
+
         # get the peer networks
         # networks = self.peers[peerAddr]
 
@@ -222,7 +222,7 @@ class BTR(Client, Server, DebugContents, Logging):
 
         # now delete the peer
         del self.peers[peerAddr]
-    
+
 #
 #   AnnexJCodec
 #

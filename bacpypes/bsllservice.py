@@ -90,6 +90,7 @@ class UserInformation(DebugContents, Logging):
         self.service[ROUTER_TO_ROUTER_SERVICE_ID] = kwargs.get('routerToRouterService', allServices)
         self.service[PROXY_SERVICE_ID] = kwargs.get('proxyService', allServices)
         self.service[LANE_SERVICE_ID] = kwargs.get('laneService', allServices)
+        self.service[CLIENT_SERVER_SERVICE_ID] = kwargs.get('clientServerService', allServices)
 
         # proxy service can map to a network
         self.proxyNetwork = kwargs.get('proxyNetwork', None)
@@ -1296,4 +1297,3 @@ class ProxyClientService(ServiceAdapter, Client, Logging):
         else:
             # send it
             self.service_request(request)
-
