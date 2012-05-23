@@ -1317,10 +1317,10 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
 
             xpdu = atype()
             try:
-               xpdu.decode(apdu)
+                xpdu.decode(apdu)
             except:
-               xpdu = Error(errorClass=0, errorCode=0)
-               
+                xpdu = Error(errorClass=0, errorCode=0)
+
         elif isinstance(apdu, RejectPDU):
             xpdu = apdu
             

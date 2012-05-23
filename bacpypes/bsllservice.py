@@ -927,7 +927,7 @@ class DeviceToDeviceClientService(NetworkServiceAdapter, Logging):
         conn.pendingNPDU = []
 
         # build a service request
-        request = service_request(DEVICE_TO_DEVICE_SERVICE_ID)
+        request = ServiceRequest(DEVICE_TO_DEVICE_SERVICE_ID)
         request.pduDestination = addr
 
         # send it

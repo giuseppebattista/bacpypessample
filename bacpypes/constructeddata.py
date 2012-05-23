@@ -146,7 +146,7 @@ class Sequence(Logging):
                 if element.context is not None:
                     tag = taglist.Pop()
                     if tag.tagClass != Tag.closingTagClass or tag.tagNumber != element.context:
-                        raise DecodingError, "'%s' expected closing tag %d" % (element.name, context)
+                        raise DecodingError, "'%s' expected closing tag %d" % (element.name, element.context)
 
             # check for an atomic element
             elif issubclass(element.klass, Atomic):
@@ -267,7 +267,7 @@ def SequenceOf(klass):
         raise TypeError, "sequences of arrays disallowed"
 
     # define a generic class for lists
-    class SequenceOf(Logging):
+    class _SequenceOf(Logging):
 
         subtype = None
 
@@ -293,7 +293,7 @@ def SequenceOf(klass):
             return self.value[item]
 
         def encode(self, taglist):
-            if _debug: SequenceOf._debug("(%r)encode %r", self.__class__.__name__, taglist)
+            if _debug: _SequenceOf._debug("(%r)encode %r", self.__class__.__name__, taglist)
             for value in self.value:
                 if issubclass(self.subtype, Atomic):
                     # a helper cooperates between the atomic value and the tag
@@ -312,7 +312,7 @@ def SequenceOf(klass):
                     raise TypeError, "%s must be a %s" % (value, self.subtype.__name__)
 
         def decode(self, taglist):
-            if _debug: SequenceOf._debug("(%r)decode %r", self.__class__.__name__, taglist)
+            if _debug: _SequenceOf._debug("(%r)decode %r", self.__class__.__name__, taglist)
 
             while len(taglist) != 0:
                 tag = taglist.Peek()
@@ -320,7 +320,7 @@ def SequenceOf(klass):
                     return
 
                 if issubclass(self.subtype, Atomic):
-                    if _debug: SequenceOf._debug("    - building helper: %r %r", self.subtype, tag)
+                    if _debug: _SequenceOf._debug("    - building helper: %r %r", self.subtype, tag)
                     taglist.Pop()
 
                     # a helper cooperates between the atomic value and the tag
@@ -329,7 +329,7 @@ def SequenceOf(klass):
                     # save the value
                     self.value.append(helper.value)
                 else:
-                    if _debug: SequenceOf._debug("    - building value: %r", self.subtype)
+                    if _debug: _SequenceOf._debug("    - building value: %r", self.subtype)
                     # build an element
                     value = self.subtype()
 
@@ -353,14 +353,14 @@ def SequenceOf(klass):
 
     # constrain it to a list of a specific type of item
     setattr(SequenceOf, 'subtype', klass)
-    SequenceOf.__name__ = 'SequenceOf(%s.%s)' % (klass.__module__, klass.__name__)
+    _SequenceOf.__name__ = 'SequenceOf(%s.%s)' % (klass.__module__, klass.__name__)
 
     # cache this type
-    _sequence_of_map[klass] = SequenceOf
+    _sequence_of_map[klass] = _SequenceOf
     _sequence_of_classes[SequenceOf] = 1
 
     # return this new type
-    return SequenceOf
+    return _SequenceOf
 
 #
 #   Array
@@ -463,7 +463,7 @@ def ArrayOf(klass):
                     return i
 
             # not found
-            raise ValueError, "%r not in array" % (item,)
+            raise ValueError, "%r not in array" % (value,)
 
         def encode(self, taglist):
             if _debug: ArrayOf._debug("(%r)encode %r", self.__class__.__name__, taglist)
@@ -699,7 +699,7 @@ class Choice(Logging):
                 # check for context closing tag
                 tag = taglist.Pop()
                 if tag.tagClass != Tag.closingTagClass or tag.tagNumber != element.context:
-                    raise DecodingError, "'%s' expected closing tag %d" % (element.name, context)
+                    raise DecodingError, "'%s' expected closing tag %d" % (element.name, element.context)
 
                 # done
                 if _debug: Choice._debug("    - found choice (sequence)")
@@ -748,7 +748,7 @@ class Choice(Logging):
                 # check for the correct closing tag
                 tag = taglist.Pop()
                 if tag.tagClass != Tag.closingTagClass or tag.tagNumber != element.context:
-                    raise DecodingError, "'%s' expected closing tag %d" % (element.name, context)
+                    raise DecodingError, "'%s' expected closing tag %d" % (element.name, element.context)
 
                 # done
                 if _debug: Choice._debug("    - found choice (structure)")

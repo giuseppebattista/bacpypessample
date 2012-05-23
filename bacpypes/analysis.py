@@ -193,7 +193,7 @@ def decode_packet(data):
         atype = bvl_pdu_types.get(pdu.bvlciFunction)
         if not atype:
             if _debug: decode_packet._debug("    - unknown BVLL type: %r", pdu.bvlciFunction)
-            return apdu
+            return pdu
 
         # decode it as one of the basic types
         try:

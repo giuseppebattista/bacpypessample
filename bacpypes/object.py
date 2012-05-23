@@ -217,7 +217,7 @@ class Object(Logging):
         initargs = {}
         for key, value in kwargs.items():
             if key not in self._properties:
-                raise PropertyError, pname
+                raise PropertyError, key
             initargs[key] = value
 
         # start with a clean dict of values

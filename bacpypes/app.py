@@ -52,7 +52,7 @@ class CurrentDateProperty(Property):
 
         # get the value
         now = Date()
-        now.Now()
+        now.now()
         return now.value
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
@@ -74,7 +74,7 @@ class CurrentTimeProperty(Property):
 
         # get the value
         now = Time()
-        now.Now()
+        now.now()
         return now.value
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
@@ -92,7 +92,7 @@ class LocalDeviceObject(DeviceObject, Logging):
 
     defaultProperties = \
         { 'maxApduLengthAccepted': 1024
-        , 'segmentationSupported': 'segmented-both'
+        , 'segmentationSupported': 'segmentedBoth'
         , 'maxSegmentsAccepted': 16
         , 'apduSegmentTimeout': 20000
         , 'apduTimeout': 3000
