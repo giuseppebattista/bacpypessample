@@ -412,6 +412,7 @@ class ComplexAckPDU(_APDU):
 
         # use the context to fill in most of the fields
         if context is not None:
+            self.apduService = context.apduService
             self.set_context(context)
             
     def __repr__(self):
@@ -472,6 +473,7 @@ class ErrorPDU(_APDU):
 
         # use the context to fill in most of the fields
         if context is not None:
+            self.apduService = context.apduService
             self.set_context(context)
             
     def __repr__(self):
