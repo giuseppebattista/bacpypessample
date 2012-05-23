@@ -127,7 +127,7 @@ class Tag(object):
             if (self.tagLVT <= 253):
                 pdu.put( self.tagLVT )
             elif (self.tagLVT <= 65535):
-                enc.put( 254 )
+                pdu.put( 254 )
                 pdu.put_short( self.tagLVT )
             else:
                 pdu.put( 255 )
@@ -145,7 +145,7 @@ class Tag(object):
         # extract the tag number
         self.tagNumber = (tag >> 4)
         if (self.tagNumber == 0x0F):
-            self.tagNumber = dec.get()
+            self.tagNumber = pdu.get()
 
         # extract the length
         self.tagLVT = tag & 0x07
@@ -764,7 +764,7 @@ class OctetString(Atomic):
         self.value = tag.tagData
 
     def __str__(self):
-        return "OctetString(X'" + str_to_hex(self.value) + "')"
+        return "OctetString(X'" + _str_to_hex(self.value) + "')"
 
 #
 #   CharacterString
@@ -1129,7 +1129,7 @@ class Date(Atomic):
             raise TypeError, "invalid constructor datatype"
 
     def now(self):
-        tup = time.gmtime()
+        tup = time.localtime()
 
         self.value = (tup[0]-1900, tup[1], tup[2], tup[6] + 1)
 
@@ -1210,7 +1210,7 @@ class Time(Atomic):
 
     def now(self):
         now = time.time()
-        tup = time.gmtime(now)
+        tup = time.localtime(now)
 
         self.value = (tup[3], tup[4], tup[5], int((now - int(now)) * 100))
 

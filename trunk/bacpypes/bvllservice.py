@@ -189,7 +189,7 @@ class BTR(Client, Server, DebugContents, Logging):
             return
         
         # send it upstream
-        self.response(rpdu)
+        self.response(pdu)
         
     def add_peer(self, peerAddr, networks=None):
         """Add a peer and optionally provide a list of the reachable networks."""
@@ -810,7 +810,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 
         if isinstance(addr, LocalStation):
             pass
-        elif isinstance(arg,types.StringType):
+        elif isinstance(addr, types.StringType):
             addr = LocalStation( addr )
         else:
             raise TypeError, "addr must be a string or a LocalStation"

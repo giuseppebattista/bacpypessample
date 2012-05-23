@@ -534,7 +534,7 @@ class ClientToLESUnicastNPDU(BSLPDU):
     messageType = BSLCI.clientToLESUnicastNPDU
 
     def __init__(self, addr=None, *args):
-        BVLPDU.__init__(self, *args)
+        BSLPDU.__init__(self, *args)
         self.bslciFunction = BSLCI.clientToLESUnicastNPDU
         self.bslciLength = 5 + len(self.pduData)
         self.bslciAddress = addr
@@ -669,7 +669,7 @@ class LESToClientBroadcastNPDU(BSLPDU):
     messageType = BSLCI.lesToClientBroadcastNPDU
 
     def __init__(self, addr=None, *args):
-        BVLPDU.__init__(self, *args)
+        BSLPDU.__init__(self, *args)
         self.bslciFunction = BSLCI.lesToClientBroadcastNPDU
         self.bslciLength = 5 + len(self.pduData)
         self.bslciAddress = addr
@@ -714,7 +714,7 @@ class ClientToServerUnicastAPDU(BSLPDU):
     messageType = BSLCI.clientToServerUnicastAPDU
 
     def __init__(self, addr=None, *args):
-        BVLPDU.__init__(self, *args)
+        BSLPDU.__init__(self, *args)
         self.bslciFunction = BSLCI.clientToServerUnicastAPDU
         self.bslciLength = 5 + len(self.pduData)
         self.bslciAddress = addr
@@ -849,7 +849,7 @@ class ServerToClientBroadcastAPDU(BSLPDU):
     messageType = BSLCI.serverToClientBroadcastAPDU
 
     def __init__(self, addr=None, *args):
-        BVLPDU.__init__(self, *args)
+        BSLPDU.__init__(self, *args)
         self.bslciFunction = BSLCI.serverToClientBroadcastAPDU
         self.bslciLength = 5 + len(self.pduData)
         self.bslciAddress = addr

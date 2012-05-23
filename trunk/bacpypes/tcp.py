@@ -436,7 +436,7 @@ class TCPServer(asyncore.dispatcher, Logging):
 
             self.request = self.request[sent:]
         except socket.error, why:
-            if (err.args[0] == 111):
+            if (why.args[0] == 111):
                 deferred(TCPServer._error, "connection to %r refused", self.peer)
             else:
                 deferred(TCPServer._error, "handle_write socket error: %s", why)

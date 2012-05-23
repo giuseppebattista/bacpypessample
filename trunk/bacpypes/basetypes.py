@@ -1807,24 +1807,24 @@ class EventParameterChangeOfStatusFlags(Sequence):
         ]
 
 class EventParameter(Choice):
-  choiceElements = \
-      [ Element('changeOfBitstring', 'EventParameterChangeOfBitstring', 0)
-      , Element('changeOfState', 'EventParameterChangeOfState', 1)
-      , Element('changeOfValue', 'EventParameterChangeOfValue', 2)
-      , Element('commandFailure', 'EventParameterCommandFailure', 3)
-      , Element('floatingLimit', 'EventParameterFloatingLimit', 4)
-      , Element('outOfRange', 'EventParameterOutOfRange', 5)
-      , Element('changeOfLifesafety', 'EventParameterChangeOfLifeSafety', 8)
-      , Element('extended', 'EventParameterExtended', 9)
-      , Element('bufferReady', 'EventParameterBufferReady', 10)
-      , Element('unsignedRange', 'EventParameterUnsignedRange', 11)
-      , Element('accessEvent', 'EventParameterAccessEvent', 13)
-      , Element('doubleOutOfRange', 'EventParameterDoubleOutOfRange', 14)
-      , Element('signedOutOfRange', 'EventParameterSignedOutOfRange', 15)
-      , Element('unsignedOutOfRange', 'EventParameterUnsignedOutOfRange', 16)
-      , Element('changeOfCharacterstring', 'EventParameterChangeOfCharacterString', 17)
-      , Element('changeOfStatusflags', 'EventParameterChangeOfStatusFlags', 18)
-      ]
+    choiceElements = \
+        [ Element('changeOfBitstring', 'EventParameterChangeOfBitstring', 0)
+        , Element('changeOfState', 'EventParameterChangeOfState', 1)
+        , Element('changeOfValue', 'EventParameterChangeOfValue', 2)
+        , Element('commandFailure', 'EventParameterCommandFailure', 3)
+        , Element('floatingLimit', 'EventParameterFloatingLimit', 4)
+        , Element('outOfRange', 'EventParameterOutOfRange', 5)
+        , Element('changeOfLifesafety', 'EventParameterChangeOfLifeSafety', 8)
+        , Element('extended', 'EventParameterExtended', 9)
+        , Element('bufferReady', 'EventParameterBufferReady', 10)
+        , Element('unsignedRange', 'EventParameterUnsignedRange', 11)
+        , Element('accessEvent', 'EventParameterAccessEvent', 13)
+        , Element('doubleOutOfRange', 'EventParameterDoubleOutOfRange', 14)
+        , Element('signedOutOfRange', 'EventParameterSignedOutOfRange', 15)
+        , Element('unsignedOutOfRange', 'EventParameterUnsignedOutOfRange', 16)
+        , Element('changeOfCharacterstring', 'EventParameterChangeOfCharacterString', 17)
+        , Element('changeOfStatusflags', 'EventParameterChangeOfStatusFlags', 18)
+        ]
 
 class KeyIdentifier(Sequence):
     sequenceElements = \
