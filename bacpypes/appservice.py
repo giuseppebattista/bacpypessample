@@ -173,8 +173,8 @@ class SSM(OneShotTask, DebugContents, Logging):
             segAPDU.apduInvokeID = self.invokeID;
 
             # segmented response accepted?
-            segAPDU.apduSA = ((self.ssmSAP.segmentationSupported == 'segmented-both') \
-                    or (self.ssmSAP.segmentationSupported == 'segmented-receive'))
+            segAPDU.apduSA = ((self.ssmSAP.segmentationSupported == 'segmentedBoth') \
+                    or (self.ssmSAP.segmentationSupported == 'segmentedReceive'))
             if _debug:
                 SSM._debug("    - segmented response accepted: %r", segAPDU.apduSA)
                 SSM._debug("        - self.ssmSAP.segmentationSupported: %r", self.ssmSAP.segmentationSupported)
@@ -317,12 +317,12 @@ class ClientSSM(SSM, Logging):
 
         # make sure we support segmented transmit if we need to
         if self.segmentCount > 1:
-            if (self.ssmSAP.segmentationSupported != 'segmented-transmit') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
+            if (self.ssmSAP.segmentationSupported != 'segmentedTransmit') and (self.ssmSAP.segmentationSupported != 'segmentedBoth'):
                 if _debug: ClientSSM._debug("    - local device can't send segmented messages")
                 abort = self.abort(AbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.response(abort)
                 return
-            if (self.remoteDevice.segmentationSupported != 'segmented-receive') and (self.remoteDevice.segmentationSupported != 'segmented-both'):
+            if (self.remoteDevice.segmentationSupported != 'segmentedReceive') and (self.remoteDevice.segmentationSupported != 'segmentedBoth'):
                 if _debug: ClientSSM._debug("    - remote device can't receive segmented messages")
                 abort = self.abort(AbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.response(abort)
@@ -516,7 +516,7 @@ class ClientSSM(SSM, Logging):
                 self.set_state(COMPLETED)
                 self.response(apdu)
 
-            elif (self.ssmSAP.segmentationSupported != 'segmented-receive') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
+            elif (self.ssmSAP.segmentationSupported != 'segmentedReceive') and (self.ssmSAP.segmentationSupported != 'segmentedBoth'):
                 if _debug: ClientSSM._debug("    - local device can't receive segmented messages")
                 abort = self.abort(AbortReason.SEGMENTATIONNOTSUPPORTED)
                 self.response(abort)
@@ -745,11 +745,11 @@ class ServerSSM(SSM):
             if self.segmentCount > 1:
                 if _debug: ServerSSM._debug("    - segmentation required, %d segemnts", self.segmentCount)
 
-                if (self.ssmSAP.segmentationSupported != 'segmented-transmit') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
+                if (self.ssmSAP.segmentationSupported != 'segmentedTransmit') and (self.ssmSAP.segmentationSupported != 'segmentedBoth'):
                     abort = self.abort(AbortReason.SEGMENTATIONNOTSUPPORTED)
                     self.request(abort)
                     return
-                if (self.remoteDevice.segmentationSupported != 'segmented-receive') and (self.remoteDevice.segmentationSupported != 'segmented-both'):
+                if (self.remoteDevice.segmentationSupported != 'segmentedReceive') and (self.remoteDevice.segmentationSupported != 'segmentedBoth'):
                     abort = self.abort(AbortReason.SEGMENTATIONNOTSUPPORTED)
                     self.request(abort)
                     return
@@ -830,7 +830,7 @@ class ServerSSM(SSM):
             return
 
         # make sure we support segmented requests
-        if (self.ssmSAP.segmentationSupported != 'segmented-receive') and (self.ssmSAP.segmentationSupported != 'segmented-both'):
+        if (self.ssmSAP.segmentationSupported != 'segmentedReceive') and (self.ssmSAP.segmentationSupported != 'segmentedBoth'):
             abort = self.abort(AbortReason.SEGMENTATIONNOTSUPPORTED)
             self.response(abort)
             return
