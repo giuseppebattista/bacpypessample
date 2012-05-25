@@ -7,7 +7,7 @@ Constructed Data
 import sys
 
 from errors import DecodingError
-from debugging import ModuleLogger, Logging
+from debugging import ModuleLogger, Logging, function_debugging
 
 from primitivedata import *
 
@@ -249,14 +249,18 @@ class Sequence(Logging):
 _sequence_of_map = {}
 _sequence_of_classes = {}
 
+@function_debugging
 def SequenceOf(klass):
     """Function to return a class that can encode and decode a list of
     some other type."""
+    if _debug: SequenceOf._debug("SequenceOf %r", klass)
+
     global _sequence_of_map
     global _sequence_of_classes, _array_of_classes
 
     # if this has already been built, return the cached one
     if _sequence_of_map.has_key(klass):
+        if _debug: SequenceOf._debug("    - found in cache")
         return _sequence_of_map[klass]
 
     # no SequenceOf(SequenceOf(...)) allowed
@@ -271,7 +275,9 @@ def SequenceOf(klass):
 
         subtype = None
 
-        def __init__(self,value=None):
+        def __init__(self, value=None):
+            if _debug: _SequenceOf._debug("(%r)__init__ %r (subtype=%r)", self.__class__.__name__, value, self.subtype)
+
             if value is None:
                 self.value = []
             elif isinstance(value, types.ListType):
@@ -352,8 +358,9 @@ def SequenceOf(klass):
                 i += 1
 
     # constrain it to a list of a specific type of item
-    setattr(SequenceOf, 'subtype', klass)
+    setattr(_SequenceOf, 'subtype', klass)
     _SequenceOf.__name__ = 'SequenceOf(%s.%s)' % (klass.__module__, klass.__name__)
+    if _debug: SequenceOf._debug("    - build this class: %r", _SequenceOf)
 
     # cache this type
     _sequence_of_map[klass] = _SequenceOf
