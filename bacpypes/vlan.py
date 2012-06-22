@@ -5,6 +5,7 @@ Virtual Local Area Network
 """
 
 import random
+from copy import deepcopy
 
 from errors import ConfigurationError
 from debugging import ModuleLogger, Logging
@@ -30,18 +31,23 @@ class Network(Logging):
         self.dropPercent = dropPercent
 
     def add_node(self, node):
+        """ Add a node to this network, let the node know which network it's on. """
         if _debug: Network._debug("add_node %r", node)
 
         self.nodes.append(node)
         node.lan = self
 
     def remove_node(self, node):
+        """ Remove a node from this network. """
         if _debug: Network._debug("remove_node %r", node)
 
         self.nodes.remove(node)
         node.lan = None
 
     def process_pdu(self, pdu):
+        """ Process a PDU by sending a copy to each node as dictated by the 
+            addressing and if a node is promiscuous.
+        """
         if _debug: Network._debug("process_pdu %r", pdu)
 
         if self.dropPercent != 0.0:
@@ -55,18 +61,18 @@ class Network(Logging):
         elif pdu.pduDestination.addrType == Address.localBroadcastAddr:
             for n in self.nodes:
                 if (pdu.pduSource != n.address):
-                    n.response(pdu)
-                    
+                    n.response(deepcopy(pdu))
+
         elif pdu.pduDestination.addrType == Address.localStationAddr:
             for n in self.nodes:
                 if n.promiscuous or (pdu.pduDestination == n.address):
-                    n.response(pdu)
-                    
+                    n.response(deepcopy(pdu))
+
         else:
             raise RuntimeError, "invalid destination address type"
 
     def __len__(self):
-        """Simple way to determine the number of nodes in the network."""
+        """ Simple way to determine the number of nodes in the network. """
         if _debug: Network._debug("__len__")
         return len(self.nodes)
 
