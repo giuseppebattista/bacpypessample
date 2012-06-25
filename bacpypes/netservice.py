@@ -146,7 +146,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
                 rref = self.networks[snet]
 
                 if rref.adapter == adapter and rref.address == address:
-                    pass        # matches current entry"
+                    pass        # matches current entry
                 else:
                     ### check to see if this source could be a router to the new network
 
@@ -160,7 +160,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
             ### check to see if it is OK to add the new entry
 
             # get the router reference for this router
-            rref = self.routers.get(rkey)
+            rref = self.routers.get(rkey, None)
             if rref:
                 if snet not in rref.networks:
                     # add the network
@@ -596,18 +596,23 @@ class NetworkServiceElement(ApplicationServiceElement):
     
     def WhoIsRouterToNetwork(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("WhoIsRouterToNetwork %r %r", adapter, npdu)
-            
+
         # reference the service access point
         sap = self.elementService
-        
+        if _debug: NetworkServiceElement._debug("    - sap: %r", sap)
+
         # if we're not a router, skip it
         if len(sap.adapters) == 1:
+            if _debug: NetworkServiceElement._debug("    - not a router")
             return
-            
+
         if npdu.wirtnNetwork is None:
             # requesting all networks
+            if _debug: NetworkServiceElement._debug("    - requesting all networks")
+
+            # build a list of reachable networks
             netlist = []
-            
+
             # start with directly connected networks
             for xadapter in sap.adapters:
                 if (xadapter is not adapter):
@@ -621,43 +626,69 @@ class NetworkServiceElement(ApplicationServiceElement):
                     netlist.append(net)
                     
             if netlist:
+                if _debug: NetworkServiceElement._debug("    - found these: %r", netlist)
+
                 # build a response
                 iamrtn = IAmRouterToNetwork(netlist)
-                iamrtn.pduDestination = LocalBroadcast()
-                
+                iamrtn.pduDestination = npdu.pduSource
+
                 # send it back
                 self.response(adapter, iamrtn)
-                
+
         else:
             # requesting a specific network
-            if npdu.wirtnNetwork in sap.networks:
-                rref = sap.networks[npdu.wirtnNetwork]
-                if rref.adapter is adapter:
-                    pass    # this router on the same network as the request
-                else:
+            if _debug: NetworkServiceElement._debug("    - requesting specific network: %r", npdu.wirtnNetwork)
+
+            # start with directly connected networks
+            for xadapter in sap.adapters:
+                if (xadapter is not adapter) and (npdu.wirtnNetwork == xadapter.adapterNet):
+                    if _debug: NetworkServiceElement._debug("    - found it directly connected")
+
                     # build a response
                     iamrtn = IAmRouterToNetwork([npdu.wirtnNetwork])
-                    iamrtn.pduDestination = LocalBroadcast()
-                    
+                    iamrtn.pduDestination = npdu.pduSource
+
                     # send it back
                     self.response(adapter, iamrtn)
-                    
+
+                    break
             else:
-                # build a request
-                whoisrtn = WhoIsRouterToNetwork(npdu.wirtnNetwork)
-                whoisrtn.pduDestination = LocalBroadcast()
-                
-                # if the request had a source, forward it along
-                if npdu.npduSADR:
-                    whoisrtn.npduSADR = npdu.npduSADR
+                # check for networks I know about
+                if npdu.wirtnNetwork in sap.networks:
+                    rref = sap.networks[npdu.wirtnNetwork]
+                    if rref.adapter is adapter:
+                        if _debug: NetworkServiceElement._debug("    - same net as request")
+
+                    else:
+                        if _debug: NetworkServiceElement._debug("    - found on adapter: %r", rref.adapter)
+
+                        # build a response
+                        iamrtn = IAmRouterToNetwork([npdu.wirtnNetwork])
+                        iamrtn.pduDestination = npdu.pduSource
+
+                        # send it back
+                        self.response(adapter, iamrtn)
+
                 else:
-                    whoisrtn.npduSADR = RemoteStation(adapter.adapterNet, npdu.pduSource.addrAddr)
-                
-                # send it to all of the (other) adapters
-                for xadapter in sap.adapters:
-                    if xadapter is not adapter:
-                        self.request(xadapter, npdu)
-                        
+                    if _debug: NetworkServiceElement._debug("    - forwarding request to other adapters")
+
+                    # build a request
+                    whoisrtn = WhoIsRouterToNetwork(npdu.wirtnNetwork)
+                    whoisrtn.pduDestination = LocalBroadcast()
+
+                    # if the request had a source, forward it along
+                    if npdu.npduSADR:
+                        whoisrtn.npduSADR = npdu.npduSADR
+                    else:
+                        whoisrtn.npduSADR = RemoteStation(adapter.adapterNet, npdu.pduSource.addrAddr)
+                    if _debug: NetworkServiceElement._debug("    - whoisrtn: %r", whoisrtn)
+
+                    # send it to all of the (other) adapters
+                    for xadapter in sap.adapters:
+                        if xadapter is not adapter:
+                            if _debug: NetworkServiceElement._debug("    - sending on adapter: %r", xadapter)
+                            self.request(xadapter, whoisrtn)
+
     def IAmRouterToNetwork(self, adapter, npdu):
         if _debug: NetworkServiceElement._debug("IAmRouterToNetwork %r %r", adapter, npdu)
 
