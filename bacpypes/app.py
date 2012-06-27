@@ -225,15 +225,16 @@ class Application(ApplicationServiceElement, Logging):
             if (self.localDevice.objectIdentifier[1] > apdu.deviceInstanceRangeHighLimit):
                 return
                 
-        # create a I-Am "response"
+        # create a I-Am "response" back to the source
         iAm = IAmRequest()
+        iAm.pduDestination = apdu.pduSource
         iAm.iAmDeviceIdentifier = self.localDevice.objectIdentifier
         iAm.maxAPDULengthAccepted = self.localDevice.maxApduLengthAccepted
         iAm.segmentationSupported = self.localDevice.segmentationSupported
         iAm.vendorID = self.localDevice.vendorIdentifier
+        if _debug: Application._debug("    - iAm: %r", iAm)
 
-        # blast it out
-        iAm.pduDestination = GlobalBroadcast()
+        # away it goes
         self.request(iAm)
 
     def do_ReadPropertyRequest(self, apdu):
