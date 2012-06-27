@@ -145,10 +145,7 @@ class Application(ApplicationServiceElement, Logging):
         # local objects by ID and name
         self.objectName = {localDevice.objectName:localDevice}
         self.objectIdentifier = {localDevice.objectIdentifier:localDevice}
-        
-        # keep a cache of I-Am responses
-        self.iAmCache = {}
-        
+
     def add_object(self, obj):
         """Add an object to the local collection."""
         if _debug: Application._debug("add_object %r", obj)
@@ -238,12 +235,6 @@ class Application(ApplicationServiceElement, Logging):
         # blast it out
         iAm.pduDestination = GlobalBroadcast()
         self.request(iAm)
-
-    def do_IAmRequest(self, apdu):
-        """Given an I-Am request, cache it."""
-        if _debug: Application._debug("do_IAmRequest %r", apdu)
-
-        self.iAmCache[apdu.iAmDeviceIdentifier] = apdu
 
     def do_ReadPropertyRequest(self, apdu):
         """Return the value of some property of one of our objects."""
