@@ -22,6 +22,9 @@ from comm import ServiceAccessPoint, ApplicationServiceElement
 _debug = 0
 _log = ModuleLogger(globals())
 
+# globals
+REBIND_SLEEP_INTERVAL = 2.0
+
 #
 #   PickleActorMixIn
 #
@@ -40,7 +43,7 @@ class PickleActorMixIn(Logging):
 
         # pickle the data
         pdu.pduData = cPickle.dumps(pdu.pduData)
-        
+
         # continue as usual
         super(PickleActorMixIn, self).indication(pdu)
 
@@ -49,10 +52,10 @@ class PickleActorMixIn(Logging):
 
         # add the data to our buffer
         self.pickleBuffer += pdu.pduData
-        
+
         # build a file-like object around the buffer
         strm = StringIO(self.pickleBuffer)
-        
+
         pos = 0
         while (pos < strm.len):
             try:
@@ -64,12 +67,12 @@ class PickleActorMixIn(Logging):
             # got a message
             rpdu = PDU(msg)
             rpdu.update(pdu)
-            
+
             super(PickleActorMixIn, self).response(rpdu)
-            
+
             # see where we are
             pos = strm.tell()
-            
+
         # save anything left over, if there is any
         if (pos < strm.len):
             self.pickleBuffer = self.pickleBuffer[pos:]
@@ -192,7 +195,7 @@ class TCPClientActor(TCPClient, Logging):
         # add a timer
         self.timeout = director.timeout
         if self.timeout > 0:
-            self.timer = FunctionTask(self.IdleTimeout)
+            self.timer = FunctionTask(self.idle_timeout)
             self.timer.install_task(_time() + self.timeout)
         else:
             self.timer = None
@@ -201,7 +204,7 @@ class TCPClientActor(TCPClient, Logging):
         self.flushTask = None
         
         # tell the director this is a new actor
-        self.director.AddActor(self)
+        self.director.add_actor(self)
 
     def handle_close(self):
         if _debug: TCPClientActor._debug("handle_close")
@@ -215,13 +218,13 @@ class TCPClientActor(TCPClient, Logging):
             self.timer.suspend_task()
         
         # tell the director this is gone
-        self.director.RemoveActor(self)
+        self.director.remove_actor(self)
 
         # pass the function along
         TCPClient.handle_close(self)
         
-    def IdleTimeout(self):
-        if _debug: TCPClientActor._debug("IdleTimeout")
+    def idle_timeout(self):
+        if _debug: TCPClientActor._debug("idle_timeout")
         
         # shut it down
         self.handle_close()
@@ -254,15 +257,15 @@ class TCPClientActor(TCPClient, Logging):
         # process this as a response from the director
         self.director.response(pdu)
 
-    def Flush(self):
-        if _debug: TCPClientActor._debug("Flush")
+    def flush(self):
+        if _debug: TCPClientActor._debug("flush")
         
         # clear out the old task
         self.flushTask = None
 
         # if the outgoing buffer has data, re-schedule another attempt
         if self.request:
-            self.flushTask = OneShotFunction(self.Flush)
+            self.flushTask = OneShotFunction(self.flush)
             return
             
         # close up shop, all done
@@ -308,9 +311,9 @@ class TCPClientDirector(Server, ServiceAccessPoint, DebugContents, Logging):
         # no clients automatically reconnecting
         self.reconnect = {}
 
-    def AddActor(self, actor):
+    def add_actor(self, actor):
         """Add an actor when a new one is connected."""
-        if _debug: TCPClientDirector._debug("AddActor %r", actor)
+        if _debug: TCPClientDirector._debug("add_actor %r", actor)
 
         self.clients[actor.peer] = actor
         
@@ -318,9 +321,9 @@ class TCPClientDirector(Server, ServiceAccessPoint, DebugContents, Logging):
         if self.serviceElement:
             self.sap_request(addPeer=actor.peer)
 
-    def RemoveActor(self, actor):
+    def remove_actor(self, actor):
         """Remove an actor when the socket is closed."""
-        if _debug: TCPClientDirector._debug("RemoveActor %r", actor)
+        if _debug: TCPClientDirector._debug("remove_actor %r", actor)
 
         del self.clients[actor.peer]
 
@@ -333,7 +336,8 @@ class TCPClientDirector(Server, ServiceAccessPoint, DebugContents, Logging):
             connect_task = FunctionTask(self.connect, actor.peer)
             connect_task.install_task(_time() + self.reconnect[actor.peer])
 
-    def GetActor(self, address):
+    def get_actor(self, address):
+        """ Get the actor associated with an address or None. """
         return self.clients.get(address, None)
 
     def connect(self, address, reconnect=0):
@@ -341,7 +345,7 @@ class TCPClientDirector(Server, ServiceAccessPoint, DebugContents, Logging):
         if address in self.clients:
             return
             
-        # create an actor, which will eventually call AddActor
+        # create an actor, which will eventually call add_actor
         client = self.actorClass(self, address)
         if _debug: TCPClientDirector._debug("    - client: %r", client)
 
@@ -349,8 +353,8 @@ class TCPClientDirector(Server, ServiceAccessPoint, DebugContents, Logging):
         if reconnect:
             self.reconnect[address] = reconnect
 
-    def Disconnect(self, address):
-        if _debug: TCPClientDirector._debug("Disconnect %r", address)
+    def disconnect(self, address):
+        if _debug: TCPClientDirector._debug("disconnect %r", address)
         if address not in self.clients:
             return
 
@@ -477,7 +481,7 @@ class TCPServerActor(TCPServer, Logging):
         # add a timer
         self.timeout = director.timeout
         if self.timeout > 0:
-            self.timer = FunctionTask(self.IdleTimeout)
+            self.timer = FunctionTask(self.idle_timeout)
             self.timer.install_task(_time() + self.timeout)
         else:
             self.timer = None
@@ -486,7 +490,7 @@ class TCPServerActor(TCPServer, Logging):
         self.flushTask = None
         
         # tell the director this is a new actor
-        self.director.AddActor(self)
+        self.director.add_actor(self)
 
     def handle_close(self):
         if _debug: TCPServerActor._debug("handle_close")
@@ -496,13 +500,13 @@ class TCPServerActor(TCPServer, Logging):
             self.flushTask.suspend_task()
             
         # tell the director this is gone
-        self.director.RemoveActor(self)
+        self.director.remove_actor(self)
 
         # pass it down
         TCPServer.handle_close(self)
 
-    def IdleTimeout(self):
-        if _debug: TCPServerActor._debug("IdleTimeout")
+    def idle_timeout(self):
+        if _debug: TCPServerActor._debug("idle_timeout")
         
         # shut it down
         self.handle_close()
@@ -540,15 +544,15 @@ class TCPServerActor(TCPServer, Logging):
         # process this as a response from the director
         self.director.response(pdu)
 
-    def Flush(self):
-        if _debug: TCPServerActor._debug("Flush")
+    def flush(self):
+        if _debug: TCPServerActor._debug("flush")
             
         # clear out the old task
         self.flushTask = None
 
         # if the outgoing buffer has data, re-schedule another attempt
         if self.request:
-            self.flushTask = OneShotFunction(self.Flush)
+            self.flushTask = OneShotFunction(self.flush)
             return
             
         # close up shop, all done
@@ -606,7 +610,7 @@ class TCPServerDirector(asyncore.dispatcher, Server, ServiceAccessPoint, DebugCo
             except socket.error, err:
                 hadBindErrors = True
                 TCPServerDirector._warning('bind error %r, sleep and try again', err)
-                _sleep(2.0)
+                _sleep(REBIND_SLEEP_INTERVAL)
         else:
             TCPServerDirector._error('unable to bind')
             raise RuntimeError, "unable to bind"
@@ -645,8 +649,8 @@ class TCPServerDirector(asyncore.dispatcher, Server, ServiceAccessPoint, DebugCo
         # close the socket
         self.close()
 
-    def AddActor(self, actor):
-        if _debug: TCPServerDirector._debug("AddActor %r", actor)
+    def add_actor(self, actor):
+        if _debug: TCPServerDirector._debug("add_actor %r", actor)
 
         self.servers[actor.peer] = actor
 
@@ -654,21 +658,22 @@ class TCPServerDirector(asyncore.dispatcher, Server, ServiceAccessPoint, DebugCo
         if self.serviceElement:
             self.sap_request(addPeer=actor.peer)
 
-    def RemoveActor(self, actor):
-        if _debug: TCPServerDirector._debug("RemoveActor %r", actor)
+    def remove_actor(self, actor):
+        if _debug: TCPServerDirector._debug("remove_actor %r", actor)
 
         try:
             del self.servers[actor.peer]
         except KeyError:
-            TCPServerDirector._warning("RemoveActor: %r not an actor", actor)
+            TCPServerDirector._warning("remove_actor: %r not an actor", actor)
 
         # tell the ASE the server has gone away
         if self.serviceElement:
             self.sap_request(delPeer=actor.peer)
 
-    def GetActor(self, address):
+    def get_actor(self, address):
+        """ Get the actor associated with an address or None. """
         return self.servers.get(address, None)
-        
+
     def indication(self, pdu):
         """Direct this PDU to the appropriate server."""
         if _debug: TCPServerDirector._debug("indication %r", pdu)
@@ -702,8 +707,8 @@ class StreamToPacket(Client, Server, Logging):
         self.upstreamBuffer = {}
         self.downstreamBuffer = {}
         
-    def Packetize(self, pdu, streamBuffer):
-        if _debug: StreamToPacket._debug("Packetize %r", pdu)
+    def packetize(self, pdu, streamBuffer):
+        if _debug: StreamToPacket._debug("packetize %r", pdu)
         
         def Chop(addr):
             # get the current downstream buffer
@@ -734,7 +739,7 @@ class StreamToPacket(Client, Server, Logging):
         if _debug: StreamToPacket._debug("indication %r", pdu)
         
         # hack it up into chunks
-        for packet in self.Packetize(pdu, self.downstreamBuffer):
+        for packet in self.packetize(pdu, self.downstreamBuffer):
             self.request(packet)
             
     def confirmation(self, pdu):
@@ -742,7 +747,7 @@ class StreamToPacket(Client, Server, Logging):
         if _debug: StreamToPacket._debug("StreamToPacket.confirmation %r", pdu)
         
         # hack it up into chunks
-        for packet in self.Packetize(pdu, self.upstreamBuffer):
+        for packet in self.packetize(pdu, self.upstreamBuffer):
             self.response(packet)
             
 #
@@ -775,3 +780,4 @@ class StreamToPacketSAP(ApplicationServiceElement, ServiceAccessPoint, Logging):
         # chain this along
         if self.serviceElement:
             self.sap_request(addPeer=addPeer, delPeer=delPeer)
+
