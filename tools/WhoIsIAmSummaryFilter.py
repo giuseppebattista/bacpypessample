@@ -1,16 +1,18 @@
 #!/usr/bin/python
 
 """
-Address Filter - Sample tool to filter by source, destination and/or host
+Who-Is and I-Am Summary Filter
 """
 
 import sys
+from collections import defaultdict
 
 from bacpypes.debugging import Logging, function_debugging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 
 from bacpypes.pdu import Address
 from bacpypes.analysis import trace, strftimestamp, Tracer
+from bacpypes.apdu import WhoIsRequest, IAmRequest
 
 # some debugging
 _debug = 0
@@ -20,6 +22,10 @@ _log = ModuleLogger(globals())
 filterSource = None
 filterDestination = None
 filterHost = None
+
+# dictionaries of requests
+whoIsTraffic = defaultdict(int)
+iAmTraffic = defaultdict(int)
 
 #
 #   Match
@@ -51,36 +57,42 @@ def Match(addr1, addr2):
         raise RuntimeError, "invalid match combination"
 
 #
-#   AddressFilterTracer
+#   WhoIsIAmSummary
 #
 
-class AddressFilterTracer(Tracer, Logging):
+class WhoIsIAmSummary(Tracer, Logging):
 
     def __init__(self):
-        if _debug: AddressFilterTracer._debug("__init__")
+        if _debug: WhoIsIAmSummary._debug("__init__")
         Tracer.__init__(self, self.Filter)
 
     def Filter(self, pkt):
-        if _debug: AddressFilterTracer._debug("Filter %r", pkt)
+        if _debug: WhoIsIAmSummary._debug("Filter %r", pkt)
+        global requests
 
         # apply the filters
         if filterSource:
             if not Match(pkt.pduSource, filterSource):
-                if _debug: AddressFilterTracer._debug("    - source filter fail")
+                if _debug: WhoIsIAmSummary._debug("    - source filter fail")
                 return
         if filterDestination:
             if not Match(pkt.pduDestination, filterDestination):
-                if _debug: AddressFilterTracer._debug("    - destination filter fail")
+                if _debug: WhoIsIAmSummary._debug("    - destination filter fail")
                 return
         if filterHost:
             if (not Match(pkt.pduSource, filterHost)) and (not Match(pkt.pduDestination, filterHost)):
-                if _debug: AddressFilterTracer._debug("    - host filter fail")
+                if _debug: WhoIsIAmSummary._debug("    - host filter fail")
                 return
 
-        # passed all the filter tests
-        print strftimestamp(pkt._timestamp), pkt.__class__.__name__
-        pkt.debug_contents()
-        print
+        # check for Who-Is
+        if isinstance(pkt, WhoIsRequest):
+            key = (pkt.pduSource, pkt.deviceInstanceRangeLowLimit, pkt.deviceInstanceRangeHighLimit)
+            whoIsTraffic[key] += 1
+
+        # check for I-Am
+        elif isinstance(pkt, IAmRequest):
+            key = (pkt.pduSource, pkt.iAmDeviceIdentifier[1])
+            iAmTraffic[key] += 1
 
 #
 #   __main__
@@ -118,7 +130,26 @@ try:
 
     # trace the file(s)
     for fname in sys.argv[1:]:
-        trace(fname, [AddressFilterTracer])
+        trace(fname, [WhoIsIAmSummary])
+
+    # dump request counts
+    print "----- Top 20 Who-Is -----"
+    print
+
+    items = whoIsTraffic.items()
+    items.sort(lambda x, y: cmp((y[1], y[0][0]), (x[1], x[0][0])))
+    for item in items[:20]:
+        print "%-20s %8s %8s %5d" % (item[0][0], item[0][1], item[0][2], item[1])
+    print
+
+    print "----- Top 20 I-Am -----"
+    print
+
+    items = iAmTraffic.items()
+    items.sort(lambda x, y: cmp((y[1], y[0][0]), (x[1], x[0][0])))
+    for item in items[:20]:
+        print "%-20s %8s %5d" % (item[0][0], item[0][1], item[1])
+    print
 
 except KeyboardInterrupt:
     pass

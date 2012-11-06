@@ -65,8 +65,9 @@ try:
     else:
         interval = 60
 
-    # trace the file
-    trace(sys.argv[1], [PDUsPerMinuteTracer])
+    # trace the file(s)
+    for fname in sys.argv[1:]:
+        trace(fname, [PDUsPerMinuteTracer])
 
     # print some stats at the end
     stats = Statistics()

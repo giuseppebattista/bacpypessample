@@ -182,8 +182,9 @@ try:
     # start out with no unmatched requests
     requests = {}
 
-    # trace the file
-    trace(sys.argv[1], [ReadPropertySummary])
+    # trace the file(s)
+    for fname in sys.argv[1:]:
+        trace(fname, [ReadPropertySummary])
 
     # print some stats at the end
     stats = Statistics()

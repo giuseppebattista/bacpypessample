@@ -127,8 +127,9 @@ try:
     # start out with no requests
     requests = {}
 
-    # trace the file
-    trace(sys.argv[1], [COVNotificationSummary])
+    # trace the file(s)
+    for fname in sys.argv[1:]:
+        trace(fname, [COVNotificationSummary])
 
     # sort the result, descending order by count
     items = requests.items()

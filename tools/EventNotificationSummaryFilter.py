@@ -165,8 +165,9 @@ try:
     # start out with no unmatched requests
     requests = {}
 
-    # trace the file
-    trace(sys.argv[1], [ConfirmedEventNotificationSummary])
+    # trace the file(s)
+    for fname in sys.argv[1:]:
+        trace(fname, [ConfirmedEventNotificationSummary])
 
     # print some stats at the end
     stats = Statistics()
