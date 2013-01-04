@@ -805,14 +805,22 @@ class CharacterString(Atomic):
 
         # normalize the value
         if (self.strEncoding == '\x00'):
-            self.value = str(self.strValue)
+            udata = self.strValue.decode('utf_8')
+            self.value = str(udata.encode('ascii', 'backslashreplace'))
+        elif (self.strEncoding == '\x03'):
+            udata = self.strValue.decode('utf_32be')
+            self.value = str(udata.encode('ascii', 'backslashreplace'))  
         elif (self.strEncoding == '\x04'):
-            self.value = str(self.strValue.decode('utf_16be'))
+            udata = self.strValue.decode('utf_16be')
+            self.value = str(udata.encode('ascii', 'backslashreplace'))
+        elif (self.strEncoding == '\x05'):
+            udata = self.strValue.decode('latin_1')
+            self.value = str(udata.encode('ascii', 'backslashreplace'))
         else:
-            self.value = '### unknown encoding: %d ###' % (self.strEncoding,)
-
+            self.value = '### unknown encoding: %d ###' % ord(self.strEncoding)
+ 
     def __str__(self):
-        return "CharacterString(%d," % (self.strEncoding,) + repr(self.strValue) + ")"
+        return "CharacterString(%d," % ord(self.strEncoding) + repr(self.strValue) + ")"
 
 #
 #   BitString
@@ -1258,6 +1266,10 @@ class Time(Atomic):
 class ObjectType(Enumerated):
     enumerations = \
         { 'accessDoor':30
+        , 'accessPoint':33
+        , 'accessRights':34
+        , 'accessUser':35
+        , 'accessZone':36
         , 'accumulator':23
         , 'analogInput':0
         , 'analogOutput':1
@@ -1266,24 +1278,40 @@ class ObjectType(Enumerated):
         , 'binaryInput':3
         , 'binaryOutput':4
         , 'binaryValue':5
+        , 'bitstringValue':39
         , 'calendar':6
+        , 'characterstringValue':40
         , 'command':7
+        , 'credentialDataInput':37
+        , 'datePatternValue':41
+        , 'dateValue':42
+        , 'datetimePatternValue':43
+        , 'datetimeValue':44
         , 'device':8
         , 'eventEnrollment':9
         , 'eventLog':25
         , 'file':10
+        , 'globalGroup':26
         , 'group':11
+        , 'integerValue':45
+        , 'largeAnalogValue':46
         , 'lifeSafetyPoint':21
         , 'lifeSafetyZone':22
+        , 'loadControl':28
         , 'loop':12
         , 'multiStateInput':13
         , 'multiStateOutput':14
         , 'multiStateValue':19
+        , 'networkSecurity':38
         , 'notificationClass':15
+        , 'octetstringValue':47
+        , 'positiveIntegerValue':48
         , 'program':16
         , 'pulseConverter':24
         , 'schedule':17
         , 'structuredView':29
+        , 'timePatternValue':49
+        , 'timeValue':50
         , 'trendLog':20
         , 'trendLogMultiple':27
         }
