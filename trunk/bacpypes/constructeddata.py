@@ -364,7 +364,7 @@ def SequenceOf(klass):
 
     # cache this type
     _sequence_of_map[klass] = _SequenceOf
-    _sequence_of_classes[SequenceOf] = 1
+    _sequence_of_classes[_SequenceOf] = 1
 
     # return this new type
     return _SequenceOf
