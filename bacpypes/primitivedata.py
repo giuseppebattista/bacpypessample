@@ -785,8 +785,11 @@ class CharacterString(Atomic):
             self.decode(arg)
         elif isinstance(arg,types.StringType):
             self.strValue = self.value = arg
+        elif isinstance(arg,types.UnicodeType):
+            self.strValue = self.value = str(arg)
         elif isinstance(arg, CharacterString):
             self.value = arg.value
+            self.strEncoding = arg.strEncoding
             self.strValue = arg.strValue
         else:
             raise TypeError, "invalid constructor datatype"

@@ -164,7 +164,7 @@ class Property(Logging):
             arry[arrayIndex] = value
             
             return
-        else:
+        elif value is not None:
             # coerce the value
             value = self.datatype(value)
             if _debug: Property._debug("    - coerced the value: %r", value)

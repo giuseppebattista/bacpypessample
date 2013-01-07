@@ -312,6 +312,10 @@ class Application(ApplicationServiceElement, Logging):
             resp = Error(errorClass='object', errorCode='unknownObject', context=apdu)
         else:
             try:
+                 # check if the property exists
+                 if obj.ReadProperty(apdu.propertyIdentifier, apdu.propertyArrayIndex) is None:
+                     raise PropertyError, apdu.propertyIdentifier
+
                 # get the datatype
                 datatype = obj.get_datatype(apdu.propertyIdentifier)
                 if _debug: Application._debug("    - datatype: %r", datatype)
