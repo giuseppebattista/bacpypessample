@@ -289,7 +289,7 @@ def SequenceOf(klass):
             if issubclass(self.subtype, Atomic):
                 pass
             elif not isinstance(value, self.subtype):
-                raise TypeError, "%s value required" % (value, self.subtype.__name__,)
+                raise TypeError, "%s value required" % (self.subtype.__name__,)
             self.value.append(value)
 
         def __len__(self):
