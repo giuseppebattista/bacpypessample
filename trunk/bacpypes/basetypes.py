@@ -2087,8 +2087,8 @@ class PriorityValue(Choice):
         , Element('bitString', BitString)
         , Element('date', Date)
         , Element('objectid', ObjectIdentifier)
-        , Element('constructedValue', Any)
-        , Element('datetime', DateTime)
+        , Element('constructedValue', Any, 0)
+        , Element('datetime', DateTime, 1)
         ]
 
 class PriorityArray(ArrayOf(PriorityValue)):
