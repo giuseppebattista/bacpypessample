@@ -63,8 +63,7 @@ class SampleApplication(BIPSimpleApplication, Logging):
         # count the times this has been received
         iAmCounter[key] += 1
 
-        # pass back to the default implementation
-        BIPSimpleApplication.do_IAmRequest(self, apdu)
+        # no default implementation
 
 #
 #   __main__
