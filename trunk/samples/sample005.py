@@ -21,8 +21,9 @@ from bacpypes.object import get_object_class, get_datatype
 
 from bacpypes.apdu import WhoIsRequest, IAmRequest, ReadPropertyRequest, Error, AbortPDU, ReadPropertyACK
 from bacpypes.primitivedata import Unsigned
-from bacpypes.constructeddata import Array, Any
+from bacpypes.constructeddata import Array
 from bacpypes.basetypes import ServicesSupported
+from bacpypes.error import DecodingError
 
 # some debugging
 _debug = 0
@@ -36,6 +37,13 @@ thisApplication = None
 #
 
 class TestApplication(BIPSimpleApplication, Logging):
+
+    def __init__(self, *args):
+        if _debug: TestApplication._debug("__init__ %r", args)
+        BIPSimpleApplication.__init__(self, *args)
+
+        # keep track of requests to line up responses
+        self._request = None
 
     def request(self, apdu):
         if _debug: TestApplication._debug("request %r", apdu)
@@ -75,6 +83,32 @@ class TestApplication(BIPSimpleApplication, Logging):
 
             sys.stdout.write(str(value) + '\n')
             sys.stdout.flush()
+
+    def indication(self, apdu):
+        if _debug: TestApplication._debug("indication %r", apdu)
+
+        if (isinstance(self._request, WhoIsRequest)) and (isinstance(apdu, IAmRequest)):
+            device_type, device_instance = apdu.iAmDeviceIdentifier
+            if device_type != 'device':
+                raise DecodingError, "invalid object type"
+
+            if (self._request.deviceInstanceRangeLowLimit is not None) and \
+                (device_instance < self._request.deviceInstanceRangeLowLimit):
+                pass
+            elif (self._request.deviceInstanceRangeHighLimit is not None) and \
+                (device_instance > self._request.deviceInstanceRangeHighLimit):
+                pass
+            else:
+                # print out the contents
+                sys.stdout.write('pduSource = ' + repr(apdu.pduSource) + '\n')
+                sys.stdout.write('iAmDeviceIdentifier = ' + str(apdu.iAmDeviceIdentifier) + '\n')
+                sys.stdout.write('maxAPDULengthAccepted = ' + str(apdu.maxAPDULengthAccepted) + '\n')
+                sys.stdout.write('segmentationSupported = ' + str(apdu.segmentationSupported) + '\n')
+                sys.stdout.write('vendorID = ' + str(apdu.vendorID) + '\n')
+                sys.stdout.flush()
+
+        # forward it along
+        BIPSimpleApplication.indication(self, apdu)
 
 #
 #   isint
