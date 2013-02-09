@@ -23,7 +23,7 @@ from bacpypes.apdu import WhoIsRequest, IAmRequest, ReadPropertyRequest, Error, 
 from bacpypes.primitivedata import Unsigned
 from bacpypes.constructeddata import Array
 from bacpypes.basetypes import ServicesSupported
-from bacpypes.error import DecodingError
+from bacpypes.errors import DecodingError
 
 # some debugging
 _debug = 0
