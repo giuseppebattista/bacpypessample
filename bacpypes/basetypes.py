@@ -1877,7 +1877,7 @@ class LogRecord(Sequence):
     sequenceElements = \
         [ Element('timestamp', DateTime, 0)
         , Element('logDatum', LogRecordLogDatum, 1)
-        , Element('statusFlags', StatusFlags, 2)
+        , Element('statusFlags', StatusFlags, 2, True)
         ]
 
 class NetworkSecurityPolicy(Sequence):
