@@ -839,7 +839,7 @@ class ReadRangeRequest(ConfirmedRequestSequence):
         , Element('range', Range, optional=True)
         ]
 
-register_confirmed_request_type(ReadPropertyRequest)
+register_confirmed_request_type(ReadRangeRequest)
 
 class ReadRangeACK(ComplexAckSequence):
     serviceChoice = 26
@@ -853,7 +853,7 @@ class ReadRangeACK(ComplexAckSequence):
         , Element('firstSequenceNumber', Unsigned, 6, True)
         ]
 
-register_complex_ack_type(ReadPropertyACK)
+register_complex_ack_type(ReadRangeACK)
 
 #-----
 
