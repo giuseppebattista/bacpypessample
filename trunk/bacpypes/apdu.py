@@ -1009,20 +1009,17 @@ class UnconfirmedPrivateTransferRequest(UnconfirmedRequestSequence):
         ]
 register_unconfirmed_request_type(UnconfirmedPrivateTransferRequest)
 
-
 class UnconfirmedTextMessageRequestMessageClass(Choice):
     choiceElements = \
         [ Element('numeric', Unsigned)
         , Element('Character', CharacterString)
         ]
 
-
 class UnconfirmedTextMessageRequestMessagePriority(Enumerated):
     enumerations = \
         { 'normal':0
         , 'urgent':1
         }
-
 
 class UnconfirmedTextMessageRequest(UnconfirmedRequestSequence):
     serviceChoice = 5
@@ -1039,7 +1036,6 @@ class TimeSynchronizationRequest(UnconfirmedRequestSequence):
     sequenceElements = \
         [ Element('time', DateTime, 0)
         ]
-
 register_unconfirmed_request_type(TimeSynchronizationRequest)
 
 class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
@@ -1063,14 +1059,30 @@ class AcknowledgeAlarmRequest(ConfirmedRequestSequence):
         ]
 register_confirmed_request_type(AcknowledgeAlarmRequest)
 
-class GetAlarmSummaryACK(ConfirmedRequestSequence):
+#-----
+
+class GetAlarmSummaryRequest(ConfirmedRequestSequence):
     serviceChoice = 3
+    sequenceElements = \
+        [
+        ]
+register_confirmed_request_type(GetAlarmSummaryRequest)
+
+class AlarmSummary(Sequence):
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier,)
         , Element('alarmState', EventState,)
         , Element('acknowledgedTransitions', EventTransitionBits)
         ]
-register_confirmed_request_type(GetAlarmSummaryACK)
+
+class GetAlarmSummaryACK(ConfirmedRequestSequence):
+    serviceChoice = 3
+    sequenceElements = \
+        [ Element('listOfAlarmSummaries', SequenceOf(AlarmSummary))
+        ]
+register_complex_ack_type(GetAlarmSummaryACK)
+
+#-----
 
 class GetEnrollmentSummaryRequestAcknowledgmentFilterType:
     enumerations = \
