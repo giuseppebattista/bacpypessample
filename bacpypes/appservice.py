@@ -310,9 +310,14 @@ class ClientSSM(SSM, Logging):
         if _debug: ClientSSM._debug("    - segment size: %r", self.segmentSize)
 
         # compute the segment count ### minus the header?
-        self.segmentCount, more = divmod(len(apdu.pduData), self.segmentSize)
-        if more:
-            self.segmentCount += 1
+        if not apdu.pduData:
+            # always at least one segment
+            self.segmentCount = 1
+        else:
+            # split into chunks, maybe need one more
+            self.segmentCount, more = divmod(len(apdu.pduData), self.segmentSize)
+            if more:
+                self.segmentCount += 1
         if _debug: ClientSSM._debug("    - segment count: %r", self.segmentCount)
 
         # make sure we support segmented transmit if we need to
