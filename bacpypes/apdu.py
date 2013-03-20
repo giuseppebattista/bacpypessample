@@ -1031,18 +1031,24 @@ class UnconfirmedTextMessageRequest(UnconfirmedRequestSequence):
         ]
 register_unconfirmed_request_type(UnconfirmedTextMessageRequest)
 
+#-----
+
 class TimeSynchronizationRequest(UnconfirmedRequestSequence):
     serviceChoice = 6
     sequenceElements = \
         [ Element('time', DateTime, 0)
         ]
+
 register_unconfirmed_request_type(TimeSynchronizationRequest)
+
+#-----
 
 class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
     serviceChoice = 9
     sequenceElements = \
         [ Element('time', DateTime, 0)
         ]
+
 register_unconfirmed_request_type(UTCTimeSynchronizationRequest)
         
 #-----
@@ -1057,6 +1063,7 @@ class AcknowledgeAlarmRequest(ConfirmedRequestSequence):
         , Element('acknowledgmentSource', CharacterString, 4)
         , Element('timeOfAcknowledgment', TimeStamp, 5)
         ]
+
 register_confirmed_request_type(AcknowledgeAlarmRequest)
 
 #-----
@@ -1066,32 +1073,34 @@ class GetAlarmSummaryRequest(ConfirmedRequestSequence):
     sequenceElements = \
         [
         ]
+
 register_confirmed_request_type(GetAlarmSummaryRequest)
 
-class AlarmSummary(Sequence):
+class GetAlarmSummaryAlarmSummary(Sequence):
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier,)
         , Element('alarmState', EventState,)
         , Element('acknowledgedTransitions', EventTransitionBits)
         ]
 
-class GetAlarmSummaryACK(ConfirmedRequestSequence):
+class GetAlarmSummaryACK(ComplexAckSequence):
     serviceChoice = 3
     sequenceElements = \
-        [ Element('listOfAlarmSummaries', SequenceOf(AlarmSummary))
+        [ Element('listOfAlarmSummaries', SequenceOf(GetAlarmSummaryAlarmSummary))
         ]
+
 register_complex_ack_type(GetAlarmSummaryACK)
 
 #-----
 
-class GetEnrollmentSummaryRequestAcknowledgmentFilterType:
+class GetEnrollmentSummaryRequestAcknowledgmentFilterType(Enumerated):
     enumerations = \
         { 'all':0
         , 'acked':1
         , 'notAcked':2
         }
 
-class GetEnrollmentSummaryRequestEventStateFilterType:
+class GetEnrollmentSummaryRequestEventStateFilterType(Enumerated):
     enumerations = \
         { 'offnormal':0
         , 'fault':1
@@ -1109,16 +1118,17 @@ class GetEnrollmentSummaryRequestPriorityFilterType:
 class GetEnrollmentSummaryRequest(ConfirmedRequestSequence):
     serviceChoice = 4
     sequenceElements = \
-        [ Element('acknowledgmentFilter', GetEnrollmentSummaryRequestAcknowledgmentFilterType, 0, True)
+        [ Element('acknowledgmentFilter', GetEnrollmentSummaryRequestAcknowledgmentFilterType, 0)
         , Element('enrollmentFilter', RecipientProcess, 1, True)
         , Element('eventStateFilter', GetEnrollmentSummaryRequestEventStateFilterType, 2, True)
         , Element('eventTypeFilter', EventType, 3, True)
         , Element('priorityFilter', GetEnrollmentSummaryRequestPriorityFilterType, 4, True)
         , Element('notificationClassFilter', Unsigned, 5, True)
         ]
+
 register_confirmed_request_type(GetEnrollmentSummaryRequest)
 
-class GetEnrollmentSummaryACK(Sequence):
+class GetEnrollmentSummaryEnrollmentSummary(Sequence):
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier,)
         , Element('eventType', EventType,)
@@ -1127,14 +1137,25 @@ class GetEnrollmentSummaryACK(Sequence):
         , Element('notificationClass', Unsigned)
         ]
 
+class GetEnrollmentSummaryACK(ComplexAckSequence):
+    serviceChoice = 4
+    sequenceElements = \
+        [ Element('listOfEnrollmentSummaries', SequenceOf(GetEnrollmentSummaryEnrollmentSummary))
+        ]
+
+register_complex_ack_type(GetEnrollmentSummaryACK)
+
+#-----
+
 class GetEventInformationRequest(ConfirmedRequestSequence):
     serviceChoice = 29
     sequenceElements = \
         [ Element('lastReceivedObjectIdentifier', ObjectIdentifier, 0)
         ]
+
 register_confirmed_request_type(GetEventInformationRequest)
 
-class GetEventInformationRequestACKListOfEventSummaries(Sequence):
+class GetEventInformationEventSummary(Sequence):
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('eventState', EventState, 1)
@@ -1145,11 +1166,16 @@ class GetEventInformationRequestACKListOfEventSummaries(Sequence):
         , Element('eventPriorities', SequenceOf(Unsigned), 6)
         ]
 
-class GetEventInformationACK(Sequence): 
+class GetEventInformationACK(ComplexAckSequence): 
+    serviceChoice = 29
     sequenceElements = \
-        [ Element('listOfEventSummaries', GetEventInformationRequestACKListOfEventSummaries, 0)
+        [ Element('listOfEventSummaries', SequenceOf(GetEventInformationEventSummary), 0)
         , Element('moreEvents', Boolean, 1)
         ]
+
+register_complex_ack_type(GetEventInformationACK)
+
+#-----
 
 class LifeSafetyOperationRequest(ConfirmedRequestSequence):
     serviceChoice = 27
@@ -1162,6 +1188,8 @@ class LifeSafetyOperationRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(LifeSafetyOperationRequest)
 
+#-----
+
 class SubscribeCOVRequest(ConfirmedRequestSequence):
     serviceChoice = 5
     sequenceElements = \
@@ -1173,6 +1201,8 @@ class SubscribeCOVRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(SubscribeCOVRequest)
 
+#-----
+
 class SubscribeCOVPropertyRequest(ConfirmedRequestSequence):
     serviceChoice = 28
     sequenceElements = \
@@ -1183,6 +1213,7 @@ class SubscribeCOVPropertyRequest(ConfirmedRequestSequence):
         , Element('monitoredPropertyIdentifier', PropertyReference, 4)
         , Element('covIncrement', Real, 5)
         ]
+
 register_confirmed_request_type(SubscribeCOVPropertyRequest)
 
 #-----
@@ -1211,6 +1242,7 @@ class AtomicReadFileRequest(ConfirmedRequestSequence):
         [ Element('fileIdentifier', ObjectIdentifier, 0)
         , Element('accessMethod', AtomicReadFileRequestAccessMethodChoice)
         ]
+
 register_confirmed_request_type(AtomicReadFileRequest)
 
 class AtomicReadFileACKAccessMethodStreamAccess(Sequence):
@@ -1238,6 +1270,7 @@ class AtomicReadFileACK(ComplexAckSequence):
         [ Element('endOfFile', Boolean)
         , Element('accessMethod', AtomicReadFileACKAccessMethodChoice)
         ]
+
 register_complex_ack_type(AtomicReadFileACK)
 
 #-----
@@ -1267,6 +1300,7 @@ class AtomicWriteFileRequest(ConfirmedRequestSequence):
         [ Element('fileIdentifier', ObjectIdentifier, 0)
         , Element('accessMethod', AtomicWriteFileRequestAccessMethodChoice)
         ]
+
 register_confirmed_request_type(AtomicWriteFileRequest)
 
 class AtomicWriteFileACK(ComplexAckSequence):
@@ -1275,6 +1309,7 @@ class AtomicWriteFileACK(ComplexAckSequence):
         [ Element('fileStartPosition', Integer, 0, True)
         , Element('fileStartRecord', Integer, 1, True)
         ]
+
 register_complex_ack_type(AtomicWriteFileACK)
 
 #-----
@@ -1289,6 +1324,8 @@ class AddListElementRequest(ConfirmedRequestSequence):
         ]
 
 register_confirmed_request_type(AddListElementRequest)
+
+#-----
 
 class CreateObjectRequestobjectSpecifier(Choice):
     choiceElements = \
@@ -1305,7 +1342,15 @@ class CreateObjectRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(CreateObjectRequest)
 
-class CreateObjectACK(ConfirmedRequestSequence):ObjectIdentifier
+class CreateObjectACK(ComplexAckSequence):
+    serviceChoice = 10
+    sequenceElements = \
+        [ Element('objectIdentifier', ObjectIdentifier)
+        ]
+
+register_complex_ack_type(CreateObjectACK)
+
+#-----
 
 class DeleteObjectRequest(ConfirmedRequestSequence):
     serviceChoice = 11
@@ -1314,6 +1359,8 @@ class DeleteObjectRequest(ConfirmedRequestSequence):
         ]
 
 register_confirmed_request_type(DeleteObjectRequest)
+
+#-----
 
 class RemoveListElementRequest(ConfirmedRequestSequence):
     serviceChoice = 9
@@ -1362,6 +1409,8 @@ class ConfirmedPrivateTransferACK(Sequence):
         , Element('resultBlock', Any, 2)
         ]
 
+#-----
+
 class ConfirmedTextMessageRequestMessageClass(Choice):
     choiceElements = \
         [ Element('numeric', Unsigned, 0)
@@ -1384,6 +1433,8 @@ class ConfirmedTextMessageRequest(ConfirmedRequestSequence):
         ]
 
 register_confirmed_request_type(ConfirmedTextMessageRequest)
+
+#-----
 
 class ReinitializeDeviceRequestReinitializedStateOfDevice(Enumerated):
     enumerations = \
@@ -1447,6 +1498,8 @@ class VTDataACK(Sequence):
         , Element('acceptedOctetCount', Unsigned, 1)
         ]
 
+#-----
+
 class AuthenticateRequest(ConfirmedRequestSequence):
     serviceChoice = 24
     sequenceElements = \
@@ -1464,6 +1517,8 @@ class AuthenticateACK(Sequence):
         [ Element('modifiedRandomNumber', Unsigned)
         ]
 
+#-----
+
 class RequestKeyRequest(ConfirmedRequestSequence):
     serviceChoice = 25
     sequenceElements = \
@@ -1474,6 +1529,8 @@ class RequestKeyRequest(ConfirmedRequestSequence):
         ]
 
 register_confirmed_request_type(RequestKeyRequest)
+
+#-----------------------------------
 
 class UnconfirmedServiceChoice(Enumerated):
     enumerations = \
@@ -1503,6 +1560,8 @@ class UnconfirmedServiceRequest(Choice):
         , Element('utcTimeSynchronization', UTCTimeSynchronizationRequest, 9)
         ]
 
+#-----
+
 class UnconfirmedPrivateTransferRequest(ConfirmedRequestSequence):
     serviceChoice = 4
     sequenceElements = \
@@ -1512,6 +1571,8 @@ class UnconfirmedPrivateTransferRequest(ConfirmedRequestSequence):
         ]
 
 register_confirmed_request_type(UnconfirmedPrivateTransferRequest)
+
+#-----
 
 class UnconfirmedTextMessageRequestMessageClass(Choice):
     choiceElements = \
@@ -1536,6 +1597,8 @@ class UnconfirmedTextMessageRequestMessageClass(ConfirmedRequestSequence):
 
 register_unconfirmed_request_type(UnconfirmedTextMessageRequestMessageClass)
 
+#-----
+
 class TimeSynchronizationRequest(UnconfirmedRequestSequence):
     serviceChoice = 6
     sequenceElements = \
@@ -1544,6 +1607,8 @@ class TimeSynchronizationRequest(UnconfirmedRequestSequence):
 
 register_unconfirmed_request_type(TimeSynchronizationRequest)
 
+#-----
+
 class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
     serviceChoice = 9
     sequenceElements = \
@@ -1551,3 +1616,4 @@ class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
         ]
 
 register_unconfirmed_request_type(UTCTimeSynchronizationRequest)
+
