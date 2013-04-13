@@ -492,6 +492,9 @@ register_apdu_type(ErrorPDU)
 #
 
 class RejectReason(Enumerated):
+    _owl_prefix = 'rejectReason'
+    _owl_lolim = 64
+    _owl_hilim = 255
     enumerations = \
         { 'other':0
         , 'bufferOverflow':1
@@ -541,6 +544,9 @@ register_apdu_type(RejectPDU)
 #
 
 class AbortReason(Enumerated):
+    _owl_prefix = 'abortReason'
+    _owl_lolim = 64
+    _owl_hilim = 255
     enumerations = \
         { 'other':0
         , 'bufferOverflow':1
@@ -603,6 +609,8 @@ register_apdu_type(AbortPDU)
 
 class APCISequence(APCI, Sequence, Logging):
 
+    _owl_prefix = None
+
     def __init__(self, **kwargs):
         APCI.__init__(self)
         Sequence.__init__(self, **kwargs)
@@ -639,6 +647,8 @@ class APCISequence(APCI, Sequence, Logging):
 #
 
 class ConfirmedRequestSequence(APCISequence, ConfirmedRequestPDU):
+
+    _owl_prefix = None
     serviceChoice = None
     
     def __init__(self, **kwargs):
@@ -650,6 +660,8 @@ class ConfirmedRequestSequence(APCISequence, ConfirmedRequestPDU):
 #
 
 class ComplexAckSequence(APCISequence, ComplexAckPDU):
+
+    _owl_prefix = None
     serviceChoice = None
 
     def __init__(self, **kwargs):
@@ -661,6 +673,8 @@ class ComplexAckSequence(APCISequence, ComplexAckPDU):
 #
 
 class UnconfirmedRequestSequence(APCISequence, UnconfirmedRequestPDU):
+
+    _owl_prefix = None
     serviceChoice = None
 
     def __init__(self, **kwargs):
@@ -672,6 +686,8 @@ class UnconfirmedRequestSequence(APCISequence, UnconfirmedRequestPDU):
 #
 
 class ErrorSequence(APCISequence, ErrorPDU):
+
+    _owl_prefix = None
     serviceChoice = None
 
     def __init__(self, **kwargs):
@@ -681,6 +697,7 @@ class ErrorSequence(APCISequence, ErrorPDU):
 #------------------------------
 
 class Error(ErrorSequence):
+    _owl_prefix = 'err'
     sequenceElements = ErrorType.sequenceElements
 
     def __str__(self):
@@ -689,6 +706,7 @@ class Error(ErrorSequence):
 error_types[12] = Error
 
 class ChangeListError(ErrorSequence):
+    _owl_prefix = 'cle'
     sequenceElements = \
         [ Element('errorType', ErrorType, 0)
         , Element('firstFailedElementNumber', Unsigned, 1)
@@ -701,6 +719,7 @@ error_types[8] = ChangeListError
 error_types[9] = ChangeListError
 
 class CreateObjectError(ErrorSequence):
+    _owl_prefix = 'coe'
     sequenceElements = \
         [ Element('errorType', ErrorType, 0)
         , Element('firstFailedElementNumber', Unsigned, 1)
@@ -712,6 +731,7 @@ class CreateObjectError(ErrorSequence):
 error_types[10] = CreateObjectError
 
 class ConfirmedPrivateTransferError(ErrorSequence):
+    _owl_prefix = 'cpte'
     sequenceElements = \
         [ Element('errorType', ErrorType, 0)
         , Element('vendorID', Unsigned, 1)
@@ -722,6 +742,7 @@ class ConfirmedPrivateTransferError(ErrorSequence):
 error_types[18] = ConfirmedPrivateTransferError
 
 class WritePropertyMultipleError(ErrorSequence):
+    _owl_prefix = 'wpme'
     sequenceElements = \
         [ Element('errorType', ErrorType, 0)
         , Element('firstFailedWriteAttempt', ObjectPropertyReference, 1)
@@ -730,6 +751,7 @@ class WritePropertyMultipleError(ErrorSequence):
 error_types[16] = WritePropertyMultipleError
 
 class VTCloseError(ErrorSequence):
+    _owl_prefix = 'vtErr'
     sequenceElements = \
         [ Element('errorType', ErrorType, 0)
         , Element('listOfVTSessionIdentifiers', SequenceOf(Unsigned), 1, True)
@@ -740,6 +762,7 @@ error_types[22] = VTCloseError
 #-----
 
 class ReadPropertyRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'rpReq'
     serviceChoice = 12
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
@@ -750,6 +773,7 @@ class ReadPropertyRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(ReadPropertyRequest)
 
 class ReadPropertyACK(ComplexAckSequence):
+    _owl_prefix = 'rpAck'
     serviceChoice = 12
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
@@ -763,12 +787,14 @@ register_complex_ack_type(ReadPropertyACK)
 #-----
 
 class ReadAccessSpecification(Sequence):
+    _owl_prefix = 'ras'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('listOfPropertyReferences', SequenceOf(PropertyReference), 1)
         ]
 
 class ReadPropertyMultipleRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'rpmReq'
     serviceChoice = 14
     sequenceElements = \
         [ Element('listOfReadAccessSpecs', SequenceOf(ReadAccessSpecification))
@@ -777,12 +803,14 @@ class ReadPropertyMultipleRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(ReadPropertyMultipleRequest)
 
 class ReadAccessResultElementChoice(Choice):
+    _owl_prefix = 'rarec'
     choiceElements = \
         [ Element('propertyValue', Any, 4)
         , Element('propertyAccessError', Error, 5)
         ]
 
 class ReadAccessResultElement(Sequence):
+    _owl_prefix = 'rare'
     sequenceElements = \
         [ Element('propertyIdentifier', PropertyIdentifier, 2)
         , Element('propertyArrayIndex', Unsigned, 3, True)
@@ -790,12 +818,14 @@ class ReadAccessResultElement(Sequence):
         ]
 
 class ReadAccessResult(Sequence):
+    _owl_prefix = 'rar'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('listOfResults', SequenceOf(ReadAccessResultElement), 1)
         ]
 
 class ReadPropertyMultipleACK(ComplexAckSequence):
+    _owl_prefix = 'rpmAck'
     serviceChoice = 14
     sequenceElements = \
         [ Element('listOfReadAccessResults', SequenceOf(ReadAccessResult))
@@ -806,24 +836,28 @@ register_complex_ack_type(ReadPropertyMultipleACK)
 #-----
 
 class RangeByPosition(Sequence):
+    _owl_prefix = 'rbp'
     sequenceElements = \
         [ Element('referenceIndex', Unsigned)
         , Element('count', Integer)
         ]
 
 class RangeBySequenceNumber(Sequence):
+    _owl_prefix = 'rbsn'
     sequenceElements = \
         [ Element('referenceIndex', Unsigned)
         , Element('count', Integer)
         ]
 
 class RangeByTime(Sequence):
+    _owl_prefix = 'rbt'
     sequenceElements = \
         [ Element('referenceTime', DateTime)
         , Element('count', Integer)
         ]
 
 class Range(Choice):
+    _owl_prefix = 'range'
     choiceElements = \
         [ Element('byPosition', RangeByPosition, 3)
         , Element('bySequenceNumber', RangeBySequenceNumber, 6)
@@ -831,6 +865,7 @@ class Range(Choice):
         ]
 
 class ReadRangeRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'rrReq'
     serviceChoice = 26
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
@@ -842,6 +877,7 @@ class ReadRangeRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(ReadRangeRequest)
 
 class ReadRangeACK(ComplexAckSequence):
+    _owl_prefix = 'rrAck'
     serviceChoice = 26
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
@@ -858,6 +894,7 @@ register_complex_ack_type(ReadRangeACK)
 #-----
 
 class WritePropertyRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'wpReq'
     serviceChoice = 15
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
@@ -872,12 +909,14 @@ register_confirmed_request_type(WritePropertyRequest)
 #-----
 
 class WriteAccessSpecification(Sequence):
+    _owl_prefix = 'was'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('listOfProperties', SequenceOf(PropertyValue), 1)
         ]
 
 class WritePropertyMultipleRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'wpmReq'
     serviceChoice = 16
     sequenceElements = \
         [ Element('listOfWriteAccessSpecs', SequenceOf(WriteAccessSpecification))
@@ -887,7 +926,30 @@ register_confirmed_request_type(WritePropertyMultipleRequest)
 
 #-----
 
+class GroupChannelValue(Sequence):
+    _owl_prefix = 'gcv'
+    sequenceElements = \
+        [ Element('channel', Unsigned, 0)
+        , Element('overridingPriority', Unsigned, 1, True)
+        , Element('value', ChannelValue)
+        ]
+
+class WriteGroupRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'wgReq'
+    serviceChoice = 10
+    sequenceElements = \
+        [ Element('groupNumber', Unsigned, 0)
+        , Element('writePriority', Unsigned, 1)
+        , Element('changeList', SequenceOf(GroupChannelValue), 2)
+        , Element('inhibitDelay', Boolean, 3, True)
+        ]
+        
+register_unconfirmed_request_type(WriteGroupRequest)
+
+#-----
+
 class IAmRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'iAm'
     serviceChoice = 0
     sequenceElements = \
         [ Element('iAmDeviceIdentifier', ObjectIdentifier)
@@ -901,6 +963,7 @@ register_unconfirmed_request_type(IAmRequest)
 #-----
 
 class IHaveRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'iHave'
     serviceChoice = 1
     sequenceElements = \
         [ Element('deviceIdentifier', ObjectIdentifier)
@@ -913,18 +976,21 @@ register_unconfirmed_request_type(IHaveRequest)
 #-----
 
 class WhoHasLimits(Sequence):
+    _owl_prefix = 'whl'
     sequenceElements = \
         [ Element('deviceInstanceRangeLowLimit', Unsigned, 0)
         , Element('deviceInstanceRangeHighLimit', Unsigned, 1)
         ]
 
 class WhoHasObject(Choice):
+    _owl_prefix = 'who'
     choiceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 2)
         , Element('objectName', CharacterString, 3)
         ]
 
 class WhoHasRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'whoHas'
     serviceChoice = 7
     sequenceElements = \
         [ Element('limits', WhoHasLimits, None, True)
@@ -936,6 +1002,7 @@ register_unconfirmed_request_type(WhoHasRequest)
 #-----
 
 class WhoIsRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'whoIs'
     serviceChoice = 8
     sequenceElements = \
         [ Element('deviceInstanceRangeLowLimit', Unsigned, 0, True)
@@ -947,6 +1014,7 @@ register_unconfirmed_request_type(WhoIsRequest)
 #-----
 
 class EventNotificationParameters(Sequence):
+    _owl_prefix = 'enp'
     sequenceElements = \
         [ Element('processIdentifier', Unsigned, 0)
         , Element('initiatingDeviceIdentifier', ObjectIdentifier, 1)
@@ -964,12 +1032,14 @@ class EventNotificationParameters(Sequence):
         ]
 
 class ConfirmedEventNotificationRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'cenReq'
     serviceChoice = 2
     sequenceElements = EventNotificationParameters.sequenceElements
 
 register_confirmed_request_type(ConfirmedEventNotificationRequest)
 
 class UnconfirmedEventNotificationRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'uenReq'
     serviceChoice = 3
     sequenceElements = EventNotificationParameters.sequenceElements
 
@@ -978,6 +1048,7 @@ register_unconfirmed_request_type(UnconfirmedEventNotificationRequest)
 #-----
 
 class COVNotificationParameters(Sequence):
+    _owl_prefix = 'covnp'
     sequenceElements = \
         [ Element('subscriberProcessIdentifier', Unsigned, 0)
         , Element('initiatingDeviceIdentifier', ObjectIdentifier, 1)
@@ -987,12 +1058,14 @@ class COVNotificationParameters(Sequence):
         ]
 
 class ConfirmedCOVNotificationRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'ccovReq'
     serviceChoice = 1
     sequenceElements = COVNotificationParameters.sequenceElements
 
 register_confirmed_request_type(ConfirmedCOVNotificationRequest)
 
 class UnconfirmedCOVNotificationRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'ucovReq'
     serviceChoice = 2
     sequenceElements = COVNotificationParameters.sequenceElements
 
@@ -1001,39 +1074,48 @@ register_unconfirmed_request_type(UnconfirmedCOVNotificationRequest)
 #-----
 
 class UnconfirmedPrivateTransferRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'uptReq'
     serviceChoice = 4
     sequenceElements = \
         [ Element('vendorID', Unsigned, 0)
         , Element('serviceNumber', Unsigned, 1)
         , Element('serviceParameters', Any, 2, True)
         ]
+
 register_unconfirmed_request_type(UnconfirmedPrivateTransferRequest)
 
+#-----
+
 class UnconfirmedTextMessageRequestMessageClass(Choice):
+    _owl_prefix = 'utmrmc'
     choiceElements = \
-        [ Element('numeric', Unsigned)
-        , Element('Character', CharacterString)
+        [ Element('numeric', Unsigned, 0)
+        , Element('character', CharacterString, 1)
         ]
 
 class UnconfirmedTextMessageRequestMessagePriority(Enumerated):
+    _owl_prefix = 'utmrmp'
     enumerations = \
         { 'normal':0
         , 'urgent':1
         }
 
 class UnconfirmedTextMessageRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'utmReq'
     serviceChoice = 5
     sequenceElements = \
         [ Element('textMessageSourceDevice', ObjectIdentifier, 0)
-        , Element('messageClass', UnconfirmedTextMessageRequestMessageClass, 1)
+        , Element('messageClass', UnconfirmedTextMessageRequestMessageClass, 1, True)
         , Element('messagePriority', UnconfirmedTextMessageRequestMessagePriority, 2)
         , Element('message', CharacterString, 3)
         ]
+
 register_unconfirmed_request_type(UnconfirmedTextMessageRequest)
 
 #-----
 
 class TimeSynchronizationRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'tsReq'
     serviceChoice = 6
     sequenceElements = \
         [ Element('time', DateTime, 0)
@@ -1044,6 +1126,7 @@ register_unconfirmed_request_type(TimeSynchronizationRequest)
 #-----
 
 class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
+    _owl_prefix = 'utctsReq'
     serviceChoice = 9
     sequenceElements = \
         [ Element('time', DateTime, 0)
@@ -1054,6 +1137,7 @@ register_unconfirmed_request_type(UTCTimeSynchronizationRequest)
 #-----
 
 class AcknowledgeAlarmRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'aaReq'
     serviceChoice = 0
     sequenceElements = \
         [ Element('acknowledgingProcessIdentifier', Unsigned, 0)
@@ -1069,6 +1153,7 @@ register_confirmed_request_type(AcknowledgeAlarmRequest)
 #-----
 
 class GetAlarmSummaryRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'gasReq'
     serviceChoice = 3
     sequenceElements = \
         [
@@ -1077,6 +1162,7 @@ class GetAlarmSummaryRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(GetAlarmSummaryRequest)
 
 class GetAlarmSummaryAlarmSummary(Sequence):
+    _owl_prefix = 'gasas'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier,)
         , Element('alarmState', EventState,)
@@ -1084,6 +1170,7 @@ class GetAlarmSummaryAlarmSummary(Sequence):
         ]
 
 class GetAlarmSummaryACK(ComplexAckSequence):
+    _owl_prefix = 'gasAck'
     serviceChoice = 3
     sequenceElements = \
         [ Element('listOfAlarmSummaries', SequenceOf(GetAlarmSummaryAlarmSummary))
@@ -1094,6 +1181,7 @@ register_complex_ack_type(GetAlarmSummaryACK)
 #-----
 
 class GetEnrollmentSummaryRequestAcknowledgmentFilterType(Enumerated):
+    _owl_prefix = 'gesraft'
     enumerations = \
         { 'all':0
         , 'acked':1
@@ -1101,6 +1189,7 @@ class GetEnrollmentSummaryRequestAcknowledgmentFilterType(Enumerated):
         }
 
 class GetEnrollmentSummaryRequestEventStateFilterType(Enumerated):
+    _owl_prefix = 'gesresft'
     enumerations = \
         { 'offnormal':0
         , 'fault':1
@@ -1110,12 +1199,14 @@ class GetEnrollmentSummaryRequestEventStateFilterType(Enumerated):
         }
 
 class GetEnrollmentSummaryRequestPriorityFilterType:
+    _owl_prefix = 'gesrpft'
     sequenceElements = \
         [ Element('minPriority', Unsigned, 0)
         , Element('maxPriority', Unsigned, 1)
         ]
 
 class GetEnrollmentSummaryRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'gesReq'
     serviceChoice = 4
     sequenceElements = \
         [ Element('acknowledgmentFilter', GetEnrollmentSummaryRequestAcknowledgmentFilterType, 0)
@@ -1129,6 +1220,7 @@ class GetEnrollmentSummaryRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(GetEnrollmentSummaryRequest)
 
 class GetEnrollmentSummaryEnrollmentSummary(Sequence):
+    _owl_prefix = 'geses'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier,)
         , Element('eventType', EventType,)
@@ -1138,6 +1230,7 @@ class GetEnrollmentSummaryEnrollmentSummary(Sequence):
         ]
 
 class GetEnrollmentSummaryACK(ComplexAckSequence):
+    _owl_prefix = 'gesAck'
     serviceChoice = 4
     sequenceElements = \
         [ Element('listOfEnrollmentSummaries', SequenceOf(GetEnrollmentSummaryEnrollmentSummary))
@@ -1148,6 +1241,7 @@ register_complex_ack_type(GetEnrollmentSummaryACK)
 #-----
 
 class GetEventInformationRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'geiReq'
     serviceChoice = 29
     sequenceElements = \
         [ Element('lastReceivedObjectIdentifier', ObjectIdentifier, 0)
@@ -1156,6 +1250,7 @@ class GetEventInformationRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(GetEventInformationRequest)
 
 class GetEventInformationEventSummary(Sequence):
+    _owl_prefix = 'geies'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('eventState', EventState, 1)
@@ -1167,6 +1262,7 @@ class GetEventInformationEventSummary(Sequence):
         ]
 
 class GetEventInformationACK(ComplexAckSequence): 
+    _owl_prefix = 'geiAck'
     serviceChoice = 29
     sequenceElements = \
         [ Element('listOfEventSummaries', SequenceOf(GetEventInformationEventSummary), 0)
@@ -1178,6 +1274,7 @@ register_complex_ack_type(GetEventInformationACK)
 #-----
 
 class LifeSafetyOperationRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'lsoReq'
     serviceChoice = 27
     sequenceElements = \
         [ Element('requestingProcessIdentifier', Unsigned, 0)
@@ -1191,6 +1288,7 @@ register_confirmed_request_type(LifeSafetyOperationRequest)
 #-----
 
 class SubscribeCOVRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'scovReq'
     serviceChoice = 5
     sequenceElements = \
         [ Element('subscriberProcessIdentifier', Unsigned, 0)
@@ -1204,6 +1302,7 @@ register_confirmed_request_type(SubscribeCOVRequest)
 #-----
 
 class SubscribeCOVPropertyRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'scovpReq'
     serviceChoice = 28
     sequenceElements = \
         [ Element('subscriberProcessIdentifier', Unsigned, 0)
@@ -1219,24 +1318,28 @@ register_confirmed_request_type(SubscribeCOVPropertyRequest)
 #-----
 
 class AtomicReadFileRequestAccessMethodChoiceStreamAccess(Sequence):
+    _owl_prefix = 'arframcsa'
     sequenceElements = \
         [ Element('fileStartPosition', Integer)
         , Element('requestedOctetCount', Unsigned)
         ]
 
 class AtomicReadFileRequestAccessMethodChoiceRecordAccess(Sequence):
+    _owl_prefix = 'arframcra'
     sequenceElements = \
         [ Element('fileStartRecord', Integer)
         , Element('requestedRecordCount', Unsigned)
         ]
 
 class AtomicReadFileRequestAccessMethodChoice(Choice):
+    _owl_prefix = 'arframc'
     choiceElements = \
         [ Element('recordAccess', AtomicReadFileRequestAccessMethodChoiceRecordAccess, 0)
         , Element('streamAccess', AtomicReadFileRequestAccessMethodChoiceStreamAccess, 1)
         ]
 
 class AtomicReadFileRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'arfReq'
     serviceChoice = 6
     sequenceElements = \
         [ Element('fileIdentifier', ObjectIdentifier, 0)
@@ -1246,12 +1349,14 @@ class AtomicReadFileRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(AtomicReadFileRequest)
 
 class AtomicReadFileACKAccessMethodStreamAccess(Sequence):
+    _owl_prefix = 'arfaamsa'
     sequenceElements = \
         [ Element('fileStartPosition', Integer, 0)
         , Element('fileData', OctetString, 1)
         ]
 
 class AtomicReadFileACKAccessMethodRecordAccess(Sequence):
+    _owl_prefix = 'arfaamra'
     sequenceElements = \
         [ Element('fileStartRecord', Integer, 0)
         , Element('returnedRecordCount', Unsigned, 1)
@@ -1259,12 +1364,14 @@ class AtomicReadFileACKAccessMethodRecordAccess(Sequence):
         ]
 
 class AtomicReadFileACKAccessMethodChoice(Choice):
+    _owl_prefix = 'arfaamc'
     choiceElements = \
         [ Element('streamAccess', AtomicReadFileACKAccessMethodStreamAccess, 0)
         , Element('recordAccess', AtomicReadFileACKAccessMethodRecordAccess, 1)
         ]
 
 class AtomicReadFileACK(ComplexAckSequence):
+    _owl_prefix = 'arfAck'
     serviceChoice = 6
     sequenceElements = \
         [ Element('endOfFile', Boolean)
@@ -1276,12 +1383,14 @@ register_complex_ack_type(AtomicReadFileACK)
 #-----
 
 class AtomicWriteFileRequestAccessMethodChoiceStreamAccess(Sequence):
+    _owl_prefix = 'awframcsa'
     sequenceElements = \
         [ Element('fileStartPosition', Integer)
         , Element('fileData', OctetString)
         ]
 
 class AtomicWriteFileRequestAccessMethodChoiceRecordAccess(Sequence):
+    _owl_prefix = 'awframcra'
     sequenceElements = \
         [ Element('fileStartRecord', Integer)
         , Element('recordCount', Unsigned)
@@ -1289,12 +1398,14 @@ class AtomicWriteFileRequestAccessMethodChoiceRecordAccess(Sequence):
         ]
 
 class AtomicWriteFileRequestAccessMethodChoice(Choice):
+    _owl_prefix = 'awframc'
     choiceElements = \
         [ Element('recordAccess', AtomicWriteFileRequestAccessMethodChoiceRecordAccess, 0)
         , Element('streamAccess', AtomicWriteFileRequestAccessMethodChoiceStreamAccess, 1)
         ]
 
 class AtomicWriteFileRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'awfReq'
     serviceChoice = 7
     sequenceElements = \
         [ Element('fileIdentifier', ObjectIdentifier, 0)
@@ -1304,6 +1415,7 @@ class AtomicWriteFileRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(AtomicWriteFileRequest)
 
 class AtomicWriteFileACK(ComplexAckSequence):
+    _owl_prefix = 'awfAck'
     serviceChoice = 7
     sequenceElements = \
         [ Element('fileStartPosition', Integer, 0, True)
@@ -1315,6 +1427,7 @@ register_complex_ack_type(AtomicWriteFileACK)
 #-----
 
 class AddListElementRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'aleReq'
     serviceChoice = 8
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
@@ -1327,22 +1440,25 @@ register_confirmed_request_type(AddListElementRequest)
 
 #-----
 
-class CreateObjectRequestobjectSpecifier(Choice):
+class CreateObjectRequestObjectSpecifier(Choice):
+    _owl_prefix = 'coros'
     choiceElements = \
         [ Element('objectType', ObjectType, 0)
         , Element('objectIdentifier',ObjectIdentifier, 1)
         ]
 
 class CreateObjectRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'coReq'
     serviceChoice = 10
     sequenceElements = \
-        [ Element('objectSpecifier', CreateObjectRequestobjectSpecifier, 0)
+        [ Element('objectSpecifier', CreateObjectRequestObjectSpecifier, 0)
         , Element('listOfInitialValues', SequenceOf(PropertyValue), 1, True)
         ]
 
 register_confirmed_request_type(CreateObjectRequest)
 
 class CreateObjectACK(ComplexAckSequence):
+    _owl_prefix = 'coAck'
     serviceChoice = 10
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier)
@@ -1353,6 +1469,7 @@ register_complex_ack_type(CreateObjectACK)
 #-----
 
 class DeleteObjectRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'doReq'
     serviceChoice = 11
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier)
@@ -1363,6 +1480,7 @@ register_confirmed_request_type(DeleteObjectRequest)
 #-----
 
 class RemoveListElementRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'rleReq'
     serviceChoice = 9
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
@@ -1376,6 +1494,7 @@ register_confirmed_request_type(RemoveListElementRequest)
 #-----
 
 class DeviceCommunicationControlRequestEnableDisable(Enumerated):
+    _owl_prefix = 'dccred'
     enumerations = \
         { 'enable':0
         , 'disable':1
@@ -1383,6 +1502,7 @@ class DeviceCommunicationControlRequestEnableDisable(Enumerated):
         }
 
 class DeviceCommunicationControlRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'dccReq'
     serviceChoice = 17
     sequenceElements = \
         [ Element('timeDuration', Unsigned, 0, True)
@@ -1393,6 +1513,7 @@ class DeviceCommunicationControlRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(DeviceCommunicationControlRequest)
 
 class ConfirmedPrivateTransferRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'cptReq'
     serviceChoice = 18
     sequenceElements = \
         [ Element('vendorID', Unsigned, 0)
@@ -1402,28 +1523,35 @@ class ConfirmedPrivateTransferRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(ConfirmedPrivateTransferRequest)
 
-class ConfirmedPrivateTransferACK(Sequence):
+class ConfirmedPrivateTransferACK(ComplexAckSequence):
+    _owl_prefix = 'cptAck'
+    serviceChoice = 18
     sequenceElements = \
         [ Element('vendorID', Unsigned, 0)
         , Element('serviceNumber', Unsigned, 1)
         , Element('resultBlock', Any, 2)
         ]
 
+register_complex_ack_type(ConfirmedPrivateTransferACK)
+
 #-----
 
 class ConfirmedTextMessageRequestMessageClass(Choice):
+    _owl_prefix = 'ctmrmc'
     choiceElements = \
         [ Element('numeric', Unsigned, 0)
         , Element('character', CharacterString, 1)
         ]
 
 class ConfirmedTextMessageRequestMessagePriority(Enumerated):
+    _owl_prefix = 'ctmrmp'
     enumerations = \
         { 'normal':0
         , 'urgent':1
         }
 
 class ConfirmedTextMessageRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'ctmReq'
     serviceChoice = 19
     sequenceElements = \
         [ Element('textMessageSourceDevice', ObjectIdentifier, 0)
@@ -1437,6 +1565,7 @@ register_confirmed_request_type(ConfirmedTextMessageRequest)
 #-----
 
 class ReinitializeDeviceRequestReinitializedStateOfDevice(Enumerated):
+    _owl_prefix = 'rdrrsod'
     enumerations = \
         { 'coldstart':0
         , 'warmstart':1
@@ -1448,6 +1577,7 @@ class ReinitializeDeviceRequestReinitializedStateOfDevice(Enumerated):
         }
 
 class ReinitializeDeviceRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'rdReq'
     serviceChoice = 20
     sequenceElements = \
         [ Element('reinitializedStateOfDevice', ReinitializeDeviceRequestReinitializedStateOfDevice, 0)
@@ -1459,6 +1589,7 @@ register_confirmed_request_type(ReinitializeDeviceRequest)
 #-----
 
 class VTOpenRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'vtoReq'
     serviceChoice = 21
     sequenceElements = \
         [ Element('vtClass', VTClass,)
@@ -1467,15 +1598,17 @@ class VTOpenRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(VTOpenRequest)
 
-class VTOpenACK(ConfirmedRequestSequence):
+class VTOpenACK(ComplexAckSequence):
+    _owl_prefix = 'vtoAck'
     serviceChoice = 21
     sequenceElements = \
         [ Element('remoteVTSessionIdentifier', Unsigned)
         ]
 
-register_confirmed_request_type(VTOpenACK)
+register_complex_ack_type(VTOpenACK)
 
 class VTCloseRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'vtcReq'
     serviceChoice = 22
     sequenceElements = \
         [ Element('listOfRemoteVTSessionIdentifiers', SequenceOf(Unsigned))
@@ -1483,6 +1616,7 @@ class VTCloseRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(VTCloseRequest)
 class VTDataRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'vtdReq'
     serviceChoice = 23
     sequenceElements = \
         [ Element('vtSessionIdentifier', Unsigned,)
@@ -1492,15 +1626,21 @@ class VTDataRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(VTDataRequest)
 
-class VTDataACK(Sequence):
+class VTDataACK(ComplexAckSequence):
+    _owl_prefix = 'vtdAck'
+    serviceChoice = 23
     sequenceElements = \
         [ Element('allNewDataAccepted', Boolean, 0)
         , Element('acceptedOctetCount', Unsigned, 1)
         ]
 
+register_complex_ack_type(VTDataACK)
+
 #-----
 
+# removed in version 1, revision 11
 class AuthenticateRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'authReq'
     serviceChoice = 24
     sequenceElements = \
         [ Element('pseudoRandomNumber', Unsigned, 0)
@@ -1512,14 +1652,19 @@ class AuthenticateRequest(ConfirmedRequestSequence):
 
 register_confirmed_request_type(AuthenticateRequest)
 
+# removed in version 1, revision 11
 class AuthenticateACK(Sequence):
+    _owl_prefix = 'authAck'
+    serviceChoice = 24
     sequenceElements = \
         [ Element('modifiedRandomNumber', Unsigned)
         ]
 
 #-----
 
+# removed in version 1, revision 11
 class RequestKeyRequest(ConfirmedRequestSequence):
+    _owl_prefix = 'rkReq'
     serviceChoice = 25
     sequenceElements = \
         [ Element('requestingDeviceIdentifier', ObjectIdentifier)
@@ -1532,88 +1677,60 @@ register_confirmed_request_type(RequestKeyRequest)
 
 #-----------------------------------
 
+class ConfirmedServiceChoice(Enumerated):
+    _owl_prefix = 'csc'
+    enumerations = {
+    # Alarm and Event Services
+        'acknowledgeAlarm':0,
+        'confirmedCOVNotification':1,
+        'confirmedEventNotification':2,
+        'getAlarmSummary':3,
+        'getEnrollmentSummary':4,
+        'getEventInformation':29,
+        'subscribeCOV':5,
+        'subscribeCOVProperty':28,
+        'lifeSafetyOperation':27,
+
+    # File Access Services
+        'atomicReadFile':6,
+        'atomicWriteFile':7,
+
+    # Object Access Services
+        'addListElement':8,
+        'removeListElement':9,
+        'createObject':10,
+        'deleteObject':11,
+        'readProperty':12,
+        'readPropertyMultiple':14,
+        'readRange':26,
+        'writeProperty':15,
+        'writePropertyMultiple':16,
+
+    # Remote Device Management Services
+        'deviceCommunicationControl':17,
+        'confirmedPrivateTransfer':18,
+        'confirmedTextMessage':19,
+        'reinitializeDevice':20,
+
+    # Virtual Terminal Services
+        'vtOpen':21,
+        'vtClose':22,
+        'vtData':23,
+        }
+
 class UnconfirmedServiceChoice(Enumerated):
-    enumerations = \
-        { 'iAm':0
-        , 'iHave':1
-        , 'unconfirmedCOVNotification':2
-        , 'unconfirmedEventNotification':3
-        , 'unconfirmedPrivateTransfer':4
-        , 'unconfirmedTextMessage':5
-        , 'timeSynchronization':6
-        , 'whoHas':7
-        , 'whoIs':8
-        , 'utcTimeSynchronization':9
+    _owl_prefix = 'usc'
+    enumerations = {
+        'iAm':0,
+        'iHave':1,
+        'unconfirmedCOVNotification':2,
+        'unconfirmedEventNotification':3,
+        'unconfirmedPrivateTransfer':4,
+        'unconfirmedTextMessage':5,
+        'timeSynchronization':6,
+        'whoHas':7,
+        'whoIs':8,
+        'utcTimeSynchronization':9,
+        'writeGroup':10,
         }
-
-class UnconfirmedServiceRequest(Choice):
-    choiceElements = \
-        [ Element('iAm', IAmRequest, 0)
-        , Element('iHave', IHaveRequest, 1)
-        , Element('unconfirmedCOVNotification', UnconfirmedCOVNotificationRequest, 2)
-        , Element('unconfirmedEventNotification', UnconfirmedEventNotificationRequest, 3)
-        , Element('unconfirmedPrivateTransfer', UnconfirmedPrivateTransferRequest, 4)
-        , Element('unconfirmedTextMessage', UnconfirmedTextMessageRequest, 5)
-        , Element('timeSynchronization', TimeSynchronizationRequest, 6)
-        , Element('whoHas', WhoHasRequest, 7)
-        , Element('whoIs', WhoIsRequest, 8)
-        , Element('utcTimeSynchronization', UTCTimeSynchronizationRequest, 9)
-        ]
-
-#-----
-
-class UnconfirmedPrivateTransferRequest(ConfirmedRequestSequence):
-    serviceChoice = 4
-    sequenceElements = \
-        [ Element('vendorID', Unsigned, 0)
-        , Element('serviceNumber', Unsigned, 1)
-        , Element('serviceParameters', Any, 2)
-        ]
-
-register_confirmed_request_type(UnconfirmedPrivateTransferRequest)
-
-#-----
-
-class UnconfirmedTextMessageRequestMessageClass(Choice):
-    choiceElements = \
-        [ Element('numeric', Unsigned, 0)
-        , Element('character', CharacterString, 1)
-        ]
-
-class UnconfirmedTextMessageRequestMessagePriority(Enumerated):
-    enumerations = \
-        { 'normal':0
-        , 'urgent':1
-        }
-
-class UnconfirmedTextMessageRequestMessageClass(ConfirmedRequestSequence):
-    serviceChoice = 5
-    sequenceElements = \
-        [ Element('textMessageSourceDevice', ObjectIdentifier, 0)
-        , Element('messageClass', UnconfirmedTextMessageRequestMessageClass, 1, True)
-        , Element('messagePriority', UnconfirmedTextMessageRequestMessagePriority, 2)
-        , Element('message', CharacterString, 3)
-        ]
-
-register_unconfirmed_request_type(UnconfirmedTextMessageRequestMessageClass)
-
-#-----
-
-class TimeSynchronizationRequest(UnconfirmedRequestSequence):
-    serviceChoice = 6
-    sequenceElements = \
-        [ Element('time', DateTime)
-        ]
-
-register_unconfirmed_request_type(TimeSynchronizationRequest)
-
-#-----
-
-class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
-    serviceChoice = 9
-    sequenceElements = \
-        [ Element('time', DateTime)
-        ]
-
-register_unconfirmed_request_type(UTCTimeSynchronizationRequest)
 
