@@ -1482,13 +1482,13 @@ register_object_type(TimePatternValueObject)
 class TimeValueObject(Object):
     objectType = 'timeValue'
     properties = \
-        [ Property('presentValue', time)
+        [ Property('presentValue', Time)
         , Property('statusFlags', StatusFlags)
         , Property('eventState', EventState, optional=True)
         , Property('reliability', Reliability, optional=True)
         , Property('outOfService', Boolean, optional=True)
         , Property('priorityArray', PriorityArray, optional=True)
-        , Property('relinquishDefault', time, optional=True)
+        , Property('relinquishDefault', Time, optional=True)
         ]
 
 register_object_type(TimeValueObject)

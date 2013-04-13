@@ -359,7 +359,7 @@ def SequenceOf(klass):
 
     # constrain it to a list of a specific type of item
     setattr(_SequenceOf, 'subtype', klass)
-    _SequenceOf.__name__ = 'SequenceOf(%s.%s)' % (klass.__module__, klass.__name__)
+    _SequenceOf.__name__ = 'SequenceOf' + klass.__name__
     if _debug: SequenceOf._debug("    - build this class: %r", _SequenceOf)
 
     # cache this type
@@ -606,7 +606,7 @@ def ArrayOf(klass):
 
     # constrain it to a list of a specific type of item
     setattr(ArrayOf, 'subtype', klass)
-    ArrayOf.__name__ = 'ArrayOf(%s.%s)' % (klass.__module__, klass.__name__)
+    ArrayOf.__name__ = 'ArrayOf' + klass.__name__
 
     # cache this type
     _array_of_map[klass] = ArrayOf
