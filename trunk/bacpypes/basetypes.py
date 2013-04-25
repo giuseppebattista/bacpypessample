@@ -1365,6 +1365,7 @@ class PropertyIdentifier(Enumerated):
         , 'programChange':90
         , 'programLocation':91
         , 'programState':92
+        , 'propertyList':371
         , 'proportionalConstant':93
         , 'proportionalConstantUnits':94
         , 'protocolObjectTypesSupported':96
