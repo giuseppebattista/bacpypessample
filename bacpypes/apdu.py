@@ -1555,7 +1555,7 @@ class ConfirmedTextMessageRequest(ConfirmedRequestSequence):
     serviceChoice = 19
     sequenceElements = \
         [ Element('textMessageSourceDevice', ObjectIdentifier, 0)
-        , Element('messageClass', ConfirmedTextMessageRequestMessageClass, True)
+        , Element('messageClass', ConfirmedTextMessageRequestMessageClass, 1, True)
         , Element('messagePriority', ConfirmedTextMessageRequestMessagePriority, 2)
         , Element('message', CharacterString, 3)
         ]
