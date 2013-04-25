@@ -205,6 +205,7 @@ class Object(Logging):
         , Property('objectName', CharacterString, optional=False)
         , Property('description', CharacterString, default='')
         , Property('profileName', CharacterString)
+        , Property('propertyList', ArrayOf(PropertyIdentifier))
         ]
     _properties = {}
 
