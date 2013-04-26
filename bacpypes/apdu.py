@@ -1653,12 +1653,14 @@ class AuthenticateRequest(ConfirmedRequestSequence):
 register_confirmed_request_type(AuthenticateRequest)
 
 # removed in version 1, revision 11
-class AuthenticateACK(Sequence):
+class AuthenticateACK(ComplexAckSequence):
     _owl_prefix = 'authAck'
     serviceChoice = 24
     sequenceElements = \
         [ Element('modifiedRandomNumber', Unsigned)
         ]
+
+register_complex_ack_type(AuthenticateACK)
 
 #-----
 
