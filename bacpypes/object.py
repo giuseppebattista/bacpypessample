@@ -998,6 +998,7 @@ register_object_type(EventEnrollmentObject)
 #-----
 
 class EventLogRecordLogDatum(Choice):
+    _owl_prefix = 'elrld'
     choiceElements = \
         [ Element('logStatus', LogStatus, 0)
         , Element('notification', EventNotificationParameters, 1)
@@ -1005,6 +1006,7 @@ class EventLogRecordLogDatum(Choice):
         ]
 
 class EventLogRecord(Sequence):
+    _owl_prefix ='elr'
     sequenceElements = \
         [ Element('timestamp', DateTime, 0)
         , Element('logDatum', EventLogRecordLogDatum, 1)
