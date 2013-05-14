@@ -1267,9 +1267,7 @@ class Time(Atomic):
 #
 
 class ObjectType(Enumerated):
-    _owl_prefix = 'ot'
-    _owl_lolim = 128
-    _owl_hilim = 1023
+    vendor_range = (128, 1023)
     enumerations = \
         { 'accessDoor':30
         , 'accessPoint':33

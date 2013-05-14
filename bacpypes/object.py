@@ -344,7 +344,6 @@ class Object(Logging):
 #
 
 class AccessCredentialObject(Object):
-    _owl_prefix = 'aco'
     objectType = 'accessCredential'
     properties = \
         [ Property('globalIdentifier', Unsigned, optional=True)
@@ -375,7 +374,6 @@ class AccessCredentialObject(Object):
 register_object_type(AccessCredentialObject)
 
 class AccessDoorObject(Object):
-    _owl_prefix = 'ado'
     objectType = 'accessDoor'
     properties = \
         [ Property('presentValue', DoorValue, optional=True)
@@ -410,7 +408,6 @@ class AccessDoorObject(Object):
 register_object_type(AccessDoorObject)
 
 class AccessPointObject(Object):
-    _owl_prefix = 'apo'
     objectType = 'accessPoint'
     properties = \
         [ Property('statusFlags', StatusFlags)
@@ -459,7 +456,6 @@ class AccessPointObject(Object):
 register_object_type(AccessPointObject)
 
 class AccessRightsObject(Object):
-    _owl_prefix = 'aro'
     objectType = 'accessRights'
     properties = \
         [ Property('globalIdentifier', Unsigned, optional=True)
@@ -474,7 +470,6 @@ class AccessRightsObject(Object):
 register_object_type(AccessRightsObject)
 
 class AccessUserObject(Object):
-    _owl_prefix = 'auo'
     objectType = 'accessUser'
     properties = \
         [ Property('globalIdentifier', Unsigned, optional=True)
@@ -492,7 +487,6 @@ class AccessUserObject(Object):
 register_object_type(AccessUserObject)
 
 class AccessZoneObject(Object):
-    _owl_prefix = 'azo'
     objectType = 'accessZone'
     properties = \
         [ Property('globalIdentifier', Unsigned, optional=True)
@@ -528,7 +522,6 @@ class AccessZoneObject(Object):
 register_object_type(AccessZoneObject)
 
 class AccumulatorObject(Object):
-    _owl_prefix = 'acco'
     objectType = 'accumulator'
     properties = \
         [ Property('presentValue', Unsigned)
@@ -563,7 +556,6 @@ class AccumulatorObject(Object):
 register_object_type(AccumulatorObject)
 
 class AnalogInputObject(Object):
-    _owl_prefix = 'aio'
     objectType = 'analogInput'
     properties = \
         [ Property('presentValue', Real)
@@ -594,7 +586,6 @@ class AnalogInputObject(Object):
 register_object_type(AnalogInputObject)
 
 class AnalogOutputObject(Object):
-    _owl_prefix = 'aoo'
     objectType = 'analogOutput'
     properties = \
          [ Property('presentValue', Real)
@@ -626,7 +617,6 @@ class AnalogOutputObject(Object):
 register_object_type(AnalogOutputObject)
 
 class AnalogValueObject(Object):
-    _owl_prefix = 'avo'
     objectType = 'analogValue'
     properties = \
         [ Property('presentValue', Real)
@@ -658,7 +648,6 @@ class AnalogValueObject(Object):
 register_object_type(AnalogValueObject)
 
 class AveragingObject(Object):
-    _owl_prefix = 'avgo'
     objectType = 'averaging'
     properties = \
         [ Property('minimumValue', Real)
@@ -677,7 +666,6 @@ class AveragingObject(Object):
 register_object_type(AveragingObject)
 
 class BinaryInputObject(Object):
-    _owl_prefix = 'bio'
     objectType = 'binaryInput'
     properties = \
         [ Property('presentValue', BinaryPV)
@@ -707,7 +695,6 @@ class BinaryInputObject(Object):
 register_object_type(BinaryInputObject)
 
 class BinaryOutputObject(Object):
-    _owl_prefix = 'boo'
     objectType = 'binaryOutput'
     properties = \
         [ Property('presentValue', BinaryPV)
@@ -741,7 +728,6 @@ class BinaryOutputObject(Object):
 register_object_type(BinaryOutputObject)
 
 class BinaryValueObject(Object):
-    _owl_prefix = 'bvo'
     objectType = 'binaryValue'
     properties = \
         [ Property('presentValue', BinaryPV)
@@ -773,7 +759,6 @@ class BinaryValueObject(Object):
 register_object_type(BinaryValueObject)
 
 class BitStringValueObject(Object):
-    _owl_prefix = 'bsvo'
     objectType = 'bitstringValue'
     properties = \
         [ Property('presentValue', BitString)
@@ -798,7 +783,6 @@ class BitStringValueObject(Object):
 register_object_type(BitStringValueObject)
 
 class CalendarObject(Object):
-    _owl_prefix = 'calo'
     objectType = 'calendar'
     properties = \
         [ Property('presentValue', Boolean)
@@ -808,7 +792,6 @@ class CalendarObject(Object):
 register_object_type(CalendarObject)
 
 class CharacterStringValueObject(Object):
-    _owl_prefix = 'csvo'
     objectType = 'characterStringValue'
     properties = \
         [ Property('presentValue', CharacterString)
@@ -832,7 +815,6 @@ class CharacterStringValueObject(Object):
 register_object_type(CharacterStringValueObject)
 
 class CommandObject(Object):
-    _owl_prefix = 'cmdo'
     objectType = 'command'
     properties = \
         [ Property('presentValue', Unsigned, optional=True)
@@ -845,7 +827,6 @@ class CommandObject(Object):
 register_object_type(CommandObject)
 
 class CredentialDataInputObject(Object):
-    _owl_prefix = 'cdio'
     objectType = 'credentialDataInput'
     properties = \
         [ Property('presentValue', AuthenticationFactor)
@@ -859,7 +840,6 @@ class CredentialDataInputObject(Object):
 register_object_type(CredentialDataInputObject)
 
 class DatePatternValueObject(Object):
-    _owl_prefix = 'dpvo'
     objectType = 'datePatternValue'
     properties = \
         [ Property('presentValue', Date)
@@ -874,7 +854,6 @@ class DatePatternValueObject(Object):
 register_object_type(DatePatternValueObject)
 
 class DateValueObject(Object):
-    _owl_prefix = 'dvo'
     objectType = 'dateValue'
     properties = \
         [ Property('presentValue', Date)
@@ -889,7 +868,6 @@ class DateValueObject(Object):
 register_object_type(DateValueObject)
 
 class DateTimePatternValueObject(Object):
-    _owl_prefix = 'dtpvo'
     objectType = 'datetimePatternValue'
     properties = \
         [ Property('presentValue', DateTime)
@@ -905,7 +883,6 @@ class DateTimePatternValueObject(Object):
 register_object_type(DateTimePatternValueObject)
 
 class DateTimeValueObject(Object):
-    _owl_prefix = 'dtvo'
     objectType = 'datetimeValue'
     properties = \
         [ Property('presentValue', DateTime)
@@ -921,7 +898,6 @@ class DateTimeValueObject(Object):
 register_object_type(DateTimeValueObject)
 
 class DeviceObject(Object):
-    _owl_prefix = 'devo'
     objectType = 'device'
     properties = \
         [ Property('systemStatus', DeviceStatus)
@@ -978,7 +954,6 @@ class DeviceObject(Object):
 register_object_type(DeviceObject)
 
 class EventEnrollmentObject(Object):
-    _owl_prefix = 'eeo'
     objectType = 'eventEnrollment'
     properties = \
         [ Property('eventType', EventType)
@@ -998,7 +973,6 @@ register_object_type(EventEnrollmentObject)
 #-----
 
 class EventLogRecordLogDatum(Choice):
-    _owl_prefix = 'elrld'
     choiceElements = \
         [ Element('logStatus', LogStatus, 0)
         , Element('notification', EventNotificationParameters, 1)
@@ -1006,14 +980,12 @@ class EventLogRecordLogDatum(Choice):
         ]
 
 class EventLogRecord(Sequence):
-    _owl_prefix ='elr'
     sequenceElements = \
         [ Element('timestamp', DateTime, 0)
         , Element('logDatum', EventLogRecordLogDatum, 1)
         ]
 
 class EventLogObject(Object):
-    _owl_prefix = 'elo'
     objectType = 'eventLog'
     properties = \
         [ Property('statusFlags', StatusFlags)
@@ -1043,7 +1015,6 @@ register_object_type(EventLogObject)
 #-----
 
 class FileObject(Object):
-    _owl_prefix = 'fo'
     objectType = 'file'
     properties = \
         [ Property('fileType', CharacterString)
@@ -1060,7 +1031,6 @@ register_object_type(FileObject)
 #-----
 
 class GlobalGroupObject(Object):
-    _owl_prefix = 'ggo'
     objectType = 'globalGroup'
     properties = \
         [ Property('groupMembers', ArrayOf(DeviceObjectPropertyReference))
@@ -1089,7 +1059,6 @@ class GlobalGroupObject(Object):
 register_object_type(GlobalGroupObject)
 
 class GroupObject(Object):
-    _owl_prefix = 'grpo'
     objectType = 'group'
     properties = \
         [ Property('listOfGroupMembers', SequenceOf(ReadAccessSpecification))
@@ -1099,7 +1068,6 @@ class GroupObject(Object):
 register_object_type(GroupObject)
 
 class IntegerValueObject(Object):
-    _owl_prefix = 'ivo'
     objectType = 'integerValue'
     properties = \
         [ Property('presentValue', Integer)
@@ -1127,7 +1095,6 @@ class IntegerValueObject(Object):
 register_object_type(IntegerValueObject)
 
 class LargeAnalogValueObject(Object):
-    _owl_prefix = 'lavo'
     objectType = 'largeAnalogValue'
     properties = \
         [ Property('presentValue', Double)
@@ -1155,7 +1122,6 @@ class LargeAnalogValueObject(Object):
 register_object_type(LargeAnalogValueObject)
 
 class LifeSafetyPointObject(Object):
-    _owl_prefix = 'lspo'
     objectType = 'lifeSafetyPoint'
     properties = \
         [ Property('presentValue', LifeSafetyState)
@@ -1189,7 +1155,6 @@ class LifeSafetyPointObject(Object):
 register_object_type(LifeSafetyPointObject)
 
 class LifeSafetyZoneObject(Object):
-    _owl_prefix = 'lszo'
     objectType = 'lifeSafetyZone'
     properties = \
         [ Property('presentValue', LifeSafetyState)
@@ -1221,7 +1186,6 @@ class LifeSafetyZoneObject(Object):
 register_object_type(LifeSafetyZoneObject)
 
 class LoadControlObject(Object):
-    _owl_prefix = 'lco'
     objectType = 'loadControl'
     properties = \
         [ Property('presentValue', ShedState)
@@ -1251,7 +1215,6 @@ class LoadControlObject(Object):
 register_object_type(LoadControlObject)
 
 class LoopObject(Object):
-    _owl_prefix = 'loado'
     objectType = 'loop'
     properties = \
         [ Property('presentValue', Real)
@@ -1293,7 +1256,6 @@ class LoopObject(Object):
 register_object_type(LoopObject)
 
 class MultiStateInputObject(Object):
-    _owl_prefix = 'msio'
     objectType = 'multiStateInput'
     properties = \
         [ Property('presentValue',  Unsigned)
@@ -1318,7 +1280,6 @@ class MultiStateInputObject(Object):
 register_object_type(MultiStateInputObject)
 
 class MultiStateOutputObject(Object):
-    _owl_prefix = 'msoo'
     objectType = 'multiStateOutput'
     properties = \
         [ Property('presentValue', Unsigned, optional=True)
@@ -1344,7 +1305,6 @@ class MultiStateOutputObject(Object):
 register_object_type(MultiStateOutputObject)
 
 class MultiStateValueObject(Object): 
-    _owl_prefix = 'msvo'
     objectType = 'multiStateValue'
     properties = \
         [ Property('presentValue', Unsigned)
@@ -1370,7 +1330,6 @@ class MultiStateValueObject(Object):
 register_object_type(MultiStateValueObject)
 
 class NetworkSecurityObject(Object):
-    _owl_prefix = 'nso'
     objectType = 'networkSecurity'
     properties = \
         [ Property('baseDeviceSecurityPolicy', SecurityLevel)
@@ -1378,7 +1337,6 @@ class NetworkSecurityObject(Object):
         ]
 
 class NotificationClassObject(Object):
-    _owl_prefix = 'nco'
     objectType = 'notificationClass'
     properties = \
         [ Property('notificationClass', Unsigned)
@@ -1390,7 +1348,6 @@ class NotificationClassObject(Object):
 register_object_type(NotificationClassObject)
 
 class OctetStringValueObject(Object):
-    _owl_prefix = 'osvo'
     objectType = 'octetstringValue'
     properties = \
         [ Property('presentValue', CharacterString, optional=True)
@@ -1405,7 +1362,6 @@ class OctetStringValueObject(Object):
 register_object_type(OctetStringValueObject)
 
 class PositiveIntegerValueObject(Object):
-    _owl_prefix = 'pivo'
     objectType = 'positiveIntegerValue'
     properties = \
         [ Property('presentValue', Unsigned)
@@ -1433,7 +1389,6 @@ class PositiveIntegerValueObject(Object):
 register_object_type(PositiveIntegerValueObject)
 
 class ProgramObject(Object):
-    _owl_prefix = 'pgmo'
     objectType = 'program'
     properties = \
         [ Property('programState', ProgramState)
@@ -1450,7 +1405,6 @@ class ProgramObject(Object):
 register_object_type(ProgramObject)
 
 class PulseConverterObject(Object):
-    _owl_prefix = 'pco'
     objectType = 'pulseConverter'
     properties = \
         [ Property('presentValue', Real)
@@ -1484,7 +1438,6 @@ class PulseConverterObject(Object):
 register_object_type(PulseConverterObject)
 
 class ScheduleObject(Object):
-    _owl_prefix = 'schedo'
     objectType = 'schedule'
     properties = \
         [ Property('presentValue', Any)
@@ -1502,7 +1455,6 @@ class ScheduleObject(Object):
 register_object_type(ScheduleObject)
 
 class StructuredViewObject(Object):
-    _owl_prefix = 'svo'
     objectType = 'structuredView'
     properties = \
         [ Property('nodeType', NodeType)
@@ -1514,7 +1466,6 @@ class StructuredViewObject(Object):
 register_object_type(StructuredViewObject)
 
 class TimePatternValueObject(Object):
-    _owl_prefix = 'tpvo'
     objectType = 'timePatternValue'
     properties = \
         [ Property('presentValue', DateTime)
@@ -1530,7 +1481,6 @@ class TimePatternValueObject(Object):
 register_object_type(TimePatternValueObject)
 
 class TimeValueObject(Object):
-    _owl_prefix = 'tvo'
     objectType = 'timeValue'
     properties = \
         [ Property('presentValue', Time)
@@ -1545,7 +1495,6 @@ class TimeValueObject(Object):
 register_object_type(TimeValueObject)
 
 class TrendLogObject(Object):
-    _owl_prefix = 'tlo'
     objectType = 'trendLog'
     properties = \
         [ Property('enable', Boolean, optional=True)
@@ -1581,7 +1530,6 @@ class TrendLogObject(Object):
 register_object_type(TrendLogObject)
 
 class TrendLogMultipleObject(Object):
-    _owl_prefix = 'tlmo'
     objectType = 'trendLogMultiple'
     properties = \
         [ Property('statusFlags', StatusFlags)
