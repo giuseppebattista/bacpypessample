@@ -19,7 +19,6 @@ _log = ModuleLogger(globals())
 #
 
 class DaysOfWeek(BitString):
-    _owl_prefix = 'dow'
     bitNames = \
         { 'monday':0
         , 'tuesday':1
@@ -31,7 +30,6 @@ class DaysOfWeek(BitString):
         }
 
 class EventTransitionBits(BitString):
-    _owl_prefix = 'etb'
     bitNames = \
         { 'toOffnormal':0
         , 'toFault':1
@@ -39,14 +37,12 @@ class EventTransitionBits(BitString):
         }
 
 class LimitEnable(BitString):
-    _owl_prefix = 'le'
     bitNames = \
         { 'lowLimitEnable':0
         , 'highLimitEnable':1
         }
 
 class LogStatus(BitString):
-    _owl_prefix = 'ls'
     bitNames = \
         { 'logDisabled':0
         , 'bufferPurged':1
@@ -55,7 +51,6 @@ class LogStatus(BitString):
     bitLen = 3
 
 class ObjectTypesSupported(BitString):
-    _owl_prefix = 'ots'
     bitNames = \
         { 'analogInput':0 
         , 'analogOutput':1
@@ -110,7 +105,6 @@ class ObjectTypesSupported(BitString):
     bitLen = 51
 
 class ResultFlags(BitString):
-    _owl_prefix = 'rf'
     bitNames = \
         { 'firstItem':0
         , 'lastItem':1
@@ -119,7 +113,6 @@ class ResultFlags(BitString):
     bitLen = 3
 
 class ServicesSupported(BitString):
-    _owl_prefix = 'ss'
     bitNames = \
         { 'acknowledgeAlarm':0
         , 'confirmedCOVNotification':1
@@ -165,7 +158,6 @@ class ServicesSupported(BitString):
     bitLen = 40
 
 class StatusFlags(BitString):
-    _owl_prefix = 'sf'
     bitNames = \
         { 'inAlarm':0
         , 'fault':1
@@ -179,9 +171,7 @@ class StatusFlags(BitString):
 #
 
 class AccessAuthenticationFactorDisable(Enumerated):
-    _owl_prefix = 'aafd'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'none':0
         , 'disabled':1
@@ -192,9 +182,7 @@ class AccessAuthenticationFactorDisable(Enumerated):
         }
 
 class AccessCredentialDisable(Enumerated):
-    _owl_prefix = 'acd'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'none':0
         , 'disable':1
@@ -203,7 +191,6 @@ class AccessCredentialDisable(Enumerated):
         }
 
 class AccessCredentialDisableReason(Enumerated):
-    _owl_prefix = 'acdr'
     enumerations = \
         { 'disabled':0
         , 'disabledNeedsProvisioning':1
@@ -218,9 +205,7 @@ class AccessCredentialDisableReason(Enumerated):
         }
 
 class AccessEvent(Enumerated):
-    _owl_prefix = 'ae'
-    _owl_lolim = 512
-    _owl_hilim = 65535
+    vendor_range = (512, 65535)
     enumerations = \
         { 'none':0
         , 'granted':1
@@ -278,7 +263,6 @@ class AccessEvent(Enumerated):
         }
 
 class AccessPassbackMode(Enumerated):
-    _owl_prefix = 'apm'
     enumerations = \
         { 'passbackOff':0
         , 'hardPassback':1
@@ -286,23 +270,19 @@ class AccessPassbackMode(Enumerated):
         }
 
 class AccessRuleTimeRangeSpecifier(Enumerated):
-    _owl_prefix = 'artrs'
     enumerations = \
         { 'specified':0
         , 'always':1
         }
 
 class AccessRuleLocationSpecifier(Enumerated):
-    _owl_prefix = 'arls'
     enumerations = \
         { 'specified':0
         , 'all':1
         }
 
 class AccessUserType(Enumerated):
-    _owl_prefix = 'aut'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'asset':0
         , 'group':1
@@ -310,9 +290,7 @@ class AccessUserType(Enumerated):
         }
 
 class AccessZoneOccupancyState(Enumerated):
-    _owl_prefix = 'azos'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'normal':0
         , 'belowLowerLimit':1
@@ -324,7 +302,6 @@ class AccessZoneOccupancyState(Enumerated):
         }
 
 class AccumulatorRecordAccumulatorStatus(Enumerated):
-    _owl_prefix = 'aras'
     enumerations = \
         { 'normal':0
         , 'starting':1
@@ -334,14 +311,12 @@ class AccumulatorRecordAccumulatorStatus(Enumerated):
         }
 
 class Action(Enumerated):
-    _owl_prefix = 'action'
     enumerations = \
         { 'direct':0
         , 'reverse':1
         }
 
 class AuthenticationFactorType(Enumerated):
-    _owl_prefix = 'aft'
     enumerations = \
         { 'undefined':0
         , 'error':1
@@ -371,7 +346,6 @@ class AuthenticationFactorType(Enumerated):
         }
 
 class AuthenticationStatus(Enumerated):
-    _owl_prefix = 'authStatus'
     enumerations = \
         { 'notReady':0
         , 'ready':1
@@ -383,9 +357,7 @@ class AuthenticationStatus(Enumerated):
         }
 
 class AuthorizationException(Enumerated):
-    _owl_prefix = 'authExcpt'
-    _owl_lolim = 64
-    _owl_hilim = 255
+    vendor_range = (64, 255)
     enumerations = \
         { 'passback':0
         , 'occupancyCheck':1
@@ -397,9 +369,7 @@ class AuthorizationException(Enumerated):
         }
 
 class AuthorizationMode(Enumerated):
-    _owl_prefix = 'authMode'
-    _owl_lolim = 64
-    _owl_hilim = 65536
+    vendor_range = (64, 65536)
     enumerations = \
         { 'authorize':0
         , 'grantActive':1
@@ -410,7 +380,6 @@ class AuthorizationMode(Enumerated):
         }
 
 class BackupState(Enumerated):
-    _owl_prefix = 'bs'
     enumerations = \
         { 'idle':0
         , 'preparingForBackup':1
@@ -422,16 +391,13 @@ class BackupState(Enumerated):
         }
 
 class BinaryPV(Enumerated):
-    _owl_prefix = 'bpv'
     enumerations = \
         { 'inactive':0
         , 'active':1
         }
 
 class DeviceStatus(Enumerated):
-    _owl_prefix = 'devStatus'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'operational':0
         , 'operationalReadOnly':1
@@ -441,9 +407,7 @@ class DeviceStatus(Enumerated):
         }
 
 class DoorAlarmState(Enumerated):
-    _owl_prefix = 'das'
-    _owl_lolim = 256
-    _owl_hilim = 65535
+    vendor_range = (256, 65535)
     enumerations = \
         { 'normal':0
         , 'alarm':1
@@ -457,7 +421,6 @@ class DoorAlarmState(Enumerated):
         }
 
 class DoorSecuredStatus(Enumerated):
-    _owl_prefix = 'dss'
     enumerations = \
         { 'secured':0
         , 'unsecured':1
@@ -465,7 +428,6 @@ class DoorSecuredStatus(Enumerated):
         }
 
 class DoorStatus(Enumerated):
-    _owl_prefix = 'doorStatus'
     enumerations = \
         { 'closed':0
         , 'opened':1
@@ -473,7 +435,6 @@ class DoorStatus(Enumerated):
         }
 
 class DoorValue(Enumerated):
-    _owl_prefix = 'dv'
     enumerations = \
         { 'lock':0
         , 'unlock':1
@@ -482,9 +443,7 @@ class DoorValue(Enumerated):
         }
 
 class EngineeringUnits(Enumerated):
-    _owl_prefix = 'eu'
-    _owl_lolim = 256
-    _owl_hilim = 65535
+    vendor_range = (256, 65535)
     enumerations = \
         {
         #Acceleration
@@ -735,7 +694,6 @@ class EngineeringUnits(Enumerated):
         }
 
 class ErrorClass(Enumerated):
-    _owl_prefix = 'errClass'
     enumerations = \
         { 'device':0
         , 'object':1
@@ -747,7 +705,6 @@ class ErrorClass(Enumerated):
         }
 
 class ErrorCode(Enumerated):
-    _owl_prefix = 'errCode'
     enumerations = \
         { 'abortApduTooLong':123
         , 'abortApplicationExceededReplyTime':124
@@ -885,9 +842,7 @@ class ErrorCode(Enumerated):
         }
 
 class EventState(Enumerated):
-    _owl_prefix = 'eState'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'normal':0
         , 'fault':1
@@ -898,9 +853,7 @@ class EventState(Enumerated):
         }
 
 class EventType(Enumerated):
-    _owl_prefix = 'eType'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'changeOfBitstring':0
         , 'changeOfState':1
@@ -923,14 +876,12 @@ class EventType(Enumerated):
         }
 
 class FileAccessMethod(Enumerated):
-    _owl_prefix = 'fam'
     enumerations = \
         { 'recordAccess':0
         , 'streamAccess':1
         }
 
 class LifeSafetyMode(Enumerated):
-    _owl_prefix = 'lsm'
     enumerations = \
         { 'off':0
         , 'on':1
@@ -950,9 +901,7 @@ class LifeSafetyMode(Enumerated):
         }
 
 class LifeSafetyOperation(Enumerated):
-    _owl_prefix = 'lso'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'none':0
         , 'silence':1
@@ -967,7 +916,6 @@ class LifeSafetyOperation(Enumerated):
         }
 
 class LifeSafetyState(Enumerated):
-    _owl_prefix = 'lss'
     enumerations = \
         { 'quiet':0
         , 'preAlarm':1
@@ -996,7 +944,6 @@ class LifeSafetyState(Enumerated):
         }
 
 class LightingInProgress(Enumerated):
-    _owl_prefix = 'lip'
     enumerations = \
         { 'idle':0
         , 'fadeActive':1
@@ -1006,9 +953,7 @@ class LightingInProgress(Enumerated):
         }
 
 class LightingOperation(Enumerated):
-    _owl_prefix = 'lo'
-    _owl_lolim = 256
-    _owl_hilim = 65535
+    vendor_range = (256, 65535)
     enumerations = \
         { 'none':0
         , 'fadeTo':1
@@ -1024,9 +969,7 @@ class LightingOperation(Enumerated):
         }
 
 class LightingTransition(Enumerated):
-    _owl_prefix = 'ltr'
-    _owl_lolim = 64
-    _owl_hilim = 255
+    vendor_range = (64, 255)
     enumerations = \
         { 'none':0
         , 'fade':1
@@ -1034,7 +977,6 @@ class LightingTransition(Enumerated):
         }
 
 class LockStatus(Enumerated):
-    _owl_prefix = 'lockStatus'
     enumerations = \
         { 'locked':0
         , 'unlocked':1
@@ -1043,9 +985,7 @@ class LockStatus(Enumerated):
         }
 
 class LoggingType(Enumerated):
-    _owl_prefix = 'lt'
-    _owl_lolim = 64
-    _owl_hilim = 255
+    vendor_range = (64, 255)
     enumerations = \
         { 'polled':0
         , 'cov':1
@@ -1053,9 +993,7 @@ class LoggingType(Enumerated):
         }
 
 class Maintenance(Enumerated):
-    _owl_prefix = 'maint'
-    _owl_lolim = 256
-    _owl_hilim = 65535
+    vendor_range = (256, 65535)
     enumerations = \
         { 'none':0
         , 'periodicTest':1
@@ -1064,7 +1002,6 @@ class Maintenance(Enumerated):
         }
 
 class NodeType(Enumerated):
-    _owl_prefix = 'nodeType'
     enumerations = \
         { 'unknown':0
         , 'system':1
@@ -1081,7 +1018,6 @@ class NodeType(Enumerated):
         }
 
 class NotifyType(Enumerated):
-    _owl_prefix = 'nt'
     enumerations = \
         { 'alarm':0
         , 'event':1
@@ -1089,16 +1025,13 @@ class NotifyType(Enumerated):
         }
 
 class Polarity(Enumerated):
-    _owl_prefix = 'pol'
     enumerations = \
         { 'normal':0
         , 'reverse':1
         }
 
 class ProgramError(Enumerated):
-    _owl_prefix = 'pe'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'normal':0
         , 'loadFailed':1
@@ -1108,7 +1041,6 @@ class ProgramError(Enumerated):
         }
 
 class ProgramRequest(Enumerated):
-    _owl_prefix = 'pgmr'
     enumerations = \
         { 'ready':0
         , 'load':1
@@ -1119,7 +1051,6 @@ class ProgramRequest(Enumerated):
         }
 
 class ProgramState(Enumerated):
-    _owl_prefix = 'pgmState'
     enumerations = \
         { 'idle':0
         , 'loading':1
@@ -1130,9 +1061,7 @@ class ProgramState(Enumerated):
         }
 
 class PropertyIdentifier(Enumerated):
-    _owl_prefix = 'pi'
-    _owl_lolim = 512
-    _owl_hilim = 4194303
+    vendor_range = (512, 4194303)
     enumerations = \
         { 'absenteeLimit':244
         , 'acceptedModes':175
@@ -1459,9 +1388,7 @@ class PropertyIdentifier(Enumerated):
         }
 
 class Reliability(Enumerated):
-    _owl_prefix = 'rel'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'noFaultDetected':0
         , 'noSensor':1
@@ -1479,9 +1406,7 @@ class Reliability(Enumerated):
         }
 
 class RestartReason(Enumerated):
-    _owl_prefix = 'rsr'
-    _owl_lolim = 64
-    _owl_hilim = 255
+    vendor_range = (64, 255)
     enumerations = \
         { 'unknown':0
         , 'coldstart':1
@@ -1494,7 +1419,6 @@ class RestartReason(Enumerated):
         }
 
 class SecurityLevel(Enumerated):
-    _owl_prefix = 'secl'
     enumerations = \
         { 'incapable':0
         , 'plain':1
@@ -1505,7 +1429,6 @@ class SecurityLevel(Enumerated):
         }
 
 class SecurityPolicy(Enumerated):
-    _owl_prefix = 'secp'
     enumerations = \
         { 'plainNonTrusted':0
         , 'plainTrusted':1
@@ -1514,7 +1437,6 @@ class SecurityPolicy(Enumerated):
         }
 
 class ShedState(Enumerated):
-    _owl_prefix = 'shedState'
     enumerations = \
         { 'shedInactive':0
         , 'shedRequestPending':1
@@ -1523,7 +1445,6 @@ class ShedState(Enumerated):
         }
 
 class Segmentation(Enumerated):
-    _owl_prefix = 'seg'
     enumerations = \
         { 'segmentedBoth':0
         , 'segmentedTransmit':1
@@ -1532,9 +1453,7 @@ class Segmentation(Enumerated):
         }
 
 class SilencedState(Enumerated):
-    _owl_prefix = 'silencedStats'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'unsilenced':0
         , 'audibleSilenced':1
@@ -1543,9 +1462,7 @@ class SilencedState(Enumerated):
         }
 
 class VTClass(Enumerated):
-    _owl_prefix = 'vtc'
-    _owl_lolim = 64
-    _owl_hilim = 65535
+    vendor_range = (64, 65535)
     enumerations = \
         { 'defaultTerminal':0
         , 'ansiX3-64':1
@@ -1557,7 +1474,6 @@ class VTClass(Enumerated):
         }
 
 class WriteStatus(Enumerated):
-    _owl_prefix = 'ws'
     enumerations = \
         { 'idle':0
         , 'inProgress':1
@@ -1570,14 +1486,12 @@ class WriteStatus(Enumerated):
 #
 
 class DeviceAddress(Sequence):
-    _owl_prefix = 'da'
     sequenceElements = \
         [ Element('networkNumber', Unsigned)
         , Element('macAddress', OctetString)
         ]
 
 class DeviceObjectPropertyReference(Sequence):
-    _owl_prefix = 'dopr'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('propertyIdentifier', PropertyIdentifier, 1)
@@ -1586,35 +1500,30 @@ class DeviceObjectPropertyReference(Sequence):
         ]
 
 class DeviceObjectReference(Sequence):
-    _owl_prefix = 'dor'
     sequenceElements = \
         [ Element('deviceIdentifier', ObjectIdentifier, 0, True)
         , Element('objectIdentifier', ObjectIdentifier, 1)
         ]
 
 class DateTime(Sequence):
-    _owl_prefix = 'dt'
     sequenceElements = \
         [ Element('date', Date)
         , Element('time', Time)
         ]
 
 class DateRange(Sequence):
-    _owl_prefix = 'dr'
     sequenceElements = \
         [ Element('startDate', Date)
         , Element('endDate', Date)
         ]
 
 class ErrorType(Sequence):
-    _owl_prefix = 'errType'
     sequenceElements = \
         [ Element('errorClass', ErrorClass)
         , Element('errorCode', ErrorCode)
         ]
 
 class ObjectPropertyReference(Sequence):
-    _owl_prefix = 'opr'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('propertyIdentifier', PropertyIdentifier, 1)
@@ -1622,9 +1531,7 @@ class ObjectPropertyReference(Sequence):
         ]
 
 class PropertyStates(Choice):
-    _owl_prefix = 'propStates'
-    _owl_lolim = 64
-    _owl_hilim = 254
+    vendor_range = (64, 254)
     choiceElements = \
         [ Element('booleanValue', Boolean, 0)
         , Element('binaryValue', BinaryPV, 1)
@@ -1668,7 +1575,6 @@ class PropertyStates(Choice):
         ]
 
 class PropertyValue(Sequence):
-    _owl_prefix = 'propValue'
     sequenceElements = \
         [ Element('propertyIdentifier', PropertyIdentifier, 0)
         , Element('propertyArrayIndex', Unsigned, 1, True)
@@ -1677,21 +1583,18 @@ class PropertyValue(Sequence):
         ]
 
 class Recipient(Choice):
-    _owl_prefix = 'recip'
     choiceElements = \
         [ Element('device', ObjectIdentifier, 0)
         , Element('address', DeviceAddress, 1)
         ]
 
 class RecipientProcess(Sequence):
-    _owl_prefix = 'recipProc'
     sequenceElements = \
         [ Element('recipient', Recipient, 0)
         , Element('processIdentifier', Unsigned, 1)
         ]
 
 class TimeStamp(Choice):
-    _owl_prefix = 'ts'
     choiceElements = \
         [ Element('time', Time, 0)
         , Element('sequenceNumber', Unsigned, 1)
@@ -1699,14 +1602,12 @@ class TimeStamp(Choice):
         ]
 
 class TimeValue(Sequence):
-    _owl_prefix = 'tv'
     sequenceElements = \
         [ Element('time', Time)
         , Element('value', Any)
         ]
 
 class WeekNDay(OctetString):
-    _owl_prefix = 'wnd'
 
     def __str__(self):
         if len(self.value) != 3:
@@ -1719,7 +1620,6 @@ class WeekNDay(OctetString):
 #
 
 class AccessRule(Sequence):
-    _owl_prefix = 'arule'
     sequenceElements = \
         [ Element('timeRangeSpecifier', AccessRuleTimeRangeSpecifier, 0)
         , Element('timeRange', DeviceObjectPropertyReference, 1, True)
@@ -1732,7 +1632,6 @@ class AccessThreatLevel(Unsigned):
     pass
 
 class AccumulatorRecord(Sequence):
-    _owl_prefix = 'aRec'
     sequenceElements = \
         [ Element('timestamp', DateTime, 0)
         , Element('presentValue', Unsigned, 1)
@@ -1741,7 +1640,6 @@ class AccumulatorRecord(Sequence):
         ]
 
 class ActionCommand(Sequence):
-    _owl_prefix = 'ac'
     sequenceElements = \
         [ Element('deviceIdentifier', ObjectIdentifier, 0, True)
         , Element('objectIdentifier', ObjectIdentifier, 1)
@@ -1755,20 +1653,17 @@ class ActionCommand(Sequence):
         ]
 
 class ActionList(Sequence):
-    _owl_prefix = 'al'
     sequenceElements = \
         [ Element('action', SequenceOf(ActionCommand))
         ]
 
 class AddressBinding(Sequence):
-    _owl_prefix = 'ab'
     sequenceElements = \
         [ Element('deviceObjectIdentifier', ObjectIdentifier)
         , Element('deviceAddress', DeviceAddress)
         ]
 
 class AssignedAccessRights(Sequence):
-    _owl_prefix = 'aar'
     serviceChoice = 15
     sequenceElements = \
         [ Element('assignedAccessRights', DeviceObjectReference, 0)
@@ -1776,7 +1671,6 @@ class AssignedAccessRights(Sequence):
         ]
 
 class AuthenticationFactor(Sequence):
-    _owl_prefix = 'af'
     sequenceElements = \
         [ Element('formatType', AuthenticationFactorType, 0)
         , Element('formatClass', Unsigned, 1)
@@ -1784,7 +1678,6 @@ class AuthenticationFactor(Sequence):
         ]
 
 class AuthenticationFactorFormat(Sequence):
-    _owl_prefix = 'aff'
     sequenceElements = \
         [ Element('formatType', AuthenticationFactorType, 0)
         , Element('vendorId', Unsigned, 1, True)
@@ -1792,14 +1685,12 @@ class AuthenticationFactorFormat(Sequence):
         ]
 
 class AuthenticationPolicyPolicy(Sequence):
-    _owl_prefix = 'app'
     sequenceElements = \
         [ Element('credentialDataInput', DeviceObjectReference, 0)
         , Element('index', Unsigned, 1)
         ]
 
 class AuthenticationPolicy(Sequence):
-    _owl_prefix = 'ap'
     sequenceElements = \
         [ Element('policy', SequenceOf(AuthenticationPolicyPolicy), 0)
         , Element('orderEnforced', Boolean, 1)
@@ -1807,7 +1698,6 @@ class AuthenticationPolicy(Sequence):
         ]
 
 class CalendarEntry(Choice):
-    _owl_prefix = 'ce'
     choiceElements = \
         [ Element('date', Date, 0)
         , Element('dateRange', DateRange, 1)
@@ -1815,20 +1705,17 @@ class CalendarEntry(Choice):
         ]
 
 class ChannelValue(Choice):
-    _owl_prefix = 'cv'
     choiceElements = [
         ### needs help
         ]
 
 class ClientCOV(Choice):
-    _owl_prefix = 'ccov'
     choiceElements = \
         [ Element('realIncrement', Real, 0)
         , Element('defaultIncrement', Null, 0)
         ]
 
 class COVSubscription(Sequence):
-    _owl_prefix = 'covSub'
     sequenceElements = \
         [ Element('recipient', RecipientProcess, 0)
         , Element('monitoredPropertyReference', ObjectPropertyReference, 1)
@@ -1838,20 +1725,17 @@ class COVSubscription(Sequence):
         ]
 
 class CredentialAuthenticationFactor(Sequence):
-    _owl_prefix = 'caf'
     sequenceElements = \
         [ Element('disable', AccessAuthenticationFactorDisable, 0)
         , Element('authenticationFactor', AuthenticationFactor, 1)
         ]
 
 class DailySchedule(Sequence):
-    _owl_prefix = 'ds'
     sequenceElements = \
         [ Element('daySchedule', SequenceOf(TimeValue), 0)
         ]
 
 class Destination(Sequence):
-    _owl_prefix = 'dest'
     sequenceElements = \
         [ Element('validDays', DaysOfWeek)
         , Element('fromTime', Time)
@@ -1863,7 +1747,6 @@ class Destination(Sequence):
         ]
 
 class DeviceObjectPropertyValue(Sequence):
-    _owl_prefix = 'dopv'
     sequenceElements = \
         [ Element('deviceIdentifier', ObjectIdentifier, 0)
         , Element('objectIdentifier', ObjectIdentifier, 1)
@@ -1873,7 +1756,6 @@ class DeviceObjectPropertyValue(Sequence):
         ]
 
 class EventParameterChangeOfBitstring(Sequence):
-    _owl_prefix = 'epcob'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('bitmask', BitString, 1)
@@ -1881,35 +1763,30 @@ class EventParameterChangeOfBitstring(Sequence):
         ]
 
 class EventParameterChangeOfState(Sequence):
-    _owl_prefix = 'epcos'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('listOfValues', SequenceOf(PropertyStates), 1)
         ]
 
 class EventParameterChangeOfValueCOVCriteria(Choice):
-    _owl_prefix = 'epcovc'
     choiceElements = \
         [ Element('bitmask', BitString, 0)
         , Element('referencedPropertyIncrement', Real, 1)
         ]
 
 class EventParameterChangeOfValue(Sequence):
-    _owl_prefix = 'epcov'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('covCriteria', EventParameterChangeOfValueCOVCriteria, 1)
         ]
 
 class EventParameterCommandFailure(Sequence):
-    _owl_prefix = 'epcf'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('feedbackPropertyReference', DeviceObjectPropertyReference, 1)
         ]
 
 class EventParameterFloatingLimit(Sequence):
-    _owl_prefix = 'epfl'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('setpointReference', DeviceObjectPropertyReference, 1)
@@ -1919,7 +1796,6 @@ class EventParameterFloatingLimit(Sequence):
         ]
 
 class EventParameterOutOfRange(Sequence):
-    _owl_prefix = 'epoor'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('lowLimit', Real, 1)
@@ -1928,7 +1804,6 @@ class EventParameterOutOfRange(Sequence):
         ]
 
 class EventParameterChangeOfLifeSafety(Sequence):
-    _owl_prefix = 'epcols'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('listOfLifeSafetyAlarmValues', SequenceOf(LifeSafetyState), 1)
@@ -1937,7 +1812,6 @@ class EventParameterChangeOfLifeSafety(Sequence):
         ]
 
 class EventParameterExtendedParameters(Choice):
-    _owl_prefix = 'epep'
     choiceElements = \
         [ Element('null', Null, 0)
         , Element('real', Real, 1)
@@ -1951,7 +1825,6 @@ class EventParameterExtendedParameters(Choice):
         ]
 
 class EventParameterExtended(Sequence):
-    _owl_prefix = 'epe'
     sequenceElements = \
         [ Element('vendorId', Unsigned, 0)
         , Element('extendedEventType', Unsigned, 1)
@@ -1959,14 +1832,12 @@ class EventParameterExtended(Sequence):
         ]
 
 class EventParameterBufferReady(Sequence):
-    _owl_prefix = 'epbr'
     sequenceElements = \
         [ Element('notificationThreshold', Unsigned, 0)
         , Element('previousNotificationCount', Unsigned, 1)
         ]
 
 class EventParameterUnsignedRange(Sequence):
-    _owl_prefix = 'epur'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('lowLimit', Unsigned, 1)
@@ -1974,20 +1845,17 @@ class EventParameterUnsignedRange(Sequence):
         ]
 
 class EventParameterAccessEventAccessEvent(Sequence):
-    _owl_prefix = 'epaeae'
     sequenceevents = \
         [ Element('listOfAccessEvents', SequenceOf(AccessEvent), 0)
         , Element('accessEventTimeReference', DeviceObjectPropertyReference, 0)
         ]
 
 class EventParameterAccessEvent(Sequence):
-    _owl_prefix = 'epae'
     sequenceElements = \
         [ Element('accessEvent', SequenceOf(EventParameterAccessEventAccessEvent), 0)
         ]
 
 class EventParameterDoubleOutOfRange(Sequence):
-    _owl_prefix = 'epdoor'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('lowLimit', Double, 1)
@@ -1996,7 +1864,6 @@ class EventParameterDoubleOutOfRange(Sequence):
         ]
 
 class EventParameterSignedOutOfRange(Sequence):
-    _owl_prefix = 'epsoor'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('lowLimit', Integer, 1)
@@ -2005,7 +1872,6 @@ class EventParameterSignedOutOfRange(Sequence):
         ]
 
 class EventParameterUnsignedOutOfRange(Sequence):
-    _owl_prefix = 'epuoor'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('lowLimit', Unsigned, 1)
@@ -2014,21 +1880,18 @@ class EventParameterUnsignedOutOfRange(Sequence):
         ]
 
 class EventParameterChangeOfCharacterString(Sequence):
-    _owl_prefix = 'epcocs'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('listOfAlarmValues', SequenceOf(CharacterString), 1)
         ]
 
 class EventParameterChangeOfStatusFlags(Sequence):
-    _owl_prefix = 'epcosf'
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
         , Element('selectedFlags', StatusFlags, 1)
         ]
 
 class EventParameter(Choice):
-    _owl_prefix = 'ep'
     choiceElements = \
         [ Element('changeOfBitstring', EventParameterChangeOfBitstring, 0)
         , Element('changeOfState', EventParameterChangeOfState, 1)
@@ -2049,14 +1912,12 @@ class EventParameter(Choice):
         ]
 
 class KeyIdentifier(Sequence):
-    _owl_prefix = 'ki'
     sequenceElements = \
         [ Element('algorithm', Unsigned, 0)
         , Element('keyId', Unsigned, 1)
         ]
 
 class LogDataLogData(Choice):
-    _owl_prefix = 'ldld'
     choiceElements = \
         [ Element('booleanValue', Boolean, 0)
         , Element('realValue', Real, 1)
@@ -2070,7 +1931,6 @@ class LogDataLogData(Choice):
         ]
 
 class LogData(Choice):
-    _owl_prefix = 'ld'
     choiceElements = \
         [ Element('logStatus', LogStatus, 0)
         , Element('logData', SequenceOf(LogDataLogData), 1)
@@ -2078,14 +1938,12 @@ class LogData(Choice):
         ]
 
 class LogMultipleRecord(Sequence):
-    _owl_prefix = 'lmr'
     sequenceElements = \
         [ Element('timestamp', DateTime, 0)
         , Element('logData', LogData, 1)
         ]
 
 class LogRecordLogDatum(Choice):
-    _owl_prefix = 'lrld'
     choiceElements = \
         [ Element('logStatus', LogStatus, 0)
         , Element('booleanValue', Boolean, 1)
@@ -2101,7 +1959,6 @@ class LogRecordLogDatum(Choice):
         ]
 
 class LogRecord(Sequence):
-    _owl_prefix = 'lr'
     sequenceElements = \
         [ Element('timestamp', DateTime, 0)
         , Element('logDatum', LogRecordLogDatum, 1)
@@ -2109,42 +1966,36 @@ class LogRecord(Sequence):
         ]
 
 class NetworkSecurityPolicy(Sequence):
-    _owl_prefix = 'nsp'
     sequenceElements = \
         [ Element('portId', Unsigned, 0)
         , Element('securityLevel', SecurityPolicy, 1)
         ]
 
 class NotificationParametersChangeOfBitstring(Sequence):
-    _owl_prefix = 'npcobs'
     sequenceElements = \
         [ Element('referencedBitstring', BitString, 0)
         , Element('statusFlags', StatusFlags, 1)
         ]
 
 class NotificationParametersChangeOfState(Sequence):
-    _owl_prefix = 'npcos'
     sequenceElements = \
         [ Element('newState', PropertyStates, 0)
         , Element('statusFlags', StatusFlags, 1)
         ]
-        
+
 class NotificationParametersChangeOfValueNewValue(Choice):
-    _owl_prefix = 'npcovnv'
     choiceElements = \
         [ Element('changedBits', BitString, 0)
         , Element('changedValue', Real, 1)
         ]
-        
+
 class NotificationParametersChangeOfValue(Sequence):
-    _owl_prefix = 'npcov'
     sequenceElements = \
         [ Element('newValue', NotificationParametersChangeOfValueNewValue, 0)
         , Element('statusFlags', StatusFlags, 1)
         ]
-        
+
 class NotificationParametersCommandFailure(Sequence):
-    _owl_prefix = 'npcf'
     sequenceElements = \
         [ Element('commandValue', Any, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2152,7 +2003,6 @@ class NotificationParametersCommandFailure(Sequence):
         ]
 
 class NotificationParametersFloatingLimit(Sequence):
-    _owl_prefix = 'npfl'
     sequenceElements = \
         [ Element('referenceValue', Real, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2161,7 +2011,6 @@ class NotificationParametersFloatingLimit(Sequence):
         ]
 
 class NotificationParametersOutOfRange(Sequence):
-    _owl_prefix = 'npoor'
     sequenceElements = \
         [ Element('exceedingValue', Real, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2170,7 +2019,6 @@ class NotificationParametersOutOfRange(Sequence):
         ]
 
 class NotificationParametersExtendedParametersType(Choice):
-    _owl_prefix = 'npept'
     choiceElements = \
         [ Element('null', Null)
         , Element('real', Real)
@@ -2184,7 +2032,6 @@ class NotificationParametersExtendedParametersType(Choice):
         ]
 
 class NotificationParametersExtended(Sequence):
-    _owl_prefix = 'npe'
     sequenceElements = \
         [ Element('vendorId', Unsigned, 0)
         , Element('extendedEventType', Unsigned, 1)
@@ -2192,7 +2039,6 @@ class NotificationParametersExtended(Sequence):
         ]
 
 class NotificationParametersBufferReady(Sequence):
-    _owl_prefix = 'npbr'
     sequenceElements = \
         [ Element('bufferProperty', DeviceObjectPropertyReference, 0)
         , Element('previousNotification', Unsigned, 1)
@@ -2200,7 +2046,6 @@ class NotificationParametersBufferReady(Sequence):
         ]
  
 class NotificationParametersUnsignedRange(Sequence):    
-    _owl_prefix = 'npur'
     sequenceElements = \
         [ Element('exceedingValue', Unsigned, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2208,13 +2053,11 @@ class NotificationParametersUnsignedRange(Sequence):
         ]
 
 class NotificationParametersComplexEventType(Sequence):
-    _owl_prefix = 'npcet'
     sequenceElements = \
         [ Element('complexEventType', PropertyValue, 0)
         ]
 
 class NotificationParametersChangeOfLifeSafety(Sequence):
-    _owl_prefix = 'npcols'
     sequenceElements = \
         [ Element('newState', LifeSafetyState, 0)
         , Element('newMode', LifeSafetyMode, 1)
@@ -2223,7 +2066,6 @@ class NotificationParametersChangeOfLifeSafety(Sequence):
         ]
 
 class NotificationParametersAccessEventType(Sequence):
-    _owl_prefix = 'npaet'
     sequenceElements = \
         [ Element('accessEvent', AccessEvent, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2234,7 +2076,6 @@ class NotificationParametersAccessEventType(Sequence):
         ]
 
 class NotificationParametersDoubleOutOfRangeType(Sequence):
-    _owl_prefix = 'npdoort'
     sequenceElements = \
         [ Element('exceedingValue', Double, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2243,7 +2084,6 @@ class NotificationParametersDoubleOutOfRangeType(Sequence):
         ]
 
 class NotificationParametersSignedOutOfRangeType(Sequence):
-    _owl_prefix = 'npsoort'
     sequenceElements = \
         [ Element('exceedingValue', Integer, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2252,7 +2092,6 @@ class NotificationParametersSignedOutOfRangeType(Sequence):
         ]
 
 class NotificationParametersUnsignedOutOfRangeType(Sequence):
-    _owl_prefix = 'npuoort'
     sequenceElements = \
         [ Element('exceedingValue', Unsigned, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2261,7 +2100,6 @@ class NotificationParametersUnsignedOutOfRangeType(Sequence):
         ]
 
 class NotificationParametersChangeOfCharacterStringType(Sequence):
-    _owl_prefix = 'npcocst'
     sequenceElements = \
         [ Element('changedValue', CharacterString, 0)
         , Element('statusFlags', StatusFlags, 1)
@@ -2269,14 +2107,12 @@ class NotificationParametersChangeOfCharacterStringType(Sequence):
         ]
 
 class NotificationParametersChangeOfStatusFlagsType(Sequence):
-    _owl_prefix = 'npcosft'
     sequenceElements = \
         [ Element('presentValue', CharacterString, 0)
         , Element('referencedFlags', StatusFlags, 1)
         ]
 
 class NotificationParameters(Choice):
-    _owl_prefix = 'np'
     choiceElements = \
         [ Element('changeOfBitstring', NotificationParametersChangeOfBitstring, 0)
         , Element('changeOfState', NotificationParametersChangeOfState, 1)
@@ -2298,7 +2134,6 @@ class NotificationParameters(Choice):
         ]
 
 class ObjectPropertyValue(Sequence):
-    _owl_prefix = 'opv'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('propertyIdentifier', PropertyIdentifier, 1)
@@ -2308,21 +2143,18 @@ class ObjectPropertyValue(Sequence):
         ]
 
 class OptionalCharacterString(Choice):  
-    _owl_prefix = 'ocs'
     choiceElements = \
         [ Element('null', Null)
         , Element('characterString', CharacterString)
         ]
 
 class Prescale(Sequence):
-    _owl_prefix = 'prescale'
     sequenceElements = \
         [ Element('multiplier', Unsigned, 0)
         , Element('moduloDivide', Unsigned, 1)
         ]
 
 class PriorityValue(Choice):
-    _owl_prefix = 'pv'
     choiceElements = \
         [ Element('null', Null)
         , Element('real', Real)
@@ -2342,18 +2174,15 @@ class PriorityValue(Choice):
         ]
 
 class PriorityArray(ArrayOf(PriorityValue)):
-    _owl_prefix = 'pa'
     pass
 
 class PropertyAccessResultAccessResult(Choice):
-    _owl_prefix = 'parar'
     choiceElements = \
         [ Element('propertyValue', Any, 4)
         , Element('propertyAccessError', ErrorType, 5)
         ]
 
 class PropertyAccessResult(Sequence):
-    _owl_prefix = 'par'
     sequenceElements = \
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('propertyIdentifier', PropertyIdentifier, 1)
@@ -2363,21 +2192,18 @@ class PropertyAccessResult(Sequence):
         ]
 
 class PropertyReference(Sequence):
-    _owl_prefix = 'pr'
     sequenceElements = \
         [ Element('propertyIdentifier', PropertyIdentifier, 0)
         , Element('propertyArrayIndex', Unsigned, 1, True)
         ]
 
 class Scale(Choice):
-    _owl_prefix = 'scale'
     choiceElements = \
         [ Element('floatScale', Real)
         , Element('integerScale', Integer)
         ]
 
 class SecurityKeySet(Sequence):
-    _owl_prefix = 'secks'
     sequenceElements = \
         [ Element('keyRevision', Unsigned, 0)
         , Element('activationTime', DateTime, 1)
@@ -2386,7 +2212,6 @@ class SecurityKeySet(Sequence):
         ]
 
 class ShedLevel(Choice):
-    _owl_prefix = 'shedLvl'
     choiceElements = \
         [ Element('percent', Unsigned, 0)
         , Element('level', Unsigned, 1)
@@ -2394,20 +2219,17 @@ class ShedLevel(Choice):
         ]
 
 class SetpointReference(Sequence):
-    _owl_prefix = 'sr'
     sequenceElements = \
         [ Element('setpointReference', ObjectPropertyReference, 0, True)
         ]
 
 class SpecialEventPeriod(Choice):
-    _owl_prefix = 'sep'
     choiceElements = \
         [ Element('calendarEntry', CalendarEntry, 0)
         , Element('calendarReference', ObjectIdentifier, 1)
         ]
 
 class SpecialEvent(Sequence):
-    _owl_prefix = 'se'
     sequenceElements = \
         [ Element('period', SpecialEventPeriod)
         , Element('listOfTimeValues', SequenceOf(TimeValue), 2)
@@ -2415,7 +2237,6 @@ class SpecialEvent(Sequence):
         ]
 
 class VTSession(Sequence):
-    _owl_prefix = 'vts'
     sequenceElements = \
         [ Element('localVtSessionID', Unsigned)
         , Element('remoteVtSessionID', Unsigned)
