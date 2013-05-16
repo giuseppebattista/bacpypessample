@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
 """
-sample005.py
+GetAlarmSummaryRequest
+
+Sample console application that sends out a GetAlarmSummaryRequest to a specific
+address and prints out the result.
 """
 
 import sys
