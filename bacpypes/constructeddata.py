@@ -108,11 +108,14 @@ class Sequence(Logging):
 
             # no more elements
             if tag is None:
-                if not element.optional:
+                if element.optional:
+                    # omitted optional element
+                    setattr(self, element.name, None)
+                elif _sequence_of_classes.has_key(element.klass):
+                    # empty list
+                    setattr(self, element.name, [])
+                else:
                     raise AttributeError, "'%s' is a required element of %s" % (element.name,self.__class__.__name__)
-
-                # omitted optional element
-                setattr(self, element.name, None)
 
             # we have been enclosed in a context
             elif tag.tagClass == Tag.closingTagClass:
