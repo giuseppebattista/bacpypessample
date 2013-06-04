@@ -14,10 +14,11 @@ from bacpypes.consolelogging import ConsoleLogHandler
 from bacpypes.consolecmd import ConsoleCmd
 
 from bacpypes.core import run
+from bacpypes.comm import bind
 
 from bacpypes.pdu import Address
-from bacpypes.bvll import UDPMultiplexer, AnnexJCodec, BIPBBMD
-from bacpypes.networkservice import NetworkServiceAccessPoint, NetworkServiceElement
+from bacpypes.bvllservice import UDPMultiplexer, AnnexJCodec, BIPBBMD
+from bacpypes.netservice import NetworkServiceAccessPoint, NetworkServiceElement
 
 # some debugging
 _debug = 0
@@ -41,13 +42,13 @@ class TestBBMD(BIPBBMD, Logging):
         self.mux = UDPMultiplexer(self.address)
 
         # bind the bottom layers
-        Bind(self, self.annexj, self.mux.annexJ)
+        bind(self, self.annexj, self.mux.annexJ)
 
         # give this a generic network layer service access point and element
         self.nsap = NetworkServiceAccessPoint()
         self.nse = NetworkServiceElement()
-        self.nsap.Bind(self)
-        Bind(self.nse, self.nsap)
+        self.nsap.bind(self)
+        bind(self.nse, self.nsap)
 
 #
 #   __main__

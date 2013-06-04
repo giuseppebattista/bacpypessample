@@ -243,13 +243,22 @@ try:
         raise RuntimeError, "configuration file not found"
 
     # get the address from the config file
-    addr = config.get('BACpypes', 'address')
+    foreign_bbmd = config.get('BACpypes', 'foreignBBMD')
 
     # maybe use a different port
     if '--port' in sys.argv:
         i = sys.argv.index('--port')
-        addr += ':' + sys.argv[i+1]
-    _log.debug("    - addr: %r", addr)
+        foreign_bbmd += ':' + sys.argv[i+1]
+    _log.debug("    - foreign_bbmd: %r", foreign_bbmd)
+
+    # get the time-to-live from the config file
+    foreign_ttl = config.getint('BACpypes', 'foreignTTL')
+
+    # maybe use a different ttl
+    if '--ttl' in sys.argv:
+        i = sys.argv.index('--ttl')
+        foreign_ttl = int(sys.argv[i+1])
+    _log.debug("    - foreign_ttl: %r", foreign_ttl)
 
     # make a device object
     thisDevice = \
@@ -272,10 +281,10 @@ try:
 
     # make a simple application
     thisApplication = TestApplication(
-        thisDevice,                              # device object as usual
-        ('', 0),                                 # local host, operating system assign port
-        config.get('BACpypes','foreignBBMD'),    # address of BBMD accepted foreign device registration
-        config.getint('BACpypes','foreignTTL'),  # time to live
+        thisDevice,     # device object as usual
+        ('', 0),        # local host, operating system assigned port
+        foreign_bbmd,   # address of BBMD accepted foreign device registration
+        foreign_ttl,    # time to live
         )
     TestConsoleCmd()
 

@@ -563,14 +563,14 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
             # make an original broadcast PDU
             xpdu = OriginalBroadcastNPDU(pdu)
             xpdu.pduDestination = pdu.pduDestination
-            if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
+            if _debug: BIPBBMD._debug("    - original broadcast xpdu: %r", xpdu)
 
             # send it downstream
             self.request(xpdu)
 
             # make a forwarded PDU
             xpdu = ForwardedNPDU(self.bbmdAddress, pdu)
-            if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
+            if _debug: BIPBBMD._debug("    - forwarded xpdu: %r", xpdu)
 
             # send it to the peers
             for bdte in self.bbmdBDT:
@@ -620,18 +620,20 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         elif isinstance(pdu, ForwardedNPDU):
             # build a PDU with the source from the real source
             xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress) # , destination=LocalBroadcast())
-            if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
+            if _debug: BIPBBMD._debug("    - upstream xpdu: %r", xpdu)
 
             # send it upstream
             self.response(xpdu)
 
-            # broadcast a copy locally
+            # build a forwarded NPDU to send out
             xpdu = ForwardedNPDU(pdu.bvlciAddress, pdu)
-            xpdu.pduDestination = LocalBroadcast()
-            if _debug: BIPBBMD._debug("    - local broadcast: %r", xpdu)
+            if _debug: BIPBBMD._debug("    - forwarded xpdu: %r", xpdu)
 
-            # send it downstream
-            self.request(xpdu)
+            # look for self as first entry in the BDT
+            if self.bbmdBDT and (self.bbmdBDT[0] == self.bbmdAddress):
+                xpdu.pduDestination = LocalBroadcast()
+                if _debug: BIPBBMD._debug("        - local broadcast")
+                self.request(xpdu)
 
             # send it to the registered foreign devices
             for fdte in self.bbmdFDT:
@@ -640,8 +642,8 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
                 self.request(xpdu)
 
         elif isinstance(pdu, RegisterForeignDevice):
-            # save the request
-            stat = self.RegisterForeignDevice(pdu.pduSource, pdu.bvlciTimeToLive)
+            # process the request
+            stat = self.register_foreign_device(pdu.pduSource, pdu.bvlciTimeToLive)
 
             # build a response
             xpdu = Result(code=stat)
@@ -665,8 +667,8 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
             self.sap_response(pdu)
 
         elif isinstance(pdu, DeleteForeignDeviceTableEntry):
-            # save the request
-            stat = self.DeleteForeignDeviceTableEntry(pdu.bvlciAddress)
+            # process the request
+            stat = self.delete_foreign_device_table_entry(pdu.bvlciAddress)
 
             # build a response
             xpdu = Result(code=stat)
@@ -679,22 +681,22 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         elif isinstance(pdu, DistributeBroadcastToNetwork):
             # build a PDU with a local broadcast address
             xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
-            if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
+            if _debug: BIPBBMD._debug("    - upstream xpdu: %r", xpdu)
 
             # send it upstream
             self.response(xpdu)
 
-            # broadcast a copy locally
+            # build a forwarded NPDU to send out
             xpdu = ForwardedNPDU(pdu.pduSource, pdu)
-            xpdu.pduDestination = LocalBroadcast()
-            if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
-
-            # send it downstream
-            self.request(xpdu)
+            if _debug: BIPBBMD._debug("    - forwarded xpdu: %r", xpdu)
 
             # send it to the peers
             for bdte in self.bbmdBDT:
-                if bdte != self.bbmdAddress:
+                if bdte == self.bbmdAddress:
+                    xpdu.pduDestination = LocalBroadcast()
+                    if _debug: BIPBBMD._debug("        - local broadcast")
+                    self.request(xpdu)
+                else:
                     xpdu.pduDestination = Address( ((bdte.addrIP|~bdte.addrMask), bdte.addrPort) )
                     if _debug: BIPBBMD._debug("        - sending to peer: %r", xpdu.pduDestination)
                     self.request(xpdu)
@@ -709,7 +711,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         elif isinstance(pdu, OriginalUnicastNPDU):
             # build a vanilla PDU
             xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination)
-            if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
+            if _debug: BIPBBMD._debug("    - upstream xpdu: %r", xpdu)
 
             # send it upstream
             self.response(xpdu)
@@ -717,14 +719,14 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         elif isinstance(pdu, OriginalBroadcastNPDU):
             # build a PDU with a local broadcast address
             xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
-            if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
+            if _debug: BIPBBMD._debug("    - upstream xpdu: %r", xpdu)
 
             # send it upstream
             self.response(xpdu)
 
             # make a forwarded PDU
             xpdu = ForwardedNPDU(pdu.pduSource, pdu)
-            if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
+            if _debug: BIPBBMD._debug("    - forwarded xpdu: %r", xpdu)
 
             # send it to the peers
             for bdte in self.bbmdBDT:
@@ -742,12 +744,17 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         else:
             BIPBBMD._warning("invalid pdu type: %s", type(pdu))
 
-    def RegisterForeignDevice(self, addr, ttl):
+    def register_foreign_device(self, addr, ttl):
         """Add a foreign device to the FDT."""
-        if _debug: BIPBBMD._debug("RegisterForeignDevice %r %r", addr, ttl)
+        if _debug: BIPBBMD._debug("register_foreign_device %r %r", addr, ttl)
 
-        if not isinstance(addr,Address):
-            raise TypeError, "addr must be an Address"
+        # see if it is an address or make it one
+        if isinstance(addr, Address):
+            pass
+        elif isinstance(addr, types.StringType):
+            addr = LocalStation( addr )
+        else:
+            raise TypeError, "addr must be a string or an Address"
 
         for fdte in self.bbmdFDT:
             if addr == fdte.fdAddress:
@@ -763,11 +770,16 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         # return success
         return 0
 
-    def DeleteForeignDeviceTableEntry(self, addr):
-        if _debug: BIPBBMD._debug("DeleteForeignDeviceTableEntry %r", addr)
+    def delete_foreign_device_table_entry(self, addr):
+        if _debug: BIPBBMD._debug("delete_foreign_device_table_entry %r", addr)
 
-        if not isinstance(addr,Address):
-            raise TypeError, "addr must be an Address"
+        # see if it is an address or make it one
+        if isinstance(addr, Address):
+            pass
+        elif isinstance(addr, types.StringType):
+            addr = LocalStation( addr )
+        else:
+            raise TypeError, "addr must be a string or an Address"
 
         # find it and delete it
         stat = 0
@@ -795,8 +807,17 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
     def add_peer(self, addr):
         if _debug: BIPBBMD._debug("add_peer %r", addr)
 
-        if not isinstance(addr, Address):
-            raise TypeError, "addr must be an Address"
+        # see if it is an address or make it one
+        if isinstance(addr, Address):
+            pass
+        elif isinstance(addr, types.StringType):
+            addr = LocalStation( addr )
+        else:
+            raise TypeError, "addr must be a string or an Address"
+
+        # if it's this BBMD, make it the first one
+        if self.bbmdBDT and (addr == self.bbmdAddress):
+            raise RuntimeError, "add self to BDT as first address"
 
         # see if it's already there
         for bdte in self.bbmdBDT:
@@ -808,12 +829,13 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
     def delete_peer(self, addr):
         if _debug: BIPBBMD._debug("delete_peer %r", addr)
 
-        if isinstance(addr, LocalStation):
+        # see if it is an address or make it one
+        if isinstance(addr, Address):
             pass
         elif isinstance(addr, types.StringType):
             addr = LocalStation( addr )
         else:
-            raise TypeError, "addr must be a string or a LocalStation"
+            raise TypeError, "addr must be a string or an Address"
 
         # look for the peer address
         for i in range(len(self.bbmdBDT)-1, -1, -1):
