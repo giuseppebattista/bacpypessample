@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-sample023.py
+sample023-foreign.py
 """
 
 import sys
