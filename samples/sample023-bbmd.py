@@ -11,12 +11,10 @@ from ConfigParser import ConfigParser
 
 from bacpypes.debugging import Logging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
-from bacpypes.consolecmd import ConsoleCmd
 
 from bacpypes.core import run
 from bacpypes.comm import bind
 
-from bacpypes.pdu import Address
 from bacpypes.bvllservice import UDPMultiplexer, AnnexJCodec, BIPBBMD
 from bacpypes.netservice import NetworkServiceAccessPoint, NetworkServiceElement
 
