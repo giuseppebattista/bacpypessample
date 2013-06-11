@@ -19,7 +19,7 @@ _debug = 0
 _log = ModuleLogger(globals())
 
 # globals
-PORT = 9000
+server_addr = ('127.0.0.1', 9000)
 director = None
 
 #
@@ -72,8 +72,13 @@ try:
 
     _log.debug("initialization")
 
-    director = TCPServerDirector(('', PORT))
+    # create a director listening to the address
+    director = TCPServerDirector(server_addr)
+
+    # create an echo
     echo_master = EchoMaster()
+
+    # bind everything together
     bind(echo_master, director)
     bind(ConnectionASE(), director)
 

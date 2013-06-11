@@ -21,7 +21,7 @@ _debug = 0
 _log = ModuleLogger(globals())
 
 # globals
-server_addr = ('', 9000)
+server_addr = ('127.0.0.1', 9000)
 
 #
 #   EchoMaster
