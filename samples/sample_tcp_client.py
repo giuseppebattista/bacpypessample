@@ -23,6 +23,10 @@ _log = ModuleLogger(globals())
 # globals
 server_addr = ('127.0.0.1', 9000)
 
+console = None
+middle_man = None
+director = None
+
 #
 #   MiddleMan
 #
@@ -34,7 +38,7 @@ class MiddleMan(Client, Server, Logging):
 
         # no data means EOF, stop
         if not pdu.pduData:
-            stop()
+            director.disconnect(server_addr)
             return
 
         # pass it along
@@ -62,6 +66,8 @@ class ConnectionASE(ApplicationServiceElement, Logging):
             if _debug: ConnectionASE._debug("    - delete peer %s", kwargs['delPeer'])
 
         if _debug: ConnectionASE._debug('    - director.clients: %r', director.clients)
+        if not director.clients:
+            stop()
 
 #
 #   __main__
@@ -86,9 +92,9 @@ try:
     _log.debug("initialization")
 
     console = ConsoleClient()
-    middleMan = MiddleMan()
+    middle_man = MiddleMan()
     director = TCPClientDirector()
-    bind(console, middleMan, director)
+    bind(console, middle_man, director)
     bind(ConnectionASE(), director)
 
     # don't wait to connect
