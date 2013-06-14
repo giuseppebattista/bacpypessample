@@ -1160,11 +1160,11 @@ register_confirmed_request_type(GetEnrollmentSummaryRequest)
 
 class GetEnrollmentSummaryEnrollmentSummary(Sequence):
     sequenceElements = \
-        [ Element('objectIdentifier', ObjectIdentifier,)
-        , Element('eventType', EventType,)
-        , Element('eventState', EventState,)
-        , Element('priority', Unsigned,)
-        , Element('notificationClass', Unsigned)
+        [ Element('objectIdentifier', ObjectIdentifier)
+        , Element('eventType', EventType)
+        , Element('eventState', EventState)
+        , Element('priority', Unsigned)
+        , Element('notificationClass', Unsigned, True)
         ]
 
 class GetEnrollmentSummaryACK(ComplexAckSequence):
@@ -1180,7 +1180,7 @@ register_complex_ack_type(GetEnrollmentSummaryACK)
 class GetEventInformationRequest(ConfirmedRequestSequence):
     serviceChoice = 29
     sequenceElements = \
-        [ Element('lastReceivedObjectIdentifier', ObjectIdentifier, 0)
+        [ Element('lastReceivedObjectIdentifier', ObjectIdentifier, 0, True)
         ]
 
 register_confirmed_request_type(GetEventInformationRequest)
