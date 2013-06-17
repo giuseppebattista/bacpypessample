@@ -10,7 +10,7 @@ import random
 
 from ConfigParser import ConfigParser
 
-from bacpypes.debugging import DebugContents, Logging, ModuleLogger
+from bacpypes.debugging import bacpypes_debugging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 
 from bacpypes.core import run
@@ -28,7 +28,8 @@ _log = ModuleLogger(globals())
 #   RandomValueProperty
 #
 
-class RandomValueProperty(Property, Logging):
+@bacpypes_debugging
+class RandomValueProperty(Property):
 
     def __init__(self, identifier):
         if _debug: RandomValueProperty._debug("__init__ %r", identifier)
@@ -55,7 +56,8 @@ class RandomValueProperty(Property, Logging):
 #   Random Value Object Type
 #
 
-class RandomAnalogValueObject(AnalogValueObject, Logging):
+@bacpypes_debugging
+class RandomAnalogValueObject(AnalogValueObject):
 
     properties = [
         RandomValueProperty('presentValue'),

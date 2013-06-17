@@ -10,7 +10,7 @@ from collections import defaultdict
 
 from ConfigParser import ConfigParser
 
-from bacpypes.debugging import Logging, ModuleLogger
+from bacpypes.debugging import bacpypes_debugging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 
 from bacpypes.core import run
@@ -29,7 +29,8 @@ iAmCounter = defaultdict(int)
 #   SampleApplication
 #
 
-class SampleApplication(BIPSimpleApplication, Logging):
+@bacpypes_debugging
+class SampleApplication(BIPSimpleApplication):
 
     def __init__(self, device, address):
         if _debug: SampleApplication._debug("__init__ %r %r", device, address)

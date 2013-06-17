@@ -26,7 +26,8 @@ _log = ModuleLogger(globals())
 #   TestBBMD
 #
 
-class TestBBMD(BIPBBMD, Logging):
+@bacpypes_debugging
+class TestBBMD(BIPBBMD):
 
     def __init__(self, addr):
         if _debug: TestBBMD._debug("TestBBMD %r", addr)

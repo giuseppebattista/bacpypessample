@@ -1,11 +1,7 @@
 #!/usr/bin/python
 
 """
-sample014_client.py
-
-    Run it like this:
-    
-        $ python sample014_client.py http://localhost:9090/ http://localhost:9091/ ...
+sample014_client
 """
 
 import sys
@@ -18,7 +14,7 @@ import urllib
 import simplejson
 from threading import Thread, Lock
 
-from bacpypes.debugging import Logging, ModuleLogger
+from bacpypes.debugging import bacpypes_debugging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 from bacpypes.consolecmd import ConsoleCmd
 
@@ -36,7 +32,8 @@ cache_lock = None
 #   MyCacheCmd
 #
 
-class MyCacheCmd(ConsoleCmd, Logging):
+@bacpypes_debugging
+class MyCacheCmd(ConsoleCmd):
 
     def do_dump(self, arg):
         """dump - nicely print the cache"""
@@ -71,7 +68,8 @@ class MyCacheCmd(ConsoleCmd, Logging):
 #   MyCacheThread
 #
 
-class MyCacheThread(Thread, Logging):
+@bacpypes_debugging
+class MyCacheThread(Thread):
 
     def __init__(self, url):
         if _debug: MyCacheThread._debug("__init__ %r", url)
