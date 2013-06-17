@@ -9,7 +9,9 @@ import types
 import logging
 import argparse
 
-from debugging import LoggingFormatter, ModuleLogger
+from debugging import bacpypes_debugging, LoggingFormatter, ModuleLogger
+
+from ConfigParser import ConfigParser
 
 # some debugging
 _debug = 0
@@ -62,6 +64,7 @@ def ConsoleLogHandler(loggerRef='', level=logging.DEBUG):
 #   ArgumentParser
 #
 
+@bacpypes_debugging
 class ArgumentParser(argparse.ArgumentParser):
 
     """
@@ -70,7 +73,6 @@ class ArgumentParser(argparse.ArgumentParser):
 
         --buggers                       list the debugging logger names
         --debug [DBEUG [DEBUG ...]]     attach a console to loggers
-        --ini INI                       provide a separate INI file
     """
 
     def __init__(self, **kwargs):
@@ -87,12 +89,6 @@ class ArgumentParser(argparse.ArgumentParser):
         # add a way to attach debuggers
         self.add_argument('--debug', nargs='*',
             help="add console log handler to each debugging logger",
-            )
-
-        # add a way to read a configuration file
-        self.add_argument('--ini',
-            help="device object configuration file",
-            default="BACpypes.ini",
             )
 
     def parse_args(self):
@@ -124,6 +120,57 @@ class ArgumentParser(argparse.ArgumentParser):
         # attach any that are specified
         for debug_name in bug_list:
             ConsoleLogHandler(debug_name)
+
+        # return what was parsed
+        return args
+
+#
+#   ConfigArgumentParser
+#
+
+@bacpypes_debugging
+class ConfigArgumentParser(ArgumentParser):
+
+    """
+    ConfigArgumentParser extends the ArgumentParser with the functionality to
+    read in a configuration file.
+
+        --ini INI       provide a separate INI file
+    """
+
+    def __init__(self, **kwargs):
+        """Follow normal initialization and add BACpypes arguments."""
+        if _debug: ConfigArgumentParser._debug("__init__")
+        ArgumentParser.__init__(self, **kwargs)
+
+        # add a way to read a configuration file
+        self.add_argument('--ini',
+            help="device object configuration file",
+            default="BACpypes.ini",
+            )
+
+    def parse_args(self):
+        """Parse the arguments as usual, then add default processing."""
+        if _debug: ConfigArgumentParser._debug("parse_args")
+
+        # pass along to the parent class
+        args = ArgumentParser.parse_args(self)
+
+        # read in the configuration file
+        config = ConfigParser()
+        config.read(args.ini)
+        if _debug: _log.debug("    - config: %r", config)
+
+        # check for BACpypes section
+        if not config.has_section('BACpypes'):
+            raise RuntimeError, "INI file with BACpypes section required"
+
+        # convert the contents to an object
+        ini_obj = type('ini', (object,), dict(config.items('BACpypes')))
+        if _debug: _log.debug("    - ini_obj: %r", ini_obj)
+
+        # add the object to the parsed arguments
+        setattr(args, 'ini', ini_obj)
 
         # return what was parsed
         return args
