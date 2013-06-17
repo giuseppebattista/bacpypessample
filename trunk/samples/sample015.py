@@ -173,9 +173,11 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
+        i = indx + 1
+        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
             ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+            i += 1
+        del sys.argv[indx:i]
 
     _log.debug("initialization")
 
@@ -190,13 +192,13 @@ try:
     elif not config.read('BACpypes.ini'):
         raise RuntimeError, "configuration file not found"
 
-    # make a local device
-    thisDevice = LocalDeviceObject(
-        objectName=config.get('BACpypes', 'objectName'),
-        objectIdentifier=config.getint('BACpypes', 'objectIdentifier'),
-        maxApduLengthAccepted=config.getint('BACpypes', 'maxApduLengthAccepted'),
-        segmentationSupported=config.get('BACpypes', 'segmentationSupported'),
-        vendorIdentifier=config.getint('BACpypes', 'vendorIdentifier'),
+    # make a device object
+    this_device = LocalDeviceObject(
+        objectName=config.get('BACpypes','objectName'),
+        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
+        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
+        segmentationSupported=config.get('BACpypes','segmentationSupported'),
+        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
         )
 
     # build a bit string that knows about the bit names
@@ -208,11 +210,11 @@ try:
     pss['atomicReadFile'] = 1
 
     # set the property value to be just the bits
-    thisDevice.protocolServicesSupported = pss.value
+    this_device.protocolServicesSupported = pss.value
 
     # make a sample application
-    thisApplication = BIPSimpleApplication(
-        thisDevice,
+    this_application = BIPSimpleApplication(
+        this_device,
         config.get('BACpypes','address'),
         )
 
@@ -231,8 +233,8 @@ try:
     _log.debug("    - f2: %r", f2)
 
     # add them to the device
-    thisApplication.add_object(f1)
-    thisApplication.add_object(f2)
+    this_application.add_object(f1)
+    this_application.add_object(f2)
 
     _log.debug("running")
 

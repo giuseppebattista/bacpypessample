@@ -29,8 +29,10 @@ from bacpypes.errors import DecodingError
 _debug = 0
 _log = ModuleLogger(globals())
 
-# reference a simple application
-thisApplication = None
+# globals
+this_device = None
+this_application = None
+this_console = None
 
 #
 #   TestApplication
@@ -111,17 +113,6 @@ class TestApplication(BIPForeignApplication, Logging):
         BIPForeignApplication.indication(self, apdu)
 
 #
-#   isint
-#
-
-def isint(s):
-    """Return true if s is all digits."""
-    for c in s:
-        if c not in '0123456789':
-            return False
-    return True
-
-#
 #   TestConsoleCmd
 #
 
@@ -147,7 +138,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
             if _debug: TestConsoleCmd._debug("    - request: %r", request)
 
             # give it to the application
-            thisApplication.request(request)
+            this_application.request(request)
 
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
@@ -163,14 +154,14 @@ class TestConsoleCmd(ConsoleCmd, Logging):
             request.pduDestination = GlobalBroadcast()
 
             # set the parameters from the device object
-            request.iAmDeviceIdentifier = thisDevice.objectIdentifier
-            request.maxAPDULengthAccepted = thisDevice.maxApduLengthAccepted
-            request.segmentationSupported = thisDevice.segmentationSupported
-            request.vendorID = thisDevice.vendorIdentifier
+            request.iAmDeviceIdentifier = this_device.objectIdentifier
+            request.maxAPDULengthAccepted = this_device.maxApduLengthAccepted
+            request.segmentationSupported = this_device.segmentationSupported
+            request.vendorID = this_device.vendorIdentifier
             if _debug: TestConsoleCmd._debug("    - request: %r", request)
 
             # give it to the application
-            thisApplication.request(request)
+            this_application.request(request)
 
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
@@ -183,7 +174,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
         try:
             addr, obj_type, obj_inst, prop_id = args[:4]
 
-            if isint(obj_type):
+            if obj_type.isdigit():
                 obj_type = int(obj_type)
             elif not get_object_class(obj_type):
                 raise ValueError, "unknown object type"
@@ -206,7 +197,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
             if _debug: TestConsoleCmd._debug("    - request: %r", request)
 
             # give it to the application
-            thisApplication.request(request)
+            this_application.request(request)
 
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
@@ -225,9 +216,11 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
+        i = indx + 1
+        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
             ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+            i += 1
+        del sys.argv[indx:i]
 
     _log.debug("initialization")
 
@@ -261,7 +254,7 @@ try:
     _log.debug("    - foreign_ttl: %r", foreign_ttl)
 
     # make a device object
-    thisDevice = \
+    this_device = \
         LocalDeviceObject( objectName=config.get('BACpypes','objectName')
             , objectIdentifier=config.getint('BACpypes','objectIdentifier')
             , maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted')
@@ -277,16 +270,16 @@ try:
     pss['writeProperty'] = 1
 
     # set the property value to be just the bits
-    thisDevice.protocolServicesSupported = pss.value
+    this_device.protocolServicesSupported = pss.value
 
     # make a simple application
-    thisApplication = TestApplication(
-        thisDevice,     # device object as usual
+    this_application = TestApplication(
+        this_device,    # device object as usual
         ('', 0),        # local host, operating system assigned port
         foreign_bbmd,   # address of BBMD accepted foreign device registration
         foreign_ttl,    # time to live
         )
-    TestConsoleCmd()
+    this_console = TestConsoleCmd()
 
     _log.debug("running")
 

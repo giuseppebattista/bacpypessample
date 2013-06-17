@@ -79,9 +79,11 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
+        i = indx + 1
+        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
             ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+            i += 1
+        del sys.argv[indx:i]
 
     _log.debug("initialization")
 
@@ -97,16 +99,16 @@ try:
         raise RuntimeError, "configuration file not found"
 
     # make a device object
-    thisDevice = \
-        LocalDeviceObject( objectName=config.get('BACpypes','objectName')
-            , objectIdentifier=config.getint('BACpypes','objectIdentifier')
-            , maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted')
-            , segmentationSupported=config.get('BACpypes','segmentationSupported')
-            , vendorIdentifier=config.getint('BACpypes','vendorIdentifier')
-            )
+    this_device = LocalDeviceObject(
+        objectName=config.get('BACpypes','objectName'),
+        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
+        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
+        segmentationSupported=config.get('BACpypes','segmentationSupported'),
+        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        )
 
     # make a sample application
-    SampleApplication(thisDevice, config.get('BACpypes','address'))
+    SampleApplication(this_device, config.get('BACpypes','address'))
 
     _log.debug("running")
 

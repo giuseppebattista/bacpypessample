@@ -87,9 +87,11 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
+        i = indx + 1
+        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
             ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+            i += 1
+        del sys.argv[indx:i]
 
     _log.debug("initialization")
 
@@ -104,17 +106,17 @@ try:
     elif not config.read('BACpypes.ini'):
         raise RuntimeError, "configuration file not found"
 
-    # make a local device
-    thisDevice = \
-        LocalDeviceObject(objectName=config.get('BACpypes', 'objectName')
-            , objectIdentifier=config.getint('BACpypes', 'objectIdentifier')
-            , maxApduLengthAccepted=config.getint('BACpypes', 'maxApduLengthAccepted')
-            , segmentationSupported=config.get('BACpypes', 'segmentationSupported')
-            , vendorIdentifier=config.getint('BACpypes', 'vendorIdentifier')
-            )
+    # make a device object
+    this_device = LocalDeviceObject(
+        objectName=config.get('BACpypes','objectName'),
+        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
+        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
+        segmentationSupported=config.get('BACpypes','segmentationSupported'),
+        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        )
 
     # make a sample application
-    thisApplication = BIPSimpleApplication(thisDevice, config.get('BACpypes','address'))
+    this_application = BIPSimpleApplication(this_device, config.get('BACpypes','address'))
 
     # make a random input object
     ravo1 = RandomAnalogValueObject('device1', 'random1',
@@ -128,9 +130,9 @@ try:
     _log.debug("    - ravo2: %r", ravo2)
 
     # add it to the device
-    thisApplication.add_object(ravo1)
-    thisApplication.add_object(ravo2)
-    _log.debug("    - object list: %r", thisDevice.objectList)
+    this_application.add_object(ravo1)
+    this_application.add_object(ravo2)
+    _log.debug("    - object list: %r", this_device.objectList)
 
     _log.debug("running")
 
