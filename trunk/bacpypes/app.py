@@ -7,7 +7,7 @@ Application Module
 from debugging import ModuleLogger, Logging
 from comm import ApplicationServiceElement, bind
 
-from pdu import Address, GlobalBroadcast
+from pdu import Address
 
 from primitivedata import *
 from constructeddata import *
@@ -21,15 +21,10 @@ from apdu import ConfirmedRequestPDU, SimpleAckPDU, RejectPDU, RejectReason
 from apdu import IAmRequest, ReadPropertyACK, Error
 
 from apdu import \
-    AtomicReadFileRequest, \
     AtomicReadFileACK, \
         AtomicReadFileACKAccessMethodChoice, \
             AtomicReadFileACKAccessMethodRecordAccess, \
             AtomicReadFileACKAccessMethodStreamAccess, \
-    AtomicWriteFileRequest, \
-        AtomicWriteFileRequestAccessMethodChoice, \
-            AtomicWriteFileRequestAccessMethodChoiceRecordAccess, \
-            AtomicWriteFileRequestAccessMethodChoiceStreamAccess, \
     AtomicWriteFileACK
 
 # some debugging
