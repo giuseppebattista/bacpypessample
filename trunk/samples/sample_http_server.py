@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-sample005.py
+sample_http_server
 """
 
 import sys
@@ -16,8 +16,8 @@ import SimpleHTTPServer
 
 from ConfigParser import ConfigParser
 
-from bacpypes.debugging import Logging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.debugging import class_debugging, ModuleLogger
+from bacpypes.consolelogging import ArgumentParser
 
 from bacpypes.core import run
 
@@ -35,7 +35,8 @@ _debug = 0
 _log = ModuleLogger(globals())
 
 # reference a simple application
-thisApplication = None
+this_application = None
+server = None
 
 #
 #   IOCB
@@ -56,7 +57,8 @@ class IOCB:
 #   WebServerApplication
 #
 
-class WebServerApplication(BIPSimpleApplication, Logging):
+@class_debugging
+class WebServerApplication(BIPSimpleApplication):
 
     def __init__(self, *args):
         if _debug: WebServerApplication._debug("__init__ %r", args)
@@ -152,7 +154,8 @@ class WebServerApplication(BIPSimpleApplication, Logging):
 #   ThreadedHTTPequestHandler
 #
 
-class ThreadedHTTPequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler, Logging):
+@class_debugging
+class ThreadedHTTPequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         if _debug: ThreadedHTTPequestHandler._debug("do_GET")
@@ -207,7 +210,7 @@ class ThreadedHTTPequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler, Loggi
             iocb.ioRequest = request
 
             # give it to the application to send
-            thisApplication.request(request, iocb)
+            this_application.request(request, iocb)
 
             # wait for the response
             iocb.ioComplete.wait()
@@ -235,52 +238,39 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
+    # basic parser includes BACpypes debugging options
+    parser = ArgumentParser(description=__doc__)
 
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
-            ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+    # add an option to override the port in the config file
+    parser.add_argument('--port',
+        help="override the port in the config file to PORT",
+        )
+
+    # parse the command line arguments
+    args = parser.parse_args()
 
     if _debug: _log.debug("initialization")
 
-    # assume we don't have a server yet
-    server = None
-
-    # read in a configuration file
+    # read in the configuration file
     config = ConfigParser()
-    if ('--ini' in sys.argv):
-        indx = sys.argv.index('--ini')
-        ini_file = sys.argv[indx + 1]
-        if not config.read(ini_file):
-            raise RuntimeError, "configuration file %r not found" % (ini_file,)
-        del sys.argv[indx:indx+2]
-    elif not config.read('BACpypes.ini'):
-        raise RuntimeError, "configuration file not found"
+    config.read(args.ini)
+    if _debug: _log.debug("    - config: %r", config.items('BACpypes'))
 
     # get the address from the config file
     addr = config.get('BACpypes', 'address')
 
-    # maybe use a different port
-    if '--port' in sys.argv:
-        i = sys.argv.index('--port')
-        addr += ':' + sys.argv[i+1]
-    if _debug: _log.debug("    - addr: %r", addr)
+    # check to see if the port should be overridden
+    if args.port:
+        addr += ':' + args.port
 
     # make a device object
-    thisDevice = \
-        LocalDeviceObject( objectName=config.get('BACpypes','objectName')
-            , objectIdentifier=config.getint('BACpypes','objectIdentifier')
-            , maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted')
-            , segmentationSupported=config.get('BACpypes','segmentationSupported')
-            , vendorIdentifier=config.getint('BACpypes','vendorIdentifier')
-            )
+    this_device = LocalDeviceObject(
+        objectName=config.get('BACpypes','objectName'),
+        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
+        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
+        segmentationSupported=config.get('BACpypes','segmentationSupported'),
+        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        )
 
     # build a bit string that knows about the bit names
     pss = ServicesSupported()
@@ -290,10 +280,10 @@ try:
     pss['writeProperty'] = 1
 
     # set the property value to be just the bits
-    thisDevice.protocolServicesSupported = pss.value
+    this_device.protocolServicesSupported = pss.value
 
     # make a simple application
-    thisApplication = WebServerApplication(thisDevice, addr)
+    this_application = WebServerApplication(this_device, addr)
 
     # local host, custom port
     HOST, PORT = "", 9000
