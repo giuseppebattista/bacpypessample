@@ -40,7 +40,7 @@ def ModuleLogger(globs):
     if not globs.has_key('_debug'):
         raise RuntimeError, "define _debug before creating a module logger"
 
-    # create a logger to be assgined to _log
+    # create a logger to be assigned to _log
     logger = logging.getLogger(globs['__name__'])
 
     # put in a reference to the module globals
@@ -225,10 +225,10 @@ class LoggingFormatter(logging.Formatter):
         return msg
 
 #
-#   _LoggingWrapper
+#   _logging_wrapper
 #
 
-def _LoggingWrapper(obj):
+def _logging_wrapper(obj):
     # create a logger for this object
     logger = logging.getLogger(obj.__module__ + '.' + obj.__name__)
     
@@ -249,7 +249,7 @@ class _LoggingMetaclass(type):
     
     def __init__(cls, *args):
         # wrap the class
-        _LoggingWrapper(cls)
+        _logging_wrapper(cls)
         
 #
 #   Logging
@@ -259,6 +259,17 @@ class Logging(object):
     __metaclass__ = _LoggingMetaclass
 
 #
+#   class_debugging
+#
+#   This decorator is used to wrap a class.
+#
+
+def class_debugging(cls):
+    # add a wrapper to the function
+    _logging_wrapper(cls)
+    return cls
+
+#
 #   function_debugging
 #
 #   This decorator is used to wrap a function.
@@ -266,6 +277,5 @@ class Logging(object):
 
 def function_debugging(f):
     # add a wrapper to the function
-    _LoggingWrapper(f)
+    _logging_wrapper(f)
     return f
-
