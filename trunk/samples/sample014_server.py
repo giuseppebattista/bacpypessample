@@ -1,11 +1,7 @@
 #!/usr/bin/python
 
 """
-sample014_server.py
-
-    Run like this:
-
-    $ python sample014_server.py 9001
+sample014_server
 """
 
 import sys

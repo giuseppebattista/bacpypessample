@@ -1,13 +1,9 @@
 #!/usr/bin/python
 
 """
-sample006.py
-
-    This sample application has just a network stack, not a full application,
-    and is a way to enter InitializeRoutingTable and WhoIsRouterToNetwork requests.
-    To see the npdu's, attach a debugger to the NSE class.
-
-    $ python sample006.py --debug bacpypes.netservice.NetworkServiceElement
+This sample application has just a network stack, not a full application,
+and is a way to enter InitializeRoutingTable and WhoIsRouterToNetwork requests.
+To see the NPDUs, attach a debugger to the NetworkServiceElement class.
 """
 
 import sys
@@ -15,7 +11,7 @@ import logging
 
 from ConfigParser import ConfigParser
 
-from bacpypes.debugging import Logging, ModuleLogger
+from bacpypes.debugging import bacpypes_debugging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 from bacpypes.consolecmd import ConsoleCmd
 
@@ -36,7 +32,8 @@ this_application = None
 #   TestConsoleCmd
 #
 
-class TestConsoleCmd(ConsoleCmd, Logging):
+@bacpypes_debugging
+class TestConsoleCmd(ConsoleCmd):
 
     def do_irt(self, args):
         """irt <addr>"""

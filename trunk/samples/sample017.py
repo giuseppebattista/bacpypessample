@@ -1,25 +1,23 @@
 #!/usr/bin/python
 
 """
-sample017.py
+Run with parameters:
 
-    Run with parameters:
+$ python sample017.py laddr lnet vnet vcount
 
-    $ python sample017.py laddr lnet vnet vcount
-    
-        laddr       - local address like 192.168.0.1/24
-        lnet        - local network number
-        vnet        - virtual network number
-        vcount      - number of virtual devices to create
+    laddr       - local address like 192.168.0.1/24
+    lnet        - local network number
+    vnet        - virtual network number
+    vcount      - number of virtual devices to create
 
-    Each device will be create with the device identifier (vnet * 100 + i).
+Each device will be create with the device identifier (vnet * 100 + i).
 """
 
 import sys
 import logging
 import random
 
-from bacpypes.debugging import Logging, ModuleLogger
+from bacpypes.debugging import bacpypes_debugging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 
 from bacpypes.core import run
@@ -44,7 +42,8 @@ _log = ModuleLogger(globals())
 #   RandomValueProperty
 #
 
-class RandomValueProperty(Property, Logging):
+@bacpypes_debugging
+class RandomValueProperty(Property):
 
     def __init__(self, identifier):
         if _debug: RandomValueProperty._debug("__init__ %r", identifier)
@@ -71,7 +70,8 @@ class RandomValueProperty(Property, Logging):
 #   Random Value Object Type
 #
 
-class RandomAnalogValueObject(AnalogValueObject, Logging):
+@bacpypes_debugging
+class RandomAnalogValueObject(AnalogValueObject):
 
     properties = [
         RandomValueProperty('presentValue'),
@@ -85,7 +85,8 @@ class RandomAnalogValueObject(AnalogValueObject, Logging):
 #   VLANApplication
 #
 
-class VLANApplication(Application, Logging):
+@bacpypes_debugging
+class VLANApplication(Application):
 
     def __init__(self, vlan_device, vlan_address, aseID=None):
         if _debug: VLANApplication._debug("__init__ %r %r aseID=%r", vlan_device, vlan_address, aseID)
@@ -134,7 +135,8 @@ class VLANApplication(Application, Logging):
 #   VLANRouter
 #
 
-class VLANRouter(Logging):
+@bacpypes_debugging
+class VLANRouter:
 
     def __init__(self, local_address, local_network, vlan_address, vlan_network):
         if _debug: VLANRouter._debug("__init__ %r %r %r %r", local_address, local_network, vlan_address, vlan_network)

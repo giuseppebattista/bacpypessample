@@ -1,8 +1,6 @@
 #!/usr/bin/python
 
 """
-GetAlarmSummaryRequest
-
 Sample console application that sends out a GetAlarmSummaryRequest to a specific
 address and prints out the result.
 """
@@ -12,7 +10,7 @@ import logging
 
 from ConfigParser import ConfigParser
 
-from bacpypes.debugging import Logging, ModuleLogger
+from bacpypes.debugging import bacpypes_debugging, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 from bacpypes.consolecmd import ConsoleCmd
 
@@ -35,7 +33,8 @@ this_application = None
 #   TestApplication
 #
 
-class TestApplication(BIPSimpleApplication, Logging):
+@bacpypes_debugging
+class TestApplication(BIPSimpleApplication):
 
     def __init__(self, *args):
         if _debug: TestApplication._debug("__init__ %r", args)
@@ -82,7 +81,8 @@ class TestApplication(BIPSimpleApplication, Logging):
 #   TestConsoleCmd
 #
 
-class TestConsoleCmd(ConsoleCmd, Logging):
+@bacpypes_debugging
+class TestConsoleCmd(ConsoleCmd):
 
     def do_getalarmsummary(self, args):
         """getalarmsummary <addr>"""

@@ -11,7 +11,7 @@ import string
 
 from ConfigParser import ConfigParser
 
-from bacpypes.debugging import DebugContents, Logging, ModuleLogger
+from bacpypes.debugging import bacpypes_debugging, DebugContents, ModuleLogger
 from bacpypes.consolelogging import ConsoleLogHandler
 
 from bacpypes.core import run
@@ -31,7 +31,8 @@ _log = ModuleLogger(globals())
 #   Local Record Access File Object Type
 #
 
-class LocalRecordAccessFileObject(FileObject, Logging):
+@bacpypes_debugging
+class LocalRecordAccessFileObject(FileObject):
 
     def __init__(self, **kwargs):
         """ Initialize a record accessed file object. """
@@ -97,7 +98,8 @@ register_object_type(LocalRecordAccessFileObject)
 #   Local Stream Access File Object Type
 #
 
-class LocalStreamAccessFileObject(FileObject, Logging):
+@bacpypes_debugging
+class LocalStreamAccessFileObject(FileObject):
 
     def __init__(self, **kwargs):
         """ Initialize a stream accessed file object. """
