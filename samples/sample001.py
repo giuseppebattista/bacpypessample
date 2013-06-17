@@ -22,6 +22,7 @@ _debug = 0
 _log = ModuleLogger(globals())
 
 # globals
+this_device = None
 this_application = None
 
 #
