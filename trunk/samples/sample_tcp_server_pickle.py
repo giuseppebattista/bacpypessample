@@ -1,16 +1,18 @@
 #!/usr/bin/python
 
 """
-sample_tcp_server_pickle
-
-Rather than just using plain text messages, pickle arbitrary Python objects.
+Derived from sample_tcp_server, this application echos arbitrary Python
+objects received by connected clients.  At the application layer, the incoming
+stream of content has already been converted into Python objects so it can be
+sent back down the stack where it will be re-pickled before being streamed
+back to the client.
 """
 
 import sys
 import logging
 
 from bacpypes.debugging import Logging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.consolelogging import ArgumentParser
 
 from bacpypes.core import run
 from bacpypes.comm import PDU, Client, bind, ApplicationServiceElement
@@ -54,20 +56,8 @@ class ConnectionASE(ApplicationServiceElement, Logging):
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
-
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
+    # parse the command line arguments
+    args = ArgumentParser(description=__doc__).parse_args()
 
     _log.debug("initialization")
 

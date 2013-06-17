@@ -1,14 +1,16 @@
 #!/usr/bin/python
 
 """
-sample_tcp_client
+This simple TCP client application opens a connection to the server and sends
+each line as a PDU.  This may end up with more than one TCP data message on the
+wire.
 """
 
 import sys
 import logging
 
 from bacpypes.debugging import Logging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.consolelogging import ArgumentParser
 
 from bacpypes.core import run, stop
 from bacpypes.comm import PDU, Client, Server, bind, ApplicationServiceElement
@@ -74,22 +76,10 @@ class ConnectionASE(ApplicationServiceElement, Logging):
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
+    # parse the command line arguments
+    args = ArgumentParser(description=__doc__).parse_args()
 
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
-
-    _log.debug("initialization")
+    if _debug: _log.debug("initialization")
 
     console = ConsoleClient()
     middle_man = MiddleMan()
