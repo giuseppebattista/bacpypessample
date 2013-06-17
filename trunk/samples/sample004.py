@@ -1,17 +1,17 @@
 #!/usr/bin/python
 
 """
-sample004.py
+This sample application shows how to extend one of the basic objects, an Analog
+Value Object in this case, to provide a present value. This type of code is used
+when the application is providing a BACnet interface to a collection of data.
+It assumes that almost all of the default behaviour of a BACpypes application is
+sufficient.
 """
 
-import sys
-import logging
 import random
 
-from ConfigParser import ConfigParser
-
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.consolelogging import ConfigArgumentParser
 
 from bacpypes.core import run
 
@@ -23,6 +23,10 @@ from bacpypes.apdu import Error
 # some debugging
 _debug = 0
 _log = ModuleLogger(globals())
+
+# globals
+this_device = None
+this_application = None
 
 #
 #   RandomValueProperty
@@ -63,15 +67,9 @@ class RandomAnalogValueObject(AnalogValueObject):
         RandomValueProperty('presentValue'),
         ]
 
-    def __init__(self, _deviceid, _tagid, **kwargs):
-        if _debug:
-            RandomAnalogValueObject._debug("__init__ %r %r %r",
-                _deviceid, _tagid, kwargs
-                )
+    def __init__(self, **kwargs):
+        if _debug: RandomAnalogValueObject._debug("__init__ %r", kwargs)
         AnalogValueObject.__init__(self, **kwargs)
-
-        self._deviceid = _deviceid
-        self._tagid = _tagid
 
 register_object_type(RandomAnalogValueObject)
 
@@ -80,53 +78,31 @@ register_object_type(RandomAnalogValueObject)
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
+    # parse the command line arguments
+    args = ConfigArgumentParser(description=__doc__).parse_args()
 
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
-
-    _log.debug("initialization")
-
-    # read in a configuration file
-    config = ConfigParser()
-    if ('--ini' in sys.argv):
-        indx = sys.argv.index('--ini')
-        ini_file = sys.argv[indx + 1]
-        if not config.read(ini_file):
-            raise RuntimeError, "configuration file %r not found" % (ini_file,)
-        del sys.argv[indx:indx+2]
-    elif not config.read('BACpypes.ini'):
-        raise RuntimeError, "configuration file not found"
+    if _debug: _log.debug("initialization")
+    if _debug: _log.debug("    - args: %r", args)
 
     # make a device object
     this_device = LocalDeviceObject(
-        objectName=config.get('BACpypes','objectName'),
-        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
-        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
-        segmentationSupported=config.get('BACpypes','segmentationSupported'),
-        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        objectName=args.ini.objectname,
+        objectIdentifier=int(args.ini.objectidentifier),
+        maxApduLengthAccepted=int(args.ini.maxapdulengthaccepted),
+        segmentationSupported=args.ini.segmentationsupported,
+        vendorIdentifier=int(args.ini.vendoridentifier),
         )
 
     # make a sample application
-    this_application = BIPSimpleApplication(this_device, config.get('BACpypes','address'))
+    this_application = BIPSimpleApplication(this_device, args.ini.address)
 
     # make a random input object
-    ravo1 = RandomAnalogValueObject('device1', 'random1',
+    ravo1 = RandomAnalogValueObject(
         objectIdentifier=('analogValue', 1), objectName='Random1'
         )
     _log.debug("    - ravo1: %r", ravo1)
 
-    ravo2 = RandomAnalogValueObject('device2', 'random2',
+    ravo2 = RandomAnalogValueObject(
         objectIdentifier=('analogValue', 2), objectName='Random2'
         )
     _log.debug("    - ravo2: %r", ravo2)
@@ -144,3 +120,4 @@ except Exception, e:
     _log.exception("an error has occurred: %s", e)
 finally:
     _log.debug("finally")
+
