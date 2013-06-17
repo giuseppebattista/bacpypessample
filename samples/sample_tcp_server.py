@@ -1,14 +1,17 @@
 #!/usr/bin/python
 
 """
-sample_tcp_server
+This simple TCP server application listens for one or more client connections
+and echos the incoming lines back to the client.  There is no conversion from 
+incoming streams of content into a line or any other higher-layer concept
+of a packet.
 """
 
 import sys
 import logging
 
 from bacpypes.debugging import Logging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.consolelogging import ArgumentParser
 
 from bacpypes.core import run
 from bacpypes.comm import PDU, Client, bind, ApplicationServiceElement
@@ -55,20 +58,8 @@ class ConnectionASE(ApplicationServiceElement, Logging):
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
-
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
+    # parse the command line arguments
+    args = ArgumentParser(description=__doc__).parse_args()
 
     _log.debug("initialization")
 
