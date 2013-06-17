@@ -29,19 +29,19 @@ who_is_counter = defaultdict(int)
 i_am_counter = defaultdict(int)
 
 #
-#   SampleApplication
+#   WhoIsIAmApplication
 #
 
 @bacpypes_debugging
-class SampleApplication(BIPSimpleApplication):
+class WhoIsIAmApplication(BIPSimpleApplication):
 
     def __init__(self, device, address):
-        if _debug: SampleApplication._debug("__init__ %r %r", device, address)
+        if _debug: WhoIsIAmApplication._debug("__init__ %r %r", device, address)
         BIPSimpleApplication.__init__(self, device, address)
 
     def do_WhoIsRequest(self, apdu):
         """Respond to a Who-Is request."""
-        if _debug: SampleApplication._debug("do_WhoIsRequest %r", apdu)
+        if _debug: WhoIsIAmApplication._debug("do_WhoIsRequest %r", apdu)
 
         # build a key from the source and parameters
         key = (str(apdu.pduSource),
@@ -57,7 +57,7 @@ class SampleApplication(BIPSimpleApplication):
 
     def do_IAmRequest(self, apdu):
         """Given an I-Am request, cache it."""
-        if _debug: SampleApplication._debug("do_IAmRequest %r", apdu)
+        if _debug: WhoIsIAmApplication._debug("do_IAmRequest %r", apdu)
 
         # build a key from the source, just use the instance number
         key = (str(apdu.pduSource),
@@ -90,7 +90,7 @@ try:
         )
 
     # make a sample application
-    this_application = SampleApplication(this_device, args.ini.address)
+    this_application = WhoIsIAmApplication(this_device, args.ini.address)
 
     _log.debug("running")
 
