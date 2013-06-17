@@ -17,7 +17,7 @@ import SimpleHTTPServer
 import simplejson
 
 # globals
-varNames = [
+var_names = [
     "spam",
     "eggs",
     ]
@@ -30,7 +30,7 @@ port = None
 class ValueServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_GET(self):
-        cache_update = {choice(varNames): uniform(0, 100)}
+        cache_update = {choice(var_names): uniform(0, 100)}
 
         sys.stdout.write(str(port) + ': ' + str(cache_update) + '\n')
         sys.stdout.flush()

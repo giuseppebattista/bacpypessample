@@ -30,7 +30,7 @@ _debug = 0
 _log = ModuleLogger(globals())
 
 # reference a network application
-thisApplication = None
+this_application = None
 
 #
 #   TestConsoleCmd
@@ -49,7 +49,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
             request.pduDestination = Address(args[0])
 
             # give it to the application
-            thisApplication.request(thisApplication.nsap.adapters[0], request)
+            this_application.request(this_application.nsap.adapters[0], request)
 
         except Exception, e:
             print e.__class__, ":", e
@@ -72,7 +72,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
                 request.wirtnNetwork = int(args[1])
 
             # give it to the application
-            thisApplication.request(thisApplication.nsap.adapters[0], request)
+            this_application.request(this_application.nsap.adapters[0], request)
 
         except Exception, e:
             print e.__class__, ":", e
@@ -94,9 +94,11 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
+        i = indx + 1
+        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
             ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+            i += 1
+        del sys.argv[indx:i]
 
     _log.debug("initialization")
 
@@ -121,7 +123,7 @@ try:
     _log.debug("    - addr: %r", addr)
 
     # make a simple application
-    thisApplication = BIPNetworkApplication(addr)
+    this_application = BIPNetworkApplication(addr)
     TestConsoleCmd()
 
     _log.debug("running")

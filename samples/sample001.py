@@ -6,10 +6,11 @@ sample001.py
 
 import sys
 import logging
+
 from ConfigParser import ConfigParser
 
 from bacpypes.debugging import Logging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.consolelogging import ArgumentParser
 
 from bacpypes.core import run
 
@@ -18,6 +19,9 @@ from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
 # some debugging
 _debug = 0
 _log = ModuleLogger(globals())
+
+# globals
+this_application = None
 
 #
 #   SampleApplication
@@ -50,45 +54,28 @@ class SampleApplication(BIPSimpleApplication, Logging):
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
+    # parse the command line arguments
+    args = ArgumentParser().parse_args()
 
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
+    if _debug: _log.debug("initialization")
+    if _debug: _log.debug("    - args: %r", args)
 
-    _log.debug("initialization")
-
-    # read in a configuration file
+    # read in the configuration file
     config = ConfigParser()
-    if ('--ini' in sys.argv):
-        indx = sys.argv.index('--ini')
-        ini_file = sys.argv[indx + 1]
-        if not config.read(ini_file):
-            raise RuntimeError, "configuration file %r not found" % (ini_file,)
-        del sys.argv[indx:indx+2]
-    elif not config.read('BACpypes.ini'):
-        raise RuntimeError, "configuration file not found"
+    config.read(args.ini)
+    if _debug: _log.debug("    - config: %r", config.items('BACpypes'))
 
     # make a device object
-    thisDevice = \
-        LocalDeviceObject( objectName=config.get('BACpypes','objectName')
-            , objectIdentifier=config.getint('BACpypes','objectIdentifier')
-            , maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted')
-            , segmentationSupported=config.get('BACpypes','segmentationSupported')
-            , vendorIdentifier=config.getint('BACpypes','vendorIdentifier')
-            )
+    this_device = LocalDeviceObject(
+        objectName=config.get('BACpypes','objectName'),
+        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
+        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
+        segmentationSupported=config.get('BACpypes','segmentationSupported'),
+        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        )
 
     # make a sample application
-    SampleApplication(thisDevice, config.get('BACpypes','address'))
+    this_application = SampleApplication(this_device, config.get('BACpypes','address'))
 
     _log.debug("running")
 

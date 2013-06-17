@@ -173,9 +173,11 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
+        i = indx + 1
+        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
             ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+            i += 1
+        del sys.argv[indx:i]
 
     _log.debug("initialization")
 

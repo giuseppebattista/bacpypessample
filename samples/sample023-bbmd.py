@@ -29,7 +29,7 @@ _log = ModuleLogger(globals())
 class TestBBMD(BIPBBMD, Logging):
 
     def __init__(self, addr):
-        TestBBMD._debug("TestBBMD %r", addr)
+        if _debug: TestBBMD._debug("TestBBMD %r", addr)
         BIPBBMD.__init__(self, addr)
 
         # save the address
@@ -62,9 +62,11 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
+        i = indx + 1
+        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
             ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+            i += 1
+        del sys.argv[indx:i]
 
     _log.debug("initialization")
 

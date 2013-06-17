@@ -37,7 +37,7 @@ _debug = 0
 _log = ModuleLogger(globals())
 
 # reference a simple application
-thisApplication = None
+this_application = None
 
 #
 #   TestApplication
@@ -87,17 +87,6 @@ class TestApplication(BIPSimpleApplication, Logging):
             sys.stdout.flush()
 
 #
-#   isint
-#
-
-def isint(s):
-    """Return true if s is all digits."""
-    for c in s:
-        if c not in '0123456789':
-            return False
-    return True
-
-#
 #   TestConsoleCmd
 #
 
@@ -130,7 +119,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
             if _debug: TestConsoleCmd._debug("    - request: %r", request)
 
             # give it to the application
-            thisApplication.request(request)
+            this_application.request(request)
 
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
@@ -162,7 +151,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
             if _debug: TestConsoleCmd._debug("    - request: %r", request)
 
             # give it to the application
-            thisApplication.request(request)
+            this_application.request(request)
 
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
@@ -196,7 +185,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
             if _debug: TestConsoleCmd._debug("    - request: %r", request)
 
             # give it to the application
-            thisApplication.request(request)
+            this_application.request(request)
 
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
@@ -227,7 +216,7 @@ class TestConsoleCmd(ConsoleCmd, Logging):
             if _debug: TestConsoleCmd._debug("    - request: %r", request)
 
             # give it to the application
-            thisApplication.request(request)
+            this_application.request(request)
 
         except Exception, e:
             TestConsoleCmd._exception("exception: %r", e)
@@ -246,9 +235,11 @@ try:
 
     if ('--debug' in sys.argv):
         indx = sys.argv.index('--debug')
-        for i in range(indx+1, len(sys.argv)):
+        i = indx + 1
+        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
             ConsoleLogHandler(sys.argv[i])
-        del sys.argv[indx:]
+            i += 1
+        del sys.argv[indx:i]
 
     _log.debug("initialization")
 
@@ -273,13 +264,13 @@ try:
     _log.debug("    - addr: %r", addr)
 
     # make a device object
-    thisDevice = \
-        LocalDeviceObject( objectName=config.get('BACpypes','objectName')
-            , objectIdentifier=config.getint('BACpypes','objectIdentifier')
-            , maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted')
-            , segmentationSupported=config.get('BACpypes','segmentationSupported')
-            , vendorIdentifier=config.getint('BACpypes','vendorIdentifier')
-            )
+    this_device = LocalDeviceObject(
+        objectName=config.get('BACpypes','objectName'),
+        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
+        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
+        segmentationSupported=config.get('BACpypes','segmentationSupported'),
+        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        )
 
     # build a bit string that knows about the bit names
     pss = ServicesSupported()
@@ -290,10 +281,10 @@ try:
     pss['atomicReadFile'] = 1
 
     # set the property value to be just the bits
-    thisDevice.protocolServicesSupported = pss.value
+    this_device.protocolServicesSupported = pss.value
 
     # make a simple application
-    thisApplication = TestApplication(thisDevice, addr)
+    this_application = TestApplication(this_device, addr)
     TestConsoleCmd()
 
     _log.debug("running")
