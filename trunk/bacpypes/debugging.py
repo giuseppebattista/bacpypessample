@@ -35,7 +35,17 @@ def _str_to_hex(x, sep=''):
 #
 
 def ModuleLogger(globs):
-    """Create a module level logger."""
+    """Create a module level logger.
+    
+    To debug a module, create a _debug variable in the module, then use the
+    ModuleLogger function to create a "module level" logger.  When a handler
+    is added to this logger or a child of this logger, the _debug variable will
+    be incremented.
+    
+    All of the calls within functions or class methods within the module should
+    first check to see if _debug is set to prevent calls to formatter objects
+    that aren't necessary.
+    """
     # make sure that _debug is defined
     if not globs.has_key('_debug'):
         raise RuntimeError, "define _debug before creating a module logger"
@@ -50,10 +60,6 @@ def ModuleLogger(globs):
 
 #
 #   Typical Use
-#
-#   Create a _debug variable in the module, then use the ModuleLogger function
-#   to create a "module level" logger.  When a handler is added to this logger
-#   or a child of this logger, the _debug variable will be incremented.
 #
 
 # some debugging
@@ -225,10 +231,11 @@ class LoggingFormatter(logging.Formatter):
         return msg
 
 #
-#   _logging_wrapper
+#   bacpypes_debugging
 #
 
-def _logging_wrapper(obj):
+def bacpypes_debugging(obj):
+    """Function for attaching a debugging logger to a class or function."""
     # create a logger for this object
     logger = logging.getLogger(obj.__module__ + '.' + obj.__name__)
     
@@ -241,6 +248,8 @@ def _logging_wrapper(obj):
     obj._exception = logger.exception
     obj._fatal = logger.fatal
 
+    return obj
+
 #
 #   _LoggingMetaclass
 #
@@ -249,7 +258,7 @@ class _LoggingMetaclass(type):
     
     def __init__(cls, *args):
         # wrap the class
-        _logging_wrapper(cls)
+        bacpypes_debugging(cls)
         
 #
 #   Logging
@@ -261,21 +270,17 @@ class Logging(object):
 #
 #   class_debugging
 #
-#   This decorator is used to wrap a class.
-#
 
 def class_debugging(cls):
-    # add a wrapper to the function
-    _logging_wrapper(cls)
+    """Add the debugging logger to the class."""
+    bacpypes_debugging(cls)
     return cls
 
 #
 #   function_debugging
 #
-#   This decorator is used to wrap a function.
-#
 
 def function_debugging(f):
-    # add a wrapper to the function
-    _logging_wrapper(f)
+    """Add the debugging logger to the function."""
+    bacpypes_debugging(f)
     return f
