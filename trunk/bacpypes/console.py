@@ -81,4 +81,3 @@ class ConsoleServer(asyncore.file_dispatcher, Server, Logging):
             sys.stdout.write(pdu.pduData)
         except Exception, e:
             ConsoleServer._exception("Indication sys.stdout.write exception: %r", e)
-
