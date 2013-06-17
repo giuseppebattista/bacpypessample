@@ -1,17 +1,16 @@
 #!/usr/bin/python
 
 """
-sample002.py
+This sample application builds on the first sample by overriding the default 
+processing for Who-Is and I-Am requests, counting them, then continuing on
+with the regular processing.  After the run() function has completed it will
+dump a formatted summary of the requests it has received.
 """
 
-import sys
-import logging
 from collections import defaultdict
 
-from ConfigParser import ConfigParser
-
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.consolelogging import ConfigArgumentParser
 
 from bacpypes.core import run
 
@@ -21,9 +20,13 @@ from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
 _debug = 0
 _log = ModuleLogger(globals())
 
+# globals
+this_device = None
+this_application = None
+
 # counters
-whoIsCounter = defaultdict(int)
-iAmCounter = defaultdict(int)
+who_is_counter = defaultdict(int)
+i_am_counter = defaultdict(int)
 
 #
 #   SampleApplication
@@ -47,7 +50,7 @@ class SampleApplication(BIPSimpleApplication):
             )
 
         # count the times this has been received
-        whoIsCounter[key] += 1
+        who_is_counter[key] += 1
 
         # pass back to the default implementation
         BIPSimpleApplication.do_WhoIsRequest(self, apdu)
@@ -62,7 +65,7 @@ class SampleApplication(BIPSimpleApplication):
             )
 
         # count the times this has been received
-        iAmCounter[key] += 1
+        i_am_counter[key] += 1
 
         # no default implementation
 
@@ -71,58 +74,35 @@ class SampleApplication(BIPSimpleApplication):
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
+    # parse the command line arguments
+    args = ConfigArgumentParser(description=__doc__).parse_args()
 
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
-
-    _log.debug("initialization")
-
-    # read in a configuration file
-    config = ConfigParser()
-    if ('--ini' in sys.argv):
-        indx = sys.argv.index('--ini')
-        ini_file = sys.argv[indx + 1]
-        if not config.read(ini_file):
-            raise RuntimeError, "configuration file %r not found" % (ini_file,)
-        del sys.argv[indx:indx+2]
-    elif not config.read('BACpypes.ini'):
-        raise RuntimeError, "configuration file not found"
+    if _debug: _log.debug("initialization")
+    if _debug: _log.debug("    - args: %r", args)
 
     # make a device object
     this_device = LocalDeviceObject(
-        objectName=config.get('BACpypes','objectName'),
-        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
-        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
-        segmentationSupported=config.get('BACpypes','segmentationSupported'),
-        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        objectName=args.ini.objectname,
+        objectIdentifier=int(args.ini.objectidentifier),
+        maxApduLengthAccepted=int(args.ini.maxapdulengthaccepted),
+        segmentationSupported=args.ini.segmentationsupported,
+        vendorIdentifier=int(args.ini.vendoridentifier),
         )
 
     # make a sample application
-    SampleApplication(this_device, config.get('BACpypes','address'))
+    this_application = SampleApplication(this_device, args.ini.address)
 
     _log.debug("running")
 
-    # run until stopped, ^C works
     run()
 
     print "----- Who Is -----"
-    for (src, lowlim, hilim), count in sorted(whoIsCounter.items()):
+    for (src, lowlim, hilim), count in sorted(who_is_counter.items()):
         print "%-20s %8s %8s %4d" % (src, lowlim, hilim, count)
     print
 
     print "----- I Am -----"
-    for (src, devid), count in sorted(iAmCounter.items()):
+    for (src, devid), count in sorted(i_am_counter.items()):
         print "%-20s %8d %4d" % (src, devid, count)
     print
 
