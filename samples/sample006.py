@@ -2,17 +2,11 @@
 
 """
 This sample application has just a network stack, not a full application,
-and is a way to enter InitializeRoutingTable and WhoIsRouterToNetwork requests.
-To see the NPDUs, attach a debugger to the NetworkServiceElement class.
+and is a way to create InitializeRoutingTable and WhoIsRouterToNetwork requests.
 """
 
-import sys
-import logging
-
-from ConfigParser import ConfigParser
-
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.consolelogging import ConfigArgumentParser
 from bacpypes.consolecmd import ConsoleCmd
 
 from bacpypes.core import run
@@ -25,103 +19,96 @@ from bacpypes.app import BIPNetworkApplication
 _debug = 0
 _log = ModuleLogger(globals())
 
-# reference a network application
+# globals
 this_application = None
+this_console = None
 
 #
-#   TestConsoleCmd
+#   WhoIsRouterApplication
 #
 
 @bacpypes_debugging
-class TestConsoleCmd(ConsoleCmd):
+class WhoIsRouterApplication(BIPNetworkApplication):
+
+    def __init__(self, *args):
+        if _debug: WhoIsRouterApplication._debug("__init__ %r", args)
+        BIPNetworkApplication.__init__(self, *args)
+
+        # keep track of requests to line up responses
+        self._request = None
+
+    def request(self, adapter, npdu):
+        if _debug: WhoIsRouterApplication._debug("request %r %r", adapter, npdu)
+
+        # save a copy of the request
+        self._request = npdu
+
+        # forward it along
+        BIPNetworkApplication.request(self, adapter, npdu)
+
+    def indication(self, adapter, npdu):
+        if _debug: WhoIsRouterApplication._debug("indication %r %r", adapter, npdu)
+        BIPNetworkApplication.indication(self, adapter, npdu)
+
+    def response(self, adapter, npdu):
+        if _debug: WhoIsRouterApplication._debug("response %r %r", adapter, npdu)
+        BIPNetworkApplication.response(self, adapter, npdu)
+
+    def confirmation(self, adapter, npdu):
+        if _debug: WhoIsRouterApplication._debug("confirmation %r %r", adapter, npdu)
+        BIPNetworkApplication.confirmation(self, adapter, npdu)
+
+#
+#   WhoIsRouterConsoleCmd
+#
+
+@bacpypes_debugging
+class WhoIsRouterConsoleCmd(ConsoleCmd):
 
     def do_irt(self, args):
         """irt <addr>"""
         args = args.split()
-        if _debug: TestConsoleCmd._debug("do_irt %r", args)
+        if _debug: WhoIsRouterConsoleCmd._debug("do_irt %r", args)
 
-        try:
-            # build a request
-            request = InitializeRoutingTable()
-            request.pduDestination = Address(args[0])
+        # build a request
+        request = InitializeRoutingTable()
+        request.pduDestination = Address(args[0])
 
-            # give it to the application
-            this_application.request(this_application.nsap.adapters[0], request)
-
-        except Exception, e:
-            print e.__class__, ":", e
-
-    def help_irt(self):
-        print self.do_irt.__doc__
-
-    #-----
+        # give it to the application
+        this_application.request(this_application.nsap.adapters[0], request)
 
     def do_wirtn(self, args):
         """wirtn <addr> [ <net> ]"""
         args = args.split()
-        if _debug: TestConsoleCmd._debug("do_irt %r", args)
+        if _debug: WhoIsRouterConsoleCmd._debug("do_irt %r", args)
 
-        try:
-            # build a request
-            request = WhoIsRouterToNetwork()
-            request.pduDestination = Address(args[0])
-            if (len(args) > 1):
-                request.wirtnNetwork = int(args[1])
+        # build a request
+        request = WhoIsRouterToNetwork()
+        request.pduDestination = Address(args[0])
+        if (len(args) > 1):
+            request.wirtnNetwork = int(args[1])
 
-            # give it to the application
-            this_application.request(this_application.nsap.adapters[0], request)
-
-        except Exception, e:
-            print e.__class__, ":", e
-
-    def help_wirtn(self):
-        print self.do_wirtn.__doc__
+        # give it to the application
+        this_application.request(this_application.nsap.adapters[0], request)
 
 #
 #   __main__
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
+    # parse the command line arguments
+    args = ConfigArgumentParser(description=__doc__).parse_args()
 
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
-
-    _log.debug("initialization")
-
-    # read in a configuration file
-    config = ConfigParser()
-    if ('--ini' in sys.argv):
-        indx = sys.argv.index('--ini')
-        ini_file = sys.argv[indx + 1]
-        if not config.read(ini_file):
-            raise RuntimeError, "configuration file %r not found" % (ini_file,)
-        del sys.argv[indx:indx+2]
-    elif not config.read('BACpypes.ini'):
-        raise RuntimeError, "configuration file not found"
-
-    # get the address from the config file
-    addr = config.get('BACpypes', 'address')
-
-    # maybe use a different port
-    if '--port' in sys.argv:
-        i = sys.argv.index('--port')
-        addr += ':' + sys.argv[i+1]
-    _log.debug("    - addr: %r", addr)
+    if _debug: _log.debug("initialization")
+    if _debug: _log.debug("    - args: %r", args)
 
     # make a simple application
-    this_application = BIPNetworkApplication(addr)
-    TestConsoleCmd()
+    this_application = WhoIsRouterApplication(args.ini.address)
+    if _debug: _log.debug("    - this_application: %r", this_application)
+
+    # make a console
+    this_console = WhoIsRouterConsoleCmd()
+    if _debug: _log.debug("    - this_console: %r", this_console)
 
     _log.debug("running")
 
