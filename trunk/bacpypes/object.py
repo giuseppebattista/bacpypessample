@@ -13,7 +13,7 @@ from debugging import function_debugging, ModuleLogger, Logging
 from primitivedata import *
 from constructeddata import *
 from basetypes import *
-from apdu import EventNotificationParameters, ReadAccessSpecification, ReadAccessResult
+from apdu import Error, EventNotificationParameters, ReadAccessSpecification, ReadAccessResult
 
 # some debugging
 _debug = 0
@@ -122,7 +122,7 @@ class Property(Logging):
         # access an array
         if arrayIndex is not None:
             if not issubclass(self.datatype, Array):
-                raise TypeError, "%s is not an array" % (self.identifier,)
+                raise ExecutionError(errorClass='property', errorCode='propertyIsNotAnArray')
 
             if value:
                 # dive in, the water's fine
@@ -140,7 +140,7 @@ class Property(Logging):
         # see if it must be provided
         if not self.optional and value is None:
             raise ValueError, "%s value required" % (self.identifier,)
-            
+
         # see if it can be changed
         if not self.mutable:
             raise RuntimeError, "%s immutable property" % (self.identifier,)
@@ -152,17 +152,17 @@ class Property(Logging):
             if _debug: Property._debug("    - correct type")
         elif arrayIndex is not None:
             if not issubclass(self.datatype, Array):
-                raise TypeError, "%s is not an array" % (self.identifier,)
-                
+                raise ExecutionError(errorClass='property', errorCode='propertyIsNotAnArray')
+
             # check the array
             arry = obj._values[self.identifier]
             if arry is None:
-                raise ValueError, "%s uninitialized array" % (self.identifier,)
-                
+                raise RuntimeError, "%s uninitialized array" % (self.identifier,)
+
             # seems to be OK, let the array object take over
             if _debug: Property._debug("    - forwarding to array")
             arry[arrayIndex] = value
-            
+
             return
         elif value is not None:
             # coerce the value

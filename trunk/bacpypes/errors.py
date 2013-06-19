@@ -49,5 +49,4 @@ class ExecutionError(exceptions.RuntimeError):
     def __init__(self, errorClass, errorCode):
         self.errorClass = errorClass
         self.errorCode = errorCode
-        self.args = "error: " + errorClass + ", " + errorCode
-
+        self.args = (errorClass, errorCode)

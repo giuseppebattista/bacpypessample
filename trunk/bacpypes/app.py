@@ -200,9 +200,18 @@ class Application(ApplicationServiceElement, Logging):
         # pass the apdu on to the helper function
         try:
             helperFn(apdu)
-        except Exception, e:
-            Application._exception("exception: %r", e)
-            
+
+        except ExecutionError, err:
+            if _debug: Application._debug("    - execution error: %r", err)
+
+            # send back an error
+            if isinstance(apdu, ConfirmedRequestPDU):
+                resp = Error(errorClass=err.errorClass, errorCode=err.errorCode, context=apdu)
+                self.response(resp)
+
+        except Exception, err:
+            Application._exception("exception: %r", err)
+
             # send back an error
             if isinstance(apdu, ConfirmedRequestPDU):
                 resp = Error(errorClass='device', errorCode='operationalProblem', context=apdu)
