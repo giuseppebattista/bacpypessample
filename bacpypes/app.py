@@ -320,8 +320,11 @@ class Application(ApplicationServiceElement, Logging):
                 if obj.ReadProperty(apdu.propertyIdentifier, apdu.propertyArrayIndex) is None:
                     raise PropertyError, apdu.propertyIdentifier
 
-                # get the datatype
-                datatype = obj.get_datatype(apdu.propertyIdentifier)
+                # get the datatype, special case for null
+                if apdu.propertyValue.is_application_class_null():
+                    datatype = Null
+                else:
+                    datatype = obj.get_datatype(apdu.propertyIdentifier)
                 if _debug: Application._debug("    - datatype: %r", datatype)
 
                 # special case for array parts, others are managed by cast_out

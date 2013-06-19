@@ -896,6 +896,10 @@ class Any(Logging):
             # return what was built
             return value
 
+    def is_application_class_null(self):
+        if _debug: Any._debug("is_application_class_null")
+        return (len(self.tagList) == 1) and (self.tagList[0].tagClass == Tag.applicationTagClass) and (self.tagList[0].tagNumber == Tag.nullAppTag)
+
     def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
         self.tagList.debug_contents(indent, file, _ids)
 
