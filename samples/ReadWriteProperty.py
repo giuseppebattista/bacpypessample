@@ -20,7 +20,7 @@ from bacpypes.object import get_object_class, get_datatype
 
 from bacpypes.apdu import Error, AbortPDU, SimpleAckPDU, \
     ReadPropertyRequest, ReadPropertyACK, WritePropertyRequest
-from bacpypes.primitivedata import Atomic, Integer, Unsigned, Real
+from bacpypes.primitivedata import Null, Atomic, Integer, Unsigned, Real
 from bacpypes.constructeddata import Array, Any
 from bacpypes.basetypes import ServicesSupported
 
@@ -160,13 +160,14 @@ class ReadWritePropertyConsoleCmd(ConsoleCmd):
             datatype = get_datatype(obj_type, prop_id)
             if _debug: ReadWritePropertyConsoleCmd._debug("    - datatype: %r", datatype)
 
-            # change atomic values into something encodeable
-            if issubclass(datatype, Atomic):
+            # change atomic values into something encodeable, null is a special case
+            if (value == 'null'):
+                value = Null()
+            elif issubclass(datatype, Atomic):
                 if datatype is Integer:
                     value = int(value)
                 elif datatype is Real:
                     value = float(value)
-
                 value = datatype(value)
             elif issubclass(datatype, Array) and (indx is not None):
                 if indx == 0:
