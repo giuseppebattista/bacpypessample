@@ -6,17 +6,13 @@ This sample application demonstrates a mix-in class for commandable properties
 time, or for Channel objects).
 """
 
-import random
-
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger
 from bacpypes.consolelogging import ConfigArgumentParser
 
 from bacpypes.core import run
 
-from bacpypes.primitivedata import Real
 from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
-from bacpypes.object import AnalogValueObject, Property, register_object_type
-from bacpypes.apdu import Error
+from bacpypes.object import AnalogValueObject
 
 # some debugging
 _debug = 0
