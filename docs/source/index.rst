@@ -11,7 +11,7 @@ is easy, just::
 You will be installing the latest released version.  You can also check out
 the latest version from SourceForge::
 
-    $ svn co https://bacpypes.svn.sourceforge.net/svnroot/bacpypes bacpypes
+    $ svn checkout https://svn.code.sf.net/p/bacpypes/code/trunk bacpypes
 
 And then use the setup utility to install it::
 

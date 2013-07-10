@@ -1,7 +1,7 @@
 .. BACpypes tutorial lesson 1
 
 Sample 3 - Who-Has/I-Have Counter
-==============================
+=================================
 
 This sample application is very similar to the second sample.  It has the 
 same basic structure and initialization, it counts the number of Who-Has and
