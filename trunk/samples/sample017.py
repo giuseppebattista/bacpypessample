@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 """
-Run with parameters:
+This sample application presents itself to the local network as a router
+to a virtual network with a potentially large number of virtual devices.
 
 $ python sample017.py laddr lnet vnet vcount
 
@@ -10,7 +11,8 @@ $ python sample017.py laddr lnet vnet vcount
     vnet        - virtual network number
     vcount      - number of virtual devices to create
 
-Each device will be create with the device identifier (vnet * 100 + i).
+Each device will be create with the device identifier (vnet * 100 + i)
+and have a single random analog value object.
 """
 
 import sys
