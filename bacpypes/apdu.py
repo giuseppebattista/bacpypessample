@@ -691,8 +691,9 @@ class Error(ErrorSequence):
 
     def __str__(self):
         return str(self.errorClass) + ": " + str(self.errorCode)
-        
+
 error_types[12] = Error
+error_types[14] = Error
 
 class ChangeListError(ErrorSequence):
     sequenceElements = \
