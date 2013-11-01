@@ -302,6 +302,7 @@ def decode_packet(data):
 
         elif isinstance(apdu, AbortPDU):
             atype = None
+        if _debug: decode_packet._debug("    - atype: %r", atype)
 
         # deeper decoding
         try:
@@ -318,15 +319,16 @@ def decode_packet(data):
 
     else:
         # make a more focused interpretation
-        atype = npdu_types.get(npdu.npduNetMessage)
-        if not atype:
+        ntype = npdu_types.get(npdu.npduNetMessage)
+        if not ntype:
             if _debug: decode_packet._debug("    - no network layer decoder: %r", npdu.npduNetMessage)
             return npdu
+        if _debug: decode_packet._debug("    - ntype: %r", ntype)
 
         # deeper decoding
         try:
             xpdu = npdu
-            npdu = atype()
+            npdu = ntype()
             npdu.decode(xpdu)
         except Exception, err:
             if _debug: decode_packet._debug("    - decoding error: %r", err)
