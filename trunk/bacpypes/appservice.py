@@ -1179,7 +1179,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
             else:
                 # verify the invoke ID isn't already being used
                 for tr in self.clientTransactions:
-                    if apdu.apduInvokeID == tr.invokeID:
+                    if (apdu.pduDestination == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
                         raise RuntimeError, "invoke ID in use"
 
             # warning for bogus requests
