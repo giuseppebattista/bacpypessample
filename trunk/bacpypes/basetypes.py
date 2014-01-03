@@ -1654,7 +1654,7 @@ class ActionCommand(Sequence):
 
 class ActionList(Sequence):
     sequenceElements = \
-        [ Element('action', SequenceOf(ActionCommand))
+        [ Element('action', SequenceOf(ActionCommand), 0)
         ]
 
 class AddressBinding(Sequence):
