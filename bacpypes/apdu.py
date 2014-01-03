@@ -786,7 +786,7 @@ register_confirmed_request_type(ReadPropertyMultipleRequest)
 class ReadAccessResultElementChoice(Choice):
     choiceElements = \
         [ Element('propertyValue', Any, 4)
-        , Element('propertyAccessError', Error, 5)
+        , Element('propertyAccessError', ErrorType, 5)
         ]
 
 class ReadAccessResultElement(Sequence):
@@ -1165,7 +1165,7 @@ class GetEnrollmentSummaryEnrollmentSummary(Sequence):
         , Element('eventType', EventType)
         , Element('eventState', EventState)
         , Element('priority', Unsigned)
-        , Element('notificationClass', Unsigned, True)
+        , Element('notificationClass', Unsigned, optional=True)
         ]
 
 class GetEnrollmentSummaryACK(ComplexAckSequence):
