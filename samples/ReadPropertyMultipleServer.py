@@ -14,11 +14,12 @@ from bacpypes.core import run
 
 from bacpypes.primitivedata import Atomic, Real, Unsigned
 from bacpypes.constructeddata import Array, Any
-from bacpypes.basetypes import ServicesSupported
-from bacpypes.apdu import ReadPropertyMultipleACK, ReadAccessResult, ReadAccessResultElement, ReadAccessResultElementChoice
+from bacpypes.basetypes import ServicesSupported, ErrorType
+from bacpypes.apdu import ReadPropertyMultipleACK, ReadAccessResult, ReadAccessResultElement, ReadAccessResultElementChoice, AbortPDU
 from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
 from bacpypes.object import AnalogValueObject, Property, PropertyError, register_object_type
 from bacpypes.apdu import Error
+from bacpypes.errors import ExecutionError
 
 # some debugging
 _debug = 0
@@ -44,7 +45,7 @@ class RandomValueProperty(Property):
 
         # access an array
         if arrayIndex is not None:
-            raise Error(errorClass='property', errorCode='propertyIsNotAnArray')
+            raise ExecutionError(errorClass='property', errorCode='propertyIsNotAnArray')
 
         # return a random value
         value = random.random() * 100.0
@@ -54,7 +55,7 @@ class RandomValueProperty(Property):
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
         if _debug: RandomValueProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
-        raise Error(errorClass='property', errorCode='writeAccessDenied')
+        raise ExecutionError(errorClass='property', errorCode='writeAccessDenied')
 
 #
 #   Random Value Object Type
@@ -87,13 +88,13 @@ def ReadPropertyToAny(obj, propertyIdentifier, propertyArrayIndex=None):
     datatype = obj.get_datatype(propertyIdentifier)
     if _debug: ReadPropertyToAny._debug("    - datatype: %r", datatype)
     if datatype is None:
-        raise Error(errorClass='property', errorCode='datatypeNotSupported')
+        raise ExecutionError(errorClass='property', errorCode='datatypeNotSupported')
 
     # get the value
     value = obj.ReadProperty(propertyIdentifier, propertyArrayIndex)
     if _debug: ReadPropertyToAny._debug("    - value: %r", value)
     if value is None:
-        raise Error(errorClass='property', errorCode='unknownProperty')
+        raise ExecutionError(errorClass='property', errorCode='unknownProperty')
 
     # change atomic values into something encodeable
     if issubclass(datatype, Atomic):
@@ -135,9 +136,12 @@ def ReadPropertyToResultElement(obj, propertyIdentifier, propertyArrayIndex=None
     try:
         read_result.propertyValue = ReadPropertyToAny(obj, propertyIdentifier, propertyArrayIndex)
         if _debug: ReadPropertyToResultElement._debug("    - success")
-    except Error, error:
+    except PropertyError, error:
         if _debug: ReadPropertyToResultElement._debug("    - error: %r", error)
-        read_result.propertyAccessError = error
+        read_result.propertyAccessError = ErrorType(errorClass='property', errorCode='unknownProperty')
+    except ExecutionError, error:
+        if _debug: ReadPropertyToResultElement._debug("    - error: %r", error)
+        read_result.propertyAccessError = ErrorType(errorClass=error.errorClass, errorCode=error.errorCode)
 
     # make an element for this value
     read_access_result_element = ReadAccessResultElement(

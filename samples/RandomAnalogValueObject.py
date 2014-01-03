@@ -18,7 +18,7 @@ from bacpypes.core import run
 from bacpypes.primitivedata import Real
 from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
 from bacpypes.object import AnalogValueObject, Property, register_object_type
-from bacpypes.apdu import Error
+from bacpypes.errors import ExecutionError
 
 # some debugging
 _debug = 0
@@ -44,7 +44,7 @@ class RandomValueProperty(Property):
 
         # access an array
         if arrayIndex is not None:
-            raise Error(errorClass='property', errorCode='propertyIsNotAnArray')
+            raise ExecutionError(errorClass='property', errorCode='propertyIsNotAnArray')
 
         # return a random value
         value = random.random() * 100.0
@@ -54,7 +54,7 @@ class RandomValueProperty(Property):
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
         if _debug: RandomValueProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
-        raise Error(errorClass='property', errorCode='writeAccessDenied')
+        raise ExecutionError(errorClass='property', errorCode='writeAccessDenied')
 
 #
 #   Random Value Object Type
