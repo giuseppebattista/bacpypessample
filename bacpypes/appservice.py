@@ -1104,9 +1104,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
                 
             # find the client transaction this is acking
             for tr in self.clientTransactions:
-                if (apdu.apduInvokeID == tr.invokeID):
-                    if not (apdu.pduSource == tr.remoteDevice.address):
-                        StateMachineAccessPoint._warning("%s != %s (ack/error/reject)", apdu.pduSource, tr.remoteDevice.address)
+                if (apdu.apduInvokeID == tr.invokeID) and (apdu.pduSource == tr.remoteDevice.address):
                     break
             else:
                 return
@@ -1118,9 +1116,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
             # find the transaction being aborted
             if apdu.apduSrv:
                 for tr in self.clientTransactions:
-                    if (apdu.apduInvokeID == tr.invokeID):
-                        if not(apdu.pduSource == tr.remoteDevice.address):
-                            StateMachineAccessPoint._warning("%s != %s (abort)", apdu.pduSource, tr.remoteDevice.address)
+                    if (apdu.apduInvokeID == tr.invokeID) and (apdu.pduSource == tr.remoteDevice.address):
                         break
                 else:
                     return
@@ -1129,7 +1125,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
                 tr.confirmation(apdu)
             else:
                 for tr in self.serverTransactions:
-                    if (apdu.pduSource == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
+                    if (apdu.apduInvokeID == tr.invokeID) and (apdu.pduSource == tr.remoteDevice.address):
                         break
                 else:
                     return
@@ -1141,9 +1137,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
             # find the transaction being aborted
             if apdu.apduSrv:
                 for tr in self.clientTransactions:
-                    if (apdu.apduInvokeID == tr.invokeID):
-                        if not(apdu.pduSource == tr.remoteDevice.address):
-                            StateMachineAccessPoint._warning("%s != %s (segment ack)", apdu.pduSource, tr.remoteDevice.address)
+                    if (apdu.apduInvokeID == tr.invokeID) and (apdu.pduSource == tr.remoteDevice.address):
                         break
                 else:
                     return
@@ -1152,7 +1146,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
                 tr.confirmation(apdu)
             else:
                 for tr in self.serverTransactions:
-                    if (apdu.pduSource == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
+                    if (apdu.apduInvokeID == tr.invokeID) and (apdu.pduSource == tr.remoteDevice.address):
                         break
                 else:
                     return
@@ -1179,7 +1173,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
             else:
                 # verify the invoke ID isn't already being used
                 for tr in self.clientTransactions:
-                    if (apdu.pduDestination == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
+                    if (apdu.apduInvokeID == tr.invokeID) and (apdu.pduDestination == tr.remoteDevice.address):
                         raise RuntimeError, "invoke ID in use"
 
             # warning for bogus requests
@@ -1210,7 +1204,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
                 or isinstance(apdu, AbortPDU):
             # find the appropriate server transaction
             for tr in self.serverTransactions:
-                if (apdu.pduDestination == tr.remoteDevice.address) and (apdu.apduInvokeID == tr.invokeID):
+                if (apdu.apduInvokeID == tr.invokeID) and (apdu.pduDestination == tr.remoteDevice.address):
                     break
             else:
                 return
