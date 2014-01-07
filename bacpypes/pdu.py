@@ -33,7 +33,8 @@ def _hex_to_str(x, sep=''):
 #   Address
 #
 
-ip_address_mask_port_re = re.compile(r'^(?:(\d+):)?(\d+\.\d+\.\d+\.\d+)(?:/(\d+))?(?::(\d+))?$' )
+ip_address_mask_port_re = re.compile(r'^(?:(\d+):)?(\d+\.\d+\.\d+\.\d+)(?:/(\d+))?(?::(\d+))?$')
+ethernet_re = re.compile(r'^([0-9A-Fa-f][0-9A-Fa-f][:]){5}([0-9A-Fa-f][0-9A-Fa-f])$' )
 
 class Address:
     nullAddr = 0
@@ -114,6 +115,10 @@ class Address:
 
                 self.addrAddr = addrstr + struct.pack('!H',self.addrPort & _short_mask)
                 self.addrLen = 6
+
+            elif ethernet_re.match(addr):
+                self.addrAddr = _hex_to_str(addr, ':')
+                self.addrLen = len(self.addrAddr)
 
             elif re.match(r"^\d+$",addr):
                 addr = int(addr)
