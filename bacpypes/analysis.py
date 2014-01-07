@@ -178,6 +178,11 @@ def decode_packet(data):
         if _debug: decode_packet._debug("    - not an IP packet")
         return None
 
+    # check for empty
+    if not data:
+        if _debug: decode_packet._debug("    - empty packet")
+        return None
+
     # build a PDU
     pdu = PDU(data, source=pduSource, destination=pduDestination)
 
