@@ -620,7 +620,6 @@ class AnalogValueObject(Object):
     objectType = 'analogValue'
     properties = \
         [ Property('presentValue', Real)
-        , Property('deviceType', StatusFlags, optional=True)
         , Property('statusFlags', StatusFlags)
         , Property('eventState', EventState)
         , Property('reliability', Reliability, optional=True)
@@ -926,7 +925,7 @@ class DeviceObject(Object):
         , Property('numberOfApduRetries', Unsigned)
         , Property('timeSynchronizationRecipients', SequenceOf(Recipient), optional=True)
         , Property('maxMaster', Unsigned, optional=True)
-        , Property('maxInfoFrames', Unsigned)
+        , Property('maxInfoFrames', Unsigned, optional=True)
         , Property('deviceAddressBinding', SequenceOf(AddressBinding))
         , Property('databaseRevision', Unsigned, optional=True)
         , Property('configurationFiles', ArrayOf(ObjectIdentifier), optional=True)
