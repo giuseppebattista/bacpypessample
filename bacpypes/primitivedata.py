@@ -803,27 +803,27 @@ class CharacterString(Atomic):
             raise ValueError, "character string application tag required"
 
         # extract the data
-        self.strEncoding = tag.tagData[0]
+        self.strEncoding = ord(tag.tagData[0])
         self.strValue = tag.tagData[1:]
 
         # normalize the value
-        if (self.strEncoding == '\x00'):
+        if (self.strEncoding == 0):
             udata = self.strValue.decode('utf_8')
             self.value = str(udata.encode('ascii', 'backslashreplace'))
-        elif (self.strEncoding == '\x03'):
+        elif (self.strEncoding == 3):
             udata = self.strValue.decode('utf_32be')
             self.value = str(udata.encode('ascii', 'backslashreplace'))  
-        elif (self.strEncoding == '\x04'):
+        elif (self.strEncoding == 4):
             udata = self.strValue.decode('utf_16be')
             self.value = str(udata.encode('ascii', 'backslashreplace'))
-        elif (self.strEncoding == '\x05'):
+        elif (self.strEncoding == 5):
             udata = self.strValue.decode('latin_1')
             self.value = str(udata.encode('ascii', 'backslashreplace'))
         else:
-            self.value = '### unknown encoding: %d ###' % ord(self.strEncoding)
+            self.value = '### unknown encoding: %d ###' % (self.strEncoding,)
  
     def __str__(self):
-        return "CharacterString(%d," % ord(self.strEncoding) + repr(self.strValue) + ")"
+        return "CharacterString(%d," % (self.strEncoding,) + repr(self.strValue) + ")"
 
 #
 #   BitString
