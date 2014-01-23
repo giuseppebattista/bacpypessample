@@ -96,27 +96,22 @@ class LocalDeviceObject(DeviceObject, Logging):
 
     def __init__(self, **kwargs):
         if _debug: LocalDeviceObject._debug("__init__ %r", kwargs)
-        
-        # proceed as usual
-        DeviceObject.__init__(self, **kwargs)
-        
-        # create a default implementation of an object list for local devices.
-        # If it is specified in the kwargs, that overrides this default.  If
-        # a derived class provides its own implementation, this could be an 
-        # orphan (just sitting there with no access).
-        if (self._values['objectList'] is None) and ('objectList' not in kwargs):
-            try:
-                self.objectList = ArrayOf(ObjectIdentifier)()
-                
-                # make sure this device object is in its own list
-                self.objectList.append(self.objectIdentifier)
-            except:
-                pass
-        
-        # fill in the rest (if they haven't been supplied)
+
+        # fill in default property values not in kwargs
         for attr, value in LocalDeviceObject.defaultProperties.items():
             if attr not in kwargs:
-                self.__setattr__(attr, value)
+                kwargs[attr] = value
+
+        # create a default implementation of an object list for local devices.
+        # If it is specified in the kwargs, that overrides this default.
+        if ('objectList' not in kwargs):
+            objectList = ArrayOf(ObjectIdentifier)()
+            if ('objectIdentifier' in kwargs):
+                objectList.append(kwargs['objectIdentifier'])
+            kwargs['objectList'] = objectList
+
+        # proceed as usual
+        DeviceObject.__init__(self, **kwargs)
 
 #
 #   Application
@@ -145,27 +140,41 @@ class Application(ApplicationServiceElement, Logging):
         """Add an object to the local collection."""
         if _debug: Application._debug("add_object %r", obj)
 
+        # extract the object name and identifier
+        object_name = obj.objectName
+        if not object_name:
+            raise RuntimeError, "object name required"
+        object_identifier = obj.objectIdentifier
+        if not object_identifier:
+            raise RuntimeError, "object identifier required"
+
         # make sure it hasn't already been defined
-        if obj.objectName in self.objectName:
-            raise RuntimeError, "already an object with name '%s'" % (obj.objectName,)
-        if obj.objectIdentifier in self.objectIdentifier:
-            raise RuntimeError, "already an object with identifier %s" % (obj.objectIdentifier,)
+        if object_name in self.objectName:
+            raise RuntimeError, "already an object with name '%s'" % (object_name,)
+        if object_identifier in self.objectIdentifier:
+            raise RuntimeError, "already an object with identifier %s" % (object_identifier,)
 
         # now put it in local dictionaries
-        self.objectName[obj.objectName] = obj
-        self.objectIdentifier[obj.objectIdentifier] = obj
+        self.objectName[object_name] = obj
+        self.objectIdentifier[object_identifier] = obj
 
         # append the new object's identifier to the device's object list
-        self.localDevice.objectList.append(obj.objectIdentifier)
+        self.localDevice.objectList.append(object_identifier)
 
     def delete_object(self, obj):
         """Add an object to the local collection."""
         if _debug: Application._debug("delete_object %r", obj)
-        del self.objectName[obj.objectName]
-        del self.objectIdentifier[obj.objectIdentifier]
+
+        # extract the object name and identifier
+        object_name = obj.object_name
+        object_identifier = obj.objectIdentifier
+
+        # delete it from the application
+        del self.objectName[object_name]
+        del self.objectIdentifier[object_identifier]
 
         # remove the object's identifier from the device's object list
-        indx = self.localDevice.objectList.index(obj.objectIdentifier)
+        indx = self.localDevice.objectList.index(object_identifier)
         del self.localDevice.objectList[indx]
 
     def get_object_id(self, objid):
