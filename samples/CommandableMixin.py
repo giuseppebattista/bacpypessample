@@ -13,7 +13,7 @@ from bacpypes.core import run
 from bacpypes.errors import ExecutionError
 
 from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
-from bacpypes.object import AnalogValueObject, BinaryValueObject
+from bacpypes.object import AnalogValueObject, DateValueObject
 from bacpypes.primitivedata import Null
 from bacpypes.basetypes import PriorityValue, PriorityArray
 
@@ -142,14 +142,14 @@ class CommandableAnalogValueObject(CommandableMixin, AnalogValueObject):
         CommandableMixin.__init__(self, 0.0, **kwargs)
 
 #
-#   CommandableBinaryValueObject
+#   CommandableDateValueObject
 #
 
 @bacpypes_debugging
-class CommandableBinaryValueObject(CommandableMixin, BinaryValueObject):
+class CommandableDateValueObject(CommandableMixin, DateValueObject):
 
     def __init__(self, **kwargs):
-        if _debug: CommandableBinaryValueObject._debug("__init__ %r", kwargs)
+        if _debug: CommandableDateValueObject._debug("__init__ %r", kwargs)
         CommandableMixin.__init__(self, False, **kwargs)
 
 #
@@ -177,17 +177,17 @@ try:
 
     # make a commandable analog value object, add to the device
     cavo1 = CommandableAnalogValueObject(
-        objectIdentifier=('analogValue', 1), objectName='Commandable1'
+        objectIdentifier=('analogValue', 1), objectName='Commandable AV 1'
         )
     if _debug: _log.debug("    - cavo1: %r", cavo1)
     this_application.add_object(cavo1)
 
     # make a commandable binary value object, add to the device
-    cbvo2 = CommandableBinaryValueObject(
-        objectIdentifier=('binaryValue', 1), objectName='Commandable2'
+    cdvo2 = CommandableDateValueObject(
+        objectIdentifier=('dateValue', 1), objectName='Commandable2'
         )
-    if _debug: _log.debug("    - cbvo2: %r", cbvo2)
-    this_application.add_object(cbvo2)
+    if _debug: _log.debug("    - cdvo2: %r", cdvo2)
+    this_application.add_object(cdvo2)
 
     if _debug: _log.debug("running")
 
