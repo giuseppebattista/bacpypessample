@@ -71,8 +71,12 @@ class WhoIsRouterConsoleCmd(ConsoleCmd):
         if _debug: WhoIsRouterConsoleCmd._debug("do_irt %r", args)
 
         # build a request
-        request = InitializeRoutingTable()
-        request.pduDestination = Address(args[0])
+        try:
+            request = InitializeRoutingTable()
+            request.pduDestination = Address(args[0])
+        except:
+            print "invalid arguments"
+            return
 
         # give it to the application
         this_application.request(this_application.nsap.adapters[0], request)
@@ -83,10 +87,14 @@ class WhoIsRouterConsoleCmd(ConsoleCmd):
         if _debug: WhoIsRouterConsoleCmd._debug("do_irt %r", args)
 
         # build a request
-        request = WhoIsRouterToNetwork()
-        request.pduDestination = Address(args[0])
-        if (len(args) > 1):
-            request.wirtnNetwork = int(args[1])
+        try:
+            request = WhoIsRouterToNetwork()
+            request.pduDestination = Address(args[0])
+            if (len(args) > 1):
+                request.wirtnNetwork = int(args[1])
+        except:
+            print "invalid arguments"
+            return
 
         # give it to the application
         this_application.request(this_application.nsap.adapters[0], request)
