@@ -27,61 +27,85 @@ class PropertyError(AttributeError):
     pass
 
 # a dictionary of object types and classes
-object_types = {}
+registered_object_types = {}
 
 #
 #   register_object_type
 #
 
 @function_debugging
-def register_object_type(klass):
-    if _debug: register_object_type._debug("register_object_type %s", repr(klass))
+def register_object_type(cls=None, vendor_id=0):
+    if _debug: register_object_type._debug("register_object_type %s vendor_id=%s", repr(cls), vendor_id)
+
+    # if cls isn't given, return a decorator
+    if not cls:
+        def _register(xcls):
+            if _debug: register_object_type._debug("_register %s (vendor_id=%s)", repr(cls), vendor_id)
+            return register_object_type(xcls, vendor_id)
+        if _debug: register_object_type._debug("    - returning decorator")
+
+        return _register
 
     # make sure it's an Object derived class
-    if not issubclass(klass, Object):
+    if not issubclass(cls, Object):
         raise RuntimeError, "Object derived class required"
 
     # build a property dictionary by going through the class and all its parents
     _properties = {}
-    for c in klass.__mro__:
+    for c in cls.__mro__:
         for prop in getattr(c, 'properties', []):
             if prop.identifier not in _properties:
                 _properties[prop.identifier] = prop
 
     # if the object type hasn't been provided, make an immutable one
     if 'objectType' not in _properties:
-        _properties['objectType'] = Property('objectType', ObjectType, klass.objectType, mutable=False)
+        _properties['objectType'] = ReadableProperty('objectType', ObjectType, cls.objectType, mutable=False)
 
     # store this in the class
-    klass._properties = _properties
+    cls._properties = _properties
 
     # now save this in all our types
-    object_types[klass.objectType] = klass
+    registered_object_types[(cls.objectType, vendor_id)] = cls
+
+    # return the class as a decorator
+    return cls
 
 #
 #   get_object_class
 #
 
-def get_object_class(objectType):
+@function_debugging
+def get_object_class(object_type, vendor_id=0):
     """Return the class associated with an object type."""
-    return object_types.get(objectType)
-    
+    if _debug: get_object_class._debug("get_object_class %r vendor_id=%r", object_type, vendor_id)
+
+    # find the klass as given
+    cls = registered_object_types.get((object_type, vendor_id))
+    if _debug: get_object_class._debug("    - direct lookup: %s", repr(cls))
+
+    # if the class isn't found and the vendor id is non-zero, try the standard class for the type
+    if (not cls) and vendor_id:
+        cls = registered_object_types.get((object_type, 0))
+        if _debug: get_object_class._debug("    - default lookup: %s", repr(cls))
+
+    return cls
+
 #
 #   get_datatype
 #
 
 @function_debugging
-def get_datatype(objectType, property):
+def get_datatype(object_type, propid, vendor_id=0):
     """Return the datatype for the property of an object."""
-    if _debug: get_datatype._debug("get_datatype %r %r", objectType, property)
+    if _debug: get_datatype._debug("get_datatype %r %r vendor_id=%r", object_type, propid, vendor_id)
 
     # get the related class
-    cls = object_types.get(objectType)
+    cls = get_object_class(object_type, vendor_id)
     if not cls:
         return None
 
     # get the property
-    prop = cls._properties.get(property)
+    prop = cls._properties.get(propid)
     if not prop:
         return None
 
@@ -128,19 +152,20 @@ class Property(Logging):
         # all set
         return value
 
-    def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
+    def WriteProperty(self, obj, value, arrayIndex=None, priority=None, direct=False):
         if _debug:
-            Property._debug("WriteProperty(%s) %s %r arrayIndex=%r priority=%r",
-                self.identifier, obj, value, arrayIndex, priority
+            Property._debug("WriteProperty(%s) %s %r arrayIndex=%r priority=%r direct=%r",
+                self.identifier, obj, value, arrayIndex, priority, direct
                 )
 
-        # see if it must be provided
-        if not self.optional and value is None:
-            raise ValueError, "%s value required" % (self.identifier,)
+        if (not direct):
+            # see if it must be provided
+            if not self.optional and value is None:
+                raise ValueError, "%s value required" % (self.identifier,)
 
-        # see if it can be changed
-        if not self.mutable:
-            raise RuntimeError, "%s immutable property" % (self.identifier,)
+            # see if it can be changed
+            if not self.mutable:
+                raise RuntimeError, "%s immutable property" % (self.identifier,)
 
         # if it's atomic assume correct datatype
         if issubclass(self.datatype, Atomic):
@@ -249,7 +274,7 @@ class WritableProperty(StandardProperty, Logging):
 
 class ObjectIdentifierProperty(ReadableProperty, Logging):
 
-    def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
+    def WriteProperty(self, obj, value, arrayIndex=None, priority=None, direct=False):
         if _debug: ObjectIdentifierProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
 
         # make it easy to default
@@ -263,7 +288,7 @@ class ObjectIdentifierProperty(ReadableProperty, Logging):
         else:
             raise TypeError, "object identifier"
         
-        return Property.WriteProperty( self, obj, value, arrayIndex, priority )
+        return Property.WriteProperty( self, obj, value, arrayIndex, priority, direct )
 
 #
 #   Object
@@ -295,15 +320,24 @@ class Object(Logging):
         # start with a clean dict of values
         self._values = {}
 
-        # initialize the object
-        for prop in self._properties.values():
-            propid = prop.identifier
+        # start with a clean array of property identifiers
+        if 'propertyList' in initargs:
+            propertyList = None
+        else:
+            propertyList = ArrayOf(PropertyIdentifier)()
+            initargs['propertyList'] = propertyList
 
-            if initargs.has_key(propid):
+        # initialize the object
+        for propid, prop in self._properties.items():
+            if propid in initargs:
                 if _debug: Object._debug("    - setting %s from initargs", propid)
 
                 # defer to the property object for error checking
-                prop.WriteProperty(self, initargs[propid])
+                prop.WriteProperty(self, initargs[propid], direct=True)
+
+                # add it to the property list if we are building one
+                if propertyList is not None:
+                    propertyList.append(propid)
 
             elif prop.default is not None:
                 if _debug: Object._debug("    - setting %s from default", propid)
@@ -311,9 +345,13 @@ class Object(Logging):
                 # default values bypass property interface
                 self._values[propid] = prop.default
 
+                # add it to the property list if we are building one
+                if propertyList is not None:
+                    propertyList.append(propid)
+
             else:
                 if not prop.optional:
-                    if _debug: Object._warning("    - property %s value required", propid)
+                    if _debug: Object._debug("    - %s value required", propid)
 
                 self._values[propid] = None
 
@@ -349,45 +387,44 @@ class Object(Logging):
         if _debug: Object._debug("__setattr__ %r %r", attr, value)
 
         if attr.startswith('_') or attr[0].isupper() or (attr == 'debug_contents'):
-            if _debug: Object._debug("    - special")
             return object.__setattr__(self, attr, value)
 
-        # defer to the property to get the value
+        # defer to the property to normalize the value
         prop = self._attr_to_property(attr)
         if _debug: Object._debug("    - deferring to %r", prop)
 
-        return prop.WriteProperty(self, value)
+        return prop.WriteProperty(self, value, direct=True)
 
-    def ReadProperty(self, property, arrayIndex=None):
-        if _debug: Object._debug("ReadProperty %r arrayIndex=%r", property, arrayIndex)
+    def ReadProperty(self, propid, arrayIndex=None):
+        if _debug: Object._debug("ReadProperty %r arrayIndex=%r", propid, arrayIndex)
 
         # get the property
-        prop = self._properties.get(property)
+        prop = self._properties.get(propid)
         if not prop:
-            raise PropertyError, property
+            raise PropertyError, propid
 
         # defer to the property to get the value
         return prop.ReadProperty(self, arrayIndex)
 
-    def WriteProperty(self, property, value, arrayIndex=None, priority=None):
-        if _debug: Object._debug("WriteProperty %r %r arrayIndex=%r priority=%r", property, value, arrayIndex, priority)
+    def WriteProperty(self, propid, value, arrayIndex=None, priority=None, direct=False):
+        if _debug: Object._debug("WriteProperty %r %r arrayIndex=%r priority=%r", propid, value, arrayIndex, priority)
 
         # get the property
-        prop = self._properties.get(property)
+        prop = self._properties.get(propid)
         if not prop:
-            raise PropertyError, property
+            raise PropertyError, propid
 
         # defer to the property to set the value
-        return prop.WriteProperty(self, value, arrayIndex, priority)
+        return prop.WriteProperty(self, value, arrayIndex, priority, direct)
 
-    def get_datatype(self, property):
+    def get_datatype(self, propid):
         """Return the datatype for the property of an object."""
-        if _debug: Object._debug("get_datatype %r", property)
+        if _debug: Object._debug("get_datatype %r", propid)
 
         # get the property
-        prop = self._properties.get(property)
+        prop = self._properties.get(propid)
         if not prop:
-            raise PropertyError, property
+            raise PropertyError, propid
 
         # return the datatype
         return prop.datatype
@@ -415,6 +452,7 @@ class Object(Logging):
 #   Standard Object Types
 #
 
+@register_object_type
 class AccessCredentialObject(Object):
     objectType = 'accessCredential'
     properties = \
@@ -443,8 +481,7 @@ class AccessCredentialObject(Object):
         , OptionalProperty('occupancyExemption', Boolean)
         ]
 
-register_object_type(AccessCredentialObject)
-
+@register_object_type
 class AccessDoorObject(Object):
     objectType = 'accessDoor'
     properties = \
@@ -477,8 +514,7 @@ class AccessDoorObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(AccessDoorObject)
-
+@register_object_type
 class AccessPointObject(Object):
     objectType = 'accessPoint'
     properties = \
@@ -525,8 +561,7 @@ class AccessPointObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(AccessPointObject)
-
+@register_object_type
 class AccessRightsObject(Object):
     objectType = 'accessRights'
     properties = \
@@ -539,8 +574,7 @@ class AccessRightsObject(Object):
         , OptionalProperty('accompaniment', DeviceObjectReference)
         ]
 
-register_object_type(AccessRightsObject)
-
+@register_object_type
 class AccessUserObject(Object):
     objectType = 'accessUser'
     properties = \
@@ -556,8 +590,7 @@ class AccessUserObject(Object):
         , ReadableProperty('credentials', SequenceOf(DeviceObjectReference))
        ]
 
-register_object_type(AccessUserObject)
-
+@register_object_type
 class AccessZoneObject(Object):
     objectType = 'accessZone'
     properties = \
@@ -591,8 +624,7 @@ class AccessZoneObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(AccessZoneObject)
-
+@register_object_type
 class AccumulatorObject(Object):
     objectType = 'accumulator'
     properties = \
@@ -625,8 +657,7 @@ class AccumulatorObject(Object):
         , OptionalProperty('eventMessageTexts', SequenceOf(CharacterString))
         ]
 
-register_object_type(AccumulatorObject)
-
+@register_object_type
 class AnalogInputObject(Object):
     objectType = 'analogInput'
     properties = \
@@ -655,8 +686,7 @@ class AnalogInputObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(AnalogInputObject)
-
+@register_object_type
 class AnalogOutputObject(Object):
     objectType = 'analogOutput'
     properties = \
@@ -686,8 +716,7 @@ class AnalogOutputObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(AnalogOutputObject)
-
+@register_object_type
 class AnalogValueObject(Object):
     objectType = 'analogValue'
     properties = \
@@ -716,8 +745,7 @@ class AnalogValueObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(AnalogValueObject)
-
+@register_object_type
 class AveragingObject(Object):
     objectType = 'averaging'
     properties = \
@@ -734,8 +762,7 @@ class AveragingObject(Object):
         , WritableProperty('windowSamples', Unsigned)
         ]
  
-register_object_type(AveragingObject)
-
+@register_object_type
 class BinaryInputObject(Object):
     objectType = 'binaryInput'
     properties = \
@@ -763,8 +790,7 @@ class BinaryInputObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(BinaryInputObject)
-
+@register_object_type
 class BinaryOutputObject(Object):
     objectType = 'binaryOutput'
     properties = \
@@ -796,8 +822,7 @@ class BinaryOutputObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(BinaryOutputObject)
-
+@register_object_type
 class BinaryValueObject(Object):
     objectType = 'binaryValue'
     properties = \
@@ -827,8 +852,7 @@ class BinaryValueObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(BinaryValueObject)
-
+@register_object_type
 class BitStringValueObject(Object):
     objectType = 'bitstringValue'
     properties = \
@@ -851,8 +875,7 @@ class BitStringValueObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(BitStringValueObject)
-
+@register_object_type
 class CalendarObject(Object):
     objectType = 'calendar'
     properties = \
@@ -860,8 +883,7 @@ class CalendarObject(Object):
         , ReadableProperty('dateList', SequenceOf(CalendarEntry)) 
         ]
 
-register_object_type(CalendarObject)
-
+@register_object_type
 class CharacterStringValueObject(Object):
     objectType = 'characterStringValue'
     properties = \
@@ -883,8 +905,7 @@ class CharacterStringValueObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(CharacterStringValueObject)
-
+@register_object_type
 class CommandObject(Object):
     objectType = 'command'
     properties = \
@@ -895,8 +916,7 @@ class CommandObject(Object):
         , OptionalProperty('actionText', ArrayOf(CharacterString))
         ]
 
-register_object_type(CommandObject)
-
+@register_object_type
 class CredentialDataInputObject(Object):
     objectType = 'credentialDataInput'
     properties = \
@@ -908,8 +928,7 @@ class CredentialDataInputObject(Object):
         , ReadableProperty('supportedFormatClasses', ArrayOf(Unsigned))
         ]
 
-register_object_type(CredentialDataInputObject)
-
+@register_object_type
 class DatePatternValueObject(Object):
     objectType = 'datePatternValue'
     properties = \
@@ -922,8 +941,7 @@ class DatePatternValueObject(Object):
         , OptionalProperty('relinquishDefault', DateTime)
         ]
 
-register_object_type(DatePatternValueObject)
-
+@register_object_type
 class DateValueObject(Object):
     objectType = 'dateValue'
     properties = \
@@ -936,8 +954,7 @@ class DateValueObject(Object):
         , OptionalProperty('relinquishDefault', Date)
         ]
 
-register_object_type(DateValueObject)
-
+@register_object_type
 class DateTimePatternValueObject(Object):
     objectType = 'datetimePatternValue'
     properties = \
@@ -951,8 +968,7 @@ class DateTimePatternValueObject(Object):
         , OptionalProperty('isUtc', Boolean)
         ]
 
-register_object_type(DateTimePatternValueObject)
-
+@register_object_type
 class DateTimeValueObject(Object):
     objectType = 'datetimeValue'
     properties = \
@@ -966,8 +982,7 @@ class DateTimeValueObject(Object):
         , OptionalProperty('isUtc', Boolean)
         ]
 
-register_object_type(DateTimeValueObject)
-
+@register_object_type
 class DeviceObject(Object):
     objectType = 'device'
     properties = \
@@ -1022,8 +1037,7 @@ class DeviceObject(Object):
         , OptionalProperty('intervalOffset', Unsigned)
         ]
 
-register_object_type(DeviceObject)
-
+@register_object_type
 class EventEnrollmentObject(Object):
     objectType = 'eventEnrollment'
     properties = \
@@ -1038,8 +1052,6 @@ class EventEnrollmentObject(Object):
         , ReadableProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
-
-register_object_type(EventEnrollmentObject)
 
 #-----
 
@@ -1056,6 +1068,7 @@ class EventLogRecord(Sequence):
         , Element('logDatum', EventLogRecordLogDatum, 1)
         ]
 
+@register_object_type
 class EventLogObject(Object):
     objectType = 'eventLog'
     properties = \
@@ -1081,10 +1094,9 @@ class EventLogObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(EventLogObject)
-
 #-----
 
+@register_object_type
 class FileObject(Object):
     objectType = 'file'
     properties = \
@@ -1097,10 +1109,9 @@ class FileObject(Object):
         , OptionalProperty('recordCount', Unsigned)
         ]
 
-register_object_type(FileObject)
-
 #-----
 
+@register_object_type
 class GlobalGroupObject(Object):
     objectType = 'globalGroup'
     properties = \
@@ -1127,8 +1138,7 @@ class GlobalGroupObject(Object):
         , OptionalProperty('covuRecipients', SequenceOf(Recipient))
         ]
 
-register_object_type(GlobalGroupObject)
-
+@register_object_type
 class GroupObject(Object):
     objectType = 'group'
     properties = \
@@ -1136,8 +1146,7 @@ class GroupObject(Object):
         , ReadableProperty('presentValue', SequenceOf(ReadAccessResult))
         ]
 
-register_object_type(GroupObject)
-
+@register_object_type
 class IntegerValueObject(Object):
     objectType = 'integerValue'
     properties = \
@@ -1163,8 +1172,7 @@ class IntegerValueObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(IntegerValueObject)
-
+@register_object_type
 class LargeAnalogValueObject(Object):
     objectType = 'largeAnalogValue'
     properties = \
@@ -1190,8 +1198,7 @@ class LargeAnalogValueObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(LargeAnalogValueObject)
-
+@register_object_type
 class LifeSafetyPointObject(Object):
     objectType = 'lifeSafetyPoint'
     properties = \
@@ -1223,8 +1230,7 @@ class LifeSafetyPointObject(Object):
         , OptionalProperty('memberOf', SequenceOf(DeviceObjectReference))
         ]
 
-register_object_type(LifeSafetyPointObject)
-
+@register_object_type
 class LifeSafetyZoneObject(Object):
     objectType = 'lifeSafetyZone'
     properties = \
@@ -1254,8 +1260,7 @@ class LifeSafetyZoneObject(Object):
         , OptionalProperty('memberOf', SequenceOf(DeviceObjectReference))
         ]
 
-register_object_type(LifeSafetyZoneObject)
-
+@register_object_type
 class LoadControlObject(Object):
     objectType = 'loadControl'
     properties = \
@@ -1283,8 +1288,7 @@ class LoadControlObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(LoadControlObject)
-
+@register_object_type
 class LoopObject(Object):
     objectType = 'loop'
     properties = \
@@ -1324,8 +1328,7 @@ class LoopObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(LoopObject)
-
+@register_object_type
 class MultiStateInputObject(Object):
     objectType = 'multiStateInput'
     properties = \
@@ -1348,8 +1351,7 @@ class MultiStateInputObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(MultiStateInputObject)
-
+@register_object_type
 class MultiStateOutputObject(Object):
     objectType = 'multiStateOutput'
     properties = \
@@ -1373,8 +1375,7 @@ class MultiStateOutputObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(MultiStateOutputObject)
-
+@register_object_type
 class MultiStateValueObject(Object): 
     objectType = 'multiStateValue'
     properties = \
@@ -1398,8 +1399,7 @@ class MultiStateValueObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
         
-register_object_type(MultiStateValueObject)
-
+@register_object_type
 class NetworkSecurityObject(Object):
     objectType = 'networkSecurity'
     properties = \
@@ -1407,6 +1407,7 @@ class NetworkSecurityObject(Object):
 ### more
         ]
 
+@register_object_type
 class NotificationClassObject(Object):
     objectType = 'notificationClass'
     properties = \
@@ -1416,8 +1417,7 @@ class NotificationClassObject(Object):
         , ReadableProperty('recipientList', SequenceOf(Destination))
         ]
 
-register_object_type(NotificationClassObject)
-
+@register_object_type
 class OctetStringValueObject(Object):
     objectType = 'octetstringValue'
     properties = \
@@ -1430,8 +1430,7 @@ class OctetStringValueObject(Object):
         , OptionalProperty('relinquishDefault', OctetString)
         ]
 
-register_object_type(OctetStringValueObject)
-
+@register_object_type
 class PositiveIntegerValueObject(Object):
     objectType = 'positiveIntegerValue'
     properties = \
@@ -1457,8 +1456,7 @@ class PositiveIntegerValueObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(PositiveIntegerValueObject)
-
+@register_object_type
 class ProgramObject(Object):
     objectType = 'program'
     properties = \
@@ -1473,8 +1471,7 @@ class ProgramObject(Object):
         , ReadableProperty('outOfService', Boolean)
         ]
 
-register_object_type(ProgramObject)
-
+@register_object_type
 class PulseConverterObject(Object):
     objectType = 'pulseConverter'
     properties = \
@@ -1506,8 +1503,7 @@ class PulseConverterObject(Object):
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
-register_object_type(PulseConverterObject)
-
+@register_object_type
 class ScheduleObject(Object):
     objectType = 'schedule'
     properties = \
@@ -1523,8 +1519,7 @@ class ScheduleObject(Object):
         , ReadableProperty('outOfService', Boolean)
         ]
 
-register_object_type(ScheduleObject)
-
+@register_object_type
 class StructuredViewObject(Object):
     objectType = 'structuredView'
     properties = \
@@ -1534,8 +1529,7 @@ class StructuredViewObject(Object):
         , OptionalProperty('subordinateAnnotations', ArrayOf(CharacterString))
         ]
 
-register_object_type(StructuredViewObject)
-
+@register_object_type
 class TimePatternValueObject(Object):
     objectType = 'timePatternValue'
     properties = \
@@ -1549,8 +1543,7 @@ class TimePatternValueObject(Object):
         , OptionalProperty('relinquishDefault', DateTime)
         ]
 
-register_object_type(TimePatternValueObject)
-
+@register_object_type
 class TimeValueObject(Object):
     objectType = 'timeValue'
     properties = \
@@ -1563,8 +1556,7 @@ class TimeValueObject(Object):
         , OptionalProperty('relinquishDefault', Time)
         ]
 
-register_object_type(TimeValueObject)
-
+@register_object_type
 class TrendLogObject(Object):
     objectType = 'trendLog'
     properties = \
@@ -1606,8 +1598,7 @@ class TrendLogObject(Object):
 #       , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
-register_object_type(TrendLogObject)
-
+@register_object_type
 class TrendLogMultipleObject(Object):
     objectType = 'trendLogMultiple'
     properties = \
@@ -1643,6 +1634,4 @@ class TrendLogMultipleObject(Object):
 #       , OptionalProperty('eventAlgorithmInhibit', Boolean)
 #       , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
-
-register_object_type(TrendLogMultipleObject)
 
