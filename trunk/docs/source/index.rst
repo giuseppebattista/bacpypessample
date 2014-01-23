@@ -83,6 +83,14 @@ Glossary
 
     glossary.rst
 
+Release Notes
+-------------
+
+.. toctree::
+    :maxdepth: 1
+
+    releasenotes.rst
+
 Indices and tables
 ==================
 
