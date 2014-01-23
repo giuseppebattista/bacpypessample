@@ -211,9 +211,7 @@ class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
             if _debug: deferred(UDPDirector._debug, "    - sent %d octets to %s", sent, pdu.pduDestination)
 
         except socket.error, why:
-            print self.address, "UDPDirector.handle_write socket error:", why
-            print "    - pdu.pduDestination:", pdu.pduDestination
-            traceback.print_exc(file=sys.stdout)
+            deferred(UDPDirector._error, "handle_write socket error: %s", why)
 
     def handle_close(self):
         """Remove this from the monitor when it's closed."""
