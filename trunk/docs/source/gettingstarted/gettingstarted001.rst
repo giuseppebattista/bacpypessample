@@ -13,13 +13,16 @@ Basic Assumptions
 -----------------
 
 Assume that you are a software developer and it is your job to communicate 
-with a device from another company that uses BACnet.  You have enough 
-experience to muddle around with IPv4 networking, and your employer has 
-purchased a copy of the standard from ASHRAE.  You have a development 
-workstation running some flavor of Linux complete with the latest version 
-of Python 2.7, and `setup tools <https://pypi.python.org/pypi/setuptools#unix-based-systems-including-mac-os-x>`_.  You also have a small hub you can plug in your workstation 
-and this misterious device and not get distracted by lots of other LAN 
-traffic.
+with a device from another company that uses BACnet.  Your employer has 
+given you a test device and purchased a copy of the standard.  You have 
+in your office...
+
+- a development workstation running some flavor of Linux complete with 
+  the latest version of Python 2.7 and
+  `setup tools <https://pypi.python.org/pypi/setuptools#unix-based-systems-including-mac-os-x>`_.
+
+- a small hub you can plug in your workstation and this misterious device
+  and not get distracted by lots of other LAN traffic.
 
 Before getting this test environment set up and you are still connected 
 to the internet, install the BACpypes library::
@@ -30,6 +33,11 @@ And while you are at it, get a copy of the project from SourceForge that
 has the library source code, sample code, and this documentation::
 
     $ svn checkout svn://svn.code.sf.net/p/bacpypes/code/trunk bacpypes
+
+No protocol analysis workbench would be complete without an installed 
+copy of `Wireshark <http://www.wireshark.org/>`_::
+
+    $ sudo apt-get install wireshark
 
 Configuring the Workstation
 ---------------------------
@@ -80,6 +88,9 @@ until you get deeper into the protocol.
    messages to be broken up into segemnts and spliced back together.
    It is not unusual for "low power" field equipment to not 
    support segmentation.
+
+There are other configuration parameters in the INI file that are
+used by other applications, just leave them alone for now.
 
 Updating the INI File
 ~~~~~~~~~~~~~~~~~~~~~
