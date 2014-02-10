@@ -33,6 +33,17 @@ rest of the BACpypes community.
 
 Welcome aboard!
 
+Getting Started
+---------------
+
+This section is a walk through of the process of installing the library, 
+downloading the sample code and communicating with a test device.
+
+.. toctree::
+    :maxdepth: 1
+
+    gettingstarted/gettingstarted001.rst
+
 Tutorial
 --------
 
