@@ -14,13 +14,13 @@ def read(fname):
 #
 
 setup(name='BACpypes',
-    version='0.9',
+    version='0.9.1',
     description='BACnet Python Library',
     author='Joel Bender',
     author_email='joel@carrickbender.com',
     url='http://bacpypes.sourceforge.net/',
     packages=['bacpypes'],
-    long_description=read('README.txt'),
+    long_description=open('README.txt').read(),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
