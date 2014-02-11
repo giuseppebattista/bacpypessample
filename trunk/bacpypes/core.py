@@ -28,8 +28,8 @@ sleeptime = 0.0
 
 SPIN = 1.0
 
-def run():
-    _log.debug("run")
+def run(spin=SPIN):
+    _log.debug("run spin=%r", spin)
     global running, taskManager, deferredFns, sleeptime
 
     # reference the task manager (a singleton)
@@ -54,7 +54,7 @@ def run():
 
             # if delta is None, there are no tasks, default to spinning
             if delta is None:
-                delta = SPIN
+                delta = spin
 
             # there may be threads around, sleep for a bit
             if sleeptime and (delta > sleeptime):
