@@ -190,6 +190,34 @@ class NPCI(PCI, DebugContents, Logging):
             # application layer message
             self.npduNetMessage = None
 
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: NPCI._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # deep call
+        super(NPCI, self).dict_contents(use_dict=use_dict, as_class=as_class)
+
+        # loop through the elements
+        for attr in NPCI._debug_contents:
+            value = getattr(self, attr, None)
+            if value is None:
+                continue
+
+            if attr == 'npduNetMessage':
+                mapped_value = npdu_types[self.npduNetMessage].__name__
+            else:
+                mapped_value = value
+
+            # save the mapped value
+            use_dict.__setitem__(attr, mapped_value)
+
+        # return what we built/updated
+        return use_dict
+
 #
 #   NPDU
 #

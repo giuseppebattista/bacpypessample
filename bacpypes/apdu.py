@@ -277,6 +277,41 @@ class APCI(PCI, DebugContents, Logging):
         else:
             raise DecodingError, "invalid APDU type"
 
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: APCI._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # deep call
+        super(APCI, self).dict_contents(use_dict=use_dict, as_class=as_class)
+
+        # loop through the elements
+        for attr in APCI._debug_contents:
+            value = getattr(self, attr, None)
+            if value is None:
+                continue
+
+            if attr == 'apduType':
+                mapped_value = apdu_types[self.apduType].__name__
+            elif attr == 'apduService':
+                if self.apduType in (ConfirmedRequestPDU.pduType, SimpleAckPDU.pduType, ComplexAckPDU.pduType):
+                    mapped_value = confirmed_request_types[self.apduService].__name__
+                elif (self.apduType == UnconfirmedRequestPDU.pduType):
+                    mapped_value = unconfirmed_request_types[self.apduService].__name__
+                elif (self.apduType == ErrorPDU.pduType):
+                    mapped_value = error_types[self.apduService].__name__
+            else:
+                mapped_value = value
+
+            # save the mapped value
+            use_dict.__setitem__(attr, mapped_value)
+
+        # return what we built/updated
+        return use_dict
+
 #
 #   APDU
 #
@@ -316,6 +351,7 @@ class _APDU(APDU):
         self.pduData = pdu.get_data(len(pdu.pduData))
 
     def set_context(self, context):
+        self.pduUserData = context.pduUserData
         self.pduDestination = context.pduSource
         self.pduExpectingReply = 0
         self.pduNetworkPriority = context.pduNetworkPriority
