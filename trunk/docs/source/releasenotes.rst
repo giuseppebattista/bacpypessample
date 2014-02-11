@@ -5,6 +5,49 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.9.1
+-------------
+
+Most of this release is just documentation, but it includes some new functionality
+for translating PDUs into dictionaries.  The new ``dict_contents`` functions will 
+most likely have some bugs, so consider that API unstable.
+
+Revisions `r238 <http://sourceforge.net/p/bacpypes/code/238>`_
+through `r245 <http://sourceforge.net/p/bacpypes/code/245>`_.
+
+* For some new users of BACpypes, particularly those that were also new to BACnet,
+  it can be a struggle getting something to work.  This is the start of a new
+  documentation section to speed that process along.
+  `r238 <http://sourceforge.net/p/bacpypes/code/238>`_
+  `r239 <http://sourceforge.net/p/bacpypes/code/239>`_
+  `r240 <http://sourceforge.net/p/bacpypes/code/240>`_
+
+* For multithreaded applications it is sometimes handly to override the default 
+  spin value, which is the maximum amount of time that the application should 
+  be stuck in the asyncore.loop() function.  The developer could import the 
+  core module and change the CORE value before calling run(), but that seems 
+  excessively hackish.
+  `r241 <http://sourceforge.net/p/bacpypes/code/241>`_
+
+* Apparently there should not be a dependancy on ``setuptools`` for developers that 
+  want to install the library without it.  In revision `r227 <http://sourceforge.net/p/bacpypes/code/227>`_
+  I changed the setup.py file, but that broke the release script.  I'm not 
+  completely sure this is correct, but it seems to work.
+  `r242 <http://sourceforge.net/p/bacpypes/code/242>`_
+
+* This revision includes a new dict_contents() function that encodes PDU content
+  into a dict-like object (a real ``dict`` by default, but the developer can provide 
+  any other class that supports ``__setitem__``).  This is the first step in a long
+  road to translate PDU data into JSON, then into BSON to be streamed into a 
+  MongoDB database for analysis applications.
+  `r243 <http://sourceforge.net/p/bacpypes/code/243>`_
+
+* Bump the version number before releasing it.
+  `r244 <http://sourceforge.net/p/bacpypes/code/244>`_
+
+* Update these release notes.
+  `r245 <http://sourceforge.net/p/bacpypes/code/245>`_
+
 Version 0.9
 -----------
 
@@ -106,7 +149,6 @@ through `r226 <http://sourceforge.net/p/bacpypes/code/226>`_.
 
 * Bump the minor version number.
   `r226 <http://sourceforge.net/p/bacpypes/code/226>`_
-
 
 Version 0.7.5
 -------------
