@@ -84,6 +84,34 @@ class BVLCI(PCI, DebugContents, Logging):
         if (self.bvlciLength != len(pdu.pduData) + 4):
             raise DecodingError, "invalid BVLCI length"
 
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: BVLCI._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # deep call
+        super(BVLCI, self).dict_contents(use_dict=use_dict, as_class=as_class)
+
+        # loop through the elements
+        for attr in BVLCI._debug_contents:
+            value = getattr(self, attr, None)
+            if value is None:
+                continue
+
+            if attr == 'bvlciFunction':
+                mapped_value = bvl_pdu_types[self.bvlciFunction].__name__
+            else:
+                mapped_value = value
+
+            # save the mapped value
+            use_dict.__setitem__(attr, mapped_value)
+
+        # return what we built/updated
+        return use_dict
+
 #
 #   BVLPDU
 #

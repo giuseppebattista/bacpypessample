@@ -49,15 +49,17 @@ def _hex_to_str(x, sep=''):
 
 class PCI(DebugContents):
 
-    _debug_contents = ('pduSource', 'pduDestination')
+    _debug_contents = ('pduUserData+', 'pduSource', 'pduDestination')
 
     def __init__(self, **kwargs):
         # pick up some optional kwargs
+        self.pduUserData = kwargs.get('user_data', None)
         self.pduSource = kwargs.get('source', None)
         self.pduDestination = kwargs.get('destination', None)
 
     def update(self, pci):
         """Copy the PCI fields."""
+        self.pduUserData = pci.pduUserData
         self.pduSource = pci.pduSource
         self.pduDestination = pci.pduDestination
 
@@ -117,6 +119,20 @@ class PDUData(object):
         else:
             file.write("%spduData = %r\n" % ('    ' * indent, self.pduData))
 
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: _log.debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # add the data, even if it is empty
+        use_dict.__setitem__('pduData', self.pduData)
+
+        # return what we built/updated
+        return use_dict
+
 #
 #   PDU
 #
@@ -128,15 +144,18 @@ class PDU(PCI, PDUData):
         PDUData.__init__(self, data)
 
         # pick up some optional kwargs
+        user_data = kwargs.get('user_data', None)
         source = kwargs.get('source', None)
         destination = kwargs.get('destination', None)
 
         # carry source and destination from another PDU
         if isinstance(data, PDU):
             # allow parameters to override values
+            self.pduUserData = user_data or data.pduUserData
             self.pduSource = source or data.pduSource
             self.pduDestination = destination or data.pduDestination
         else:
+            self.pduUserData = user_data
             self.pduSource = source
             self.pduDestination = destination
 

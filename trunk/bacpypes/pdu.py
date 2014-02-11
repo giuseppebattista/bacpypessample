@@ -11,6 +11,7 @@ import struct
 
 from errors import *
 
+from debugging import ModuleLogger
 from comm import PCI as _PCI, PDUData
 
 # pack/unpack constants
@@ -18,6 +19,9 @@ _short_mask = 0xFFFFL
 _long_mask = 0xFFFFFFFFL
 
 # some debugging
+_debug = 0
+_log = ModuleLogger(globals())
+
 def _str_to_hex(x, sep=''):
     return sep.join(["%02X" % (ord(c),) for c in x])
 
@@ -269,6 +273,13 @@ class Address:
 
     def __ne__(self,arg):
         return not self.__eq__(arg)
+
+    def dict_contents(self, use_dict=None, as_class=None):
+        """Return the contents of an object as a dict."""
+        if _debug: _log.debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # exception to the rule of returning a dict
+        return str(self)
 
 #
 #   pack_ip_addr, unpack_ip_addr

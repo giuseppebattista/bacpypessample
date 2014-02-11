@@ -186,6 +186,9 @@ class SSM(OneShotTask, DebugContents, Logging):
         else:
             raise RuntimeError, "invalid APDU type for segmentation context"
 
+        # maintain the the user data reference
+        segAPDU.pduUserData = self.segmentAPDU.pduUserData
+
         # make sure the destination is set
         segAPDU.pduDestination = self.remoteDevice.address
 
@@ -404,8 +407,11 @@ class ClientSSM(SSM, Logging):
         # change the state to aborted
         self.set_state(ABORTED)
 
-        # return an abort APDU
-        return AbortPDU(False, self.invokeID, reason)
+        # build an abort PDU to return
+        abort_pdu = AbortPDU(False, self.invokeID, reason)
+
+        # return it
+        return abort_pdu
 
     def segmented_request(self, apdu):
         """This function is called when the client is sending a segmented request

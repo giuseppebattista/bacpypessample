@@ -245,6 +245,40 @@ class Sequence(Logging):
             else:
                 file.write("%s'%s' must be a %s\n" % ("    " * indent, element.name, element.klass.__name__))
 
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: _log.debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # loop through the elements
+        for element in self.sequenceElements:
+            value = getattr(self, element.name, None)
+            if value is None:
+                continue
+
+            if _sequence_of_classes.has_key(element.klass):
+                helper = element.klass(value)
+                mapped_value = helper.dict_contents(as_class=as_class)
+
+            elif issubclass(element.klass, Atomic):
+                mapped_value = value
+
+            elif isinstance(value, element.klass):
+                mapped_value = value.dict_contents(as_class=as_class)
+                use_dict.__setitem__(element.name, mapped_value)
+
+            else:
+                continue
+
+            # update the dictionary being built
+            use_dict.__setitem__(element.name, mapped_value)
+
+        # return what we built/updated
+        return use_dict
+
 #
 #   SequenceOf
 #
@@ -359,6 +393,19 @@ def SequenceOf(klass):
                 else:
                     file.write("%s[%d] %s must be a %s" % ("    " * indent, i, value, self.subtype.__name__))
                 i += 1
+
+        def dict_contents(self, use_dict=None, as_class=dict):
+            # return sequences as arrays
+            mapped_value = []
+
+            for value in self.value:
+                if issubclass(self.subtype, Atomic):
+                    mapped_value.append(value)
+                elif isinstance(value, self.subtype):
+                    mapped_value.append(value.dict_contents(as_class=as_class))
+
+            # return what we built
+            return mapped_value
 
     # constrain it to a list of a specific type of item
     setattr(_SequenceOf, 'subtype', klass)
@@ -607,6 +654,19 @@ def ArrayOf(klass):
                 else:
                     file.write("%s%s must be a %s" % ("    " * indent, value, self.subtype.__name__))
 
+        def dict_contents(self, use_dict=None, as_class=dict):
+            # return arrays as arrays
+            mapped_value = []
+
+            for value in self.value:
+                if issubclass(self.subtype, Atomic):
+                    mapped_value.append(value)
+                elif isinstance(value, self.subtype):
+                    mapped_value.append(value.dict_contents(as_class=as_class))
+
+            # return what we built
+            return mapped_value
+
     # constrain it to a list of a specific type of item
     setattr(ArrayOf, 'subtype', klass)
     ArrayOf.__name__ = 'ArrayOf' + klass.__name__
@@ -790,6 +850,31 @@ class Choice(Logging):
         else:
             file.write("%smissing choice of %s" % ("    " * indent, self.__class__.__name__))
 
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: _log.debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # look for the chosen element
+        for element in self.choiceElements:
+            value = getattr(self, element.name, None)
+            if value is None:
+                continue
+
+            if issubclass(element.klass, Atomic):
+                mapped_value = value
+            elif isinstance(value, element.klass):
+                mapped_value = value.dict_contents(as_class=as_class)
+
+            use_dict.__setitem__(element.name, mapped_value)
+            break
+
+        # return what we built/updated
+        return use_dict
+
 #
 #   Any
 #
@@ -903,6 +988,30 @@ class Any(Logging):
     def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
         self.tagList.debug_contents(indent, file, _ids)
 
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: _log.debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # result will be a list
+        rslt_list = []
+
+        # loop through the tags
+        for tag in self.tagList:
+            # build a tag thing
+            use_dict = as_class()
+
+            # save the pieces
+            use_dict.__setitem__('class', tag.tagClass)
+            use_dict.__setitem__('number', tag.tagNumber)
+            use_dict.__setitem__('lvt', tag.tagLVT)
+            use_dict.__setitem__('data', tag.tagData)
+
+            # add it to the list
+            rslt_list = use_dict
+
+        # return what we built
+        return rslt_list
+
 #
 #   AnyAtomic
 #
@@ -959,3 +1068,4 @@ class AnyAtomic(Logging):
     def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
         if self.valueTag:
             self.valueTag.debug_contents(indent, file, _ids)
+
