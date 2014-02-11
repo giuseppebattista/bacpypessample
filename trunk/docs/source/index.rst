@@ -43,6 +43,7 @@ downloading the sample code and communicating with a test device.
     :maxdepth: 1
 
     gettingstarted/gettingstarted001.rst
+    gettingstarted/gettingstarted002.rst
 
 Tutorial
 --------
