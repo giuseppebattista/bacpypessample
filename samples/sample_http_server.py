@@ -17,7 +17,7 @@ import SimpleHTTPServer
 from ConfigParser import ConfigParser
 
 from bacpypes.debugging import class_debugging, ModuleLogger
-from bacpypes.consolelogging import ArgumentParser
+from bacpypes.consolelogging import ConfigArgumentParser
 
 from bacpypes.core import run
 
@@ -238,38 +238,25 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 #
 
 try:
-    # basic parser includes BACpypes debugging options
-    parser = ArgumentParser(description=__doc__)
+    # parse the command line arguments
+    parser = ConfigArgumentParser(description=__doc__)
 
     # add an option to override the port in the config file
     parser.add_argument('--port',
         help="override the port in the config file to PORT",
+        default="9000",
         )
-
-    # parse the command line arguments
     args = parser.parse_args()
 
     if _debug: _log.debug("initialization")
 
-    # read in the configuration file
-    config = ConfigParser()
-    config.read(args.ini)
-    if _debug: _log.debug("    - config: %r", config.items('BACpypes'))
-
-    # get the address from the config file
-    addr = config.get('BACpypes', 'address')
-
-    # check to see if the port should be overridden
-    if args.port:
-        addr += ':' + args.port
-
     # make a device object
     this_device = LocalDeviceObject(
-        objectName=config.get('BACpypes','objectName'),
-        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
-        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
-        segmentationSupported=config.get('BACpypes','segmentationSupported'),
-        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        objectName=args.ini.objectname,
+        objectIdentifier=int(args.ini.objectidentifier),
+        maxApduLengthAccepted=int(args.ini.maxapdulengthaccepted),
+        segmentationSupported=args.ini.segmentationsupported,
+        vendorIdentifier=int(args.ini.vendoridentifier),
         )
 
     # build a bit string that knows about the bit names
@@ -283,11 +270,10 @@ try:
     this_device.protocolServicesSupported = pss.value
 
     # make a simple application
-    this_application = WebServerApplication(this_device, addr)
+    this_application = WebServerApplication(this_device, args.ini.address)
 
-    # local host, custom port
-    HOST, PORT = "", 9000
-
+    # local host, special port
+    HOST, PORT = "", int(args.port)
     server = ThreadedTCPServer((HOST, PORT), ThreadedHTTPequestHandler)
     if _debug: _log.debug("    - server: %r", server)
 
