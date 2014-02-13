@@ -9,11 +9,12 @@ from time import time as _time
 from debugging import ModuleLogger, DebugContents
 from errors import *
 
+import udp
+
 from task import OneShotTask, RecurringTask
 
 from comm import Client, Server, bind, \
     ServiceAccessPoint, ApplicationServiceElement
-from udp import UDPDirector
 
 from bvll import *
 
@@ -80,13 +81,13 @@ class UDPMultiplexer(Logging):
 
         # create and bind the direct address
         self.direct = _MultiplexClient(self)
-        self.directPort = UDPDirector(self.addrTuple)
+        self.directPort = udp.UDPDirector(self.addrTuple)
         bind(self.direct, self.directPort)
 
         # create and bind the broadcast address
         if specialBroadcast and (not noBroadcast):
             self.broadcast = _MultiplexClient(self)
-            self.broadcastPort = UDPDirector(self.addrBroadcastTuple)
+            self.broadcastPort = udp.UDPDirector(self.addrBroadcastTuple, reuse=True)
             bind(self.direct, self.broadcastPort)
         else:
             self.broadcast = None
