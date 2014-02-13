@@ -117,8 +117,8 @@ class UDPPickleActor(UDPActor, Logging):
 
 class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
 
-    def __init__(self, address, timeout=0, actorClass=UDPActor, sid=None, sapID=None):
-        if _debug: UDPDirector._debug("__init__ %r timeout=%r actorClass=%r sid=%r sapID=%r", address, timeout, actorClass, sid, sapID)
+    def __init__(self, address, timeout=0, reuse=False, actorClass=UDPActor, sid=None, sapID=None):
+        if _debug: UDPDirector._debug("__init__ %r timeout=%r reuse=%r actorClass=%r sid=%r sapID=%r", address, timeout, reuse, actorClass, sid, sapID)
         Server.__init__(self, sid)
         ServiceAccessPoint.__init__(self, sapID)
         
@@ -137,6 +137,12 @@ class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
 
         # ask the dispatcher for a socket
         self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        # if the reuse parameter is provided, set the socket option
+        if reuse:
+            self.set_reuse_addr()
+
+        # proceed with the bind
         self.bind(address)
         if _debug: UDPDirector._debug("    - getsockname: %r", self.socket.getsockname())
 
