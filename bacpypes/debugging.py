@@ -299,8 +299,15 @@ class DebugContents(object):
 
 class LoggingFormatter(logging.Formatter):
 
-    def __init__(self):
+    def __init__(self, color=None):
         logging.Formatter.__init__(self, logging.BASIC_FORMAT, None)
+
+        # check the color
+        if color not in range(8):
+            raise ValueError, "colors are 0 (black) through 7 (white)"
+
+        # save the color
+        self.color = color
 
     def format(self, record):
         try:
@@ -325,6 +332,9 @@ class LoggingFormatter(logging.Formatter):
             msg = msg[:-1]
         except Exception, e:
             msg = "LoggingFormatter exception: " + str(e)
+
+        if self.color is not None:
+            msg = "\x1b[%dm" % (30+self.color,) + msg + "\x1b[0m"
 
         return msg
 
