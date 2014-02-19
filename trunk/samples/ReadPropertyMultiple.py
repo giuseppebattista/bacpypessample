@@ -122,7 +122,7 @@ class ReadPropertyMultipleApplication(BIPSimpleApplication):
 class ReadPropertyMultipleConsoleCmd(ConsoleCmd):
 
     def do_read(self, args):
-        """read <addr> [ <type> <inst> ( <prop> [ <indx> ] )... ]..."""
+        """read <addr> ( <type> <inst> ( <prop> [ <indx> ] )... )..."""
         args = args.split()
         if _debug: ReadPropertyMultipleConsoleCmd._debug("do_read %r", args)
 
@@ -183,6 +183,10 @@ class ReadPropertyMultipleConsoleCmd(ConsoleCmd):
 
                 # add it to the list
                 read_access_spec_list.append(read_access_spec)
+
+            # check for at least one
+            if not read_access_spec_list:
+                raise RuntimeError, "at least one read access specification required"
 
             # build the request
             request = ReadPropertyMultipleRequest(
