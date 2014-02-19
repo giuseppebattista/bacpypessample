@@ -21,7 +21,7 @@ _log = ModuleLogger(globals())
 #   ConsoleLogHandler
 #
 
-def ConsoleLogHandler(loggerRef='', level=logging.DEBUG):
+def ConsoleLogHandler(loggerRef='', level=logging.DEBUG, color=None):
     """Add a stream handler to stderr with our custom formatter to a logger."""
     if isinstance(loggerRef, logging.Logger):
         pass
@@ -52,7 +52,7 @@ def ConsoleLogHandler(loggerRef='', level=logging.DEBUG):
     hdlr.setLevel(level)
 
     # use our formatter
-    hdlr.setFormatter(LoggingFormatter())
+    hdlr.setFormatter(LoggingFormatter(color))
 
     # add it to the logger
     loggerRef.addHandler(hdlr)
@@ -91,6 +91,12 @@ class ArgumentParser(argparse.ArgumentParser):
             help="add console log handler to each debugging logger",
             )
 
+        # add a way to turn on color debugging
+        self.add_argument("--color",
+            help="turn on color debugging",
+            action="store_true",
+            )
+
     def parse_args(self):
         """Parse the arguments as usual, then add default processing."""
         if _debug: ArgumentParser._debug("parse_args")
@@ -118,8 +124,12 @@ class ArgumentParser(argparse.ArgumentParser):
             bug_list = args.debug
 
         # attach any that are specified
-        for debug_name in bug_list:
-            ConsoleLogHandler(debug_name)
+        if args.color:
+            for i, debug_name in enumerate(bug_list):
+                ConsoleLogHandler(debug_name, color=(i % 6) + 2)
+        else:
+            for debug_name in bug_list:
+                ConsoleLogHandler(debug_name)
 
         # return what was parsed
         return args
