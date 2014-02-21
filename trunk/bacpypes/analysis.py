@@ -15,7 +15,7 @@ try:
 except:
     pass
 
-from debugging import DebugContents, Logging, function_debugging, ModuleLogger
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 
 from pdu import PDU, Address
 from bvll import BVLPDU, bvl_pdu_types, ForwardedNPDU, \
@@ -52,7 +52,7 @@ def strftimestamp(ts):
 #   decode_ethernet
 #
 
-@function_debugging
+@bacpypes_debugging
 def decode_ethernet(s):
     if _debug: decode_ethernet._debug("decode_ethernet %s...", _hexify(s[:14]))
 
@@ -68,7 +68,7 @@ def decode_ethernet(s):
 #   decode_vlan
 #
 
-@function_debugging
+@bacpypes_debugging
 def decode_vlan(s):
     if _debug: decode_vlan._debug("decode_vlan %s...", _hexify(s[:4]))
 
@@ -86,7 +86,7 @@ def decode_vlan(s):
 #   decode_ip
 #
 
-@function_debugging
+@bacpypes_debugging
 def decode_ip(s):
     if _debug: decode_ip._debug("decode_ip %r", _hexify(s[:20]))
 
@@ -115,7 +115,7 @@ def decode_ip(s):
 #   decode_udp
 #
 
-@function_debugging
+@bacpypes_debugging
 def decode_udp(s):
     if _debug: decode_udp._debug("decode_udp %s...", _hexify(s[:8]))
 
@@ -132,7 +132,7 @@ def decode_udp(s):
 #   decode_packet
 #
 
-@function_debugging
+@bacpypes_debugging
 def decode_packet(data):
     """decode the data, return some kind of PDU."""
     if _debug: decode_packet._debug("decode_packet %r", data)
@@ -346,7 +346,7 @@ def decode_packet(data):
 #   decode_file
 #
 
-@function_debugging
+@bacpypes_debugging
 def decode_file(fname):
     """Given the name of a pcap file, open it, decode the contents and yield each packet."""
     if _debug: decode_file._debug("decode_file %r", fname)
@@ -383,7 +383,8 @@ def decode_file(fname):
 #   Tracer
 #
 
-class Tracer(DebugContents, Logging):
+@bacpypes_debugging
+class Tracer(DebugContents):
 
     def __init__(self, initialState=None):
         if _debug: Tracer._debug("__init__ initialState=%r", initialState)
@@ -407,7 +408,7 @@ class Tracer(DebugContents, Logging):
 #   trace
 #
 
-@function_debugging
+@bacpypes_debugging
 def trace(fname, tracers):
     if _debug: trace._debug("trace %r %r", fname, tracers)
 

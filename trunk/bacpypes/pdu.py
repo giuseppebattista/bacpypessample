@@ -11,7 +11,7 @@ import struct
 
 from errors import *
 
-from debugging import ModuleLogger
+from debugging import ModuleLogger, bacpypes_debugging
 from comm import PCI as _PCI, PDUData
 
 # pack/unpack constants
@@ -48,7 +48,7 @@ class Address:
     remoteStationAddr = 4
     globalBroadcastAddr = 5
 
-    def __init__(self,*args):
+    def __init__(self, *args):
         self.addrType = Address.nullAddr
         self.addrNet = None
         self.addrLen = 0
@@ -67,7 +67,7 @@ class Address:
             else:
                 raise ValueError, "unrecognized address ctor form"
 
-    def decode_address(self,addr):
+    def decode_address(self, addr):
         """Initialize the address from a string.  Lots of different forms are supported."""
         # start out assuming this is a local station
         self.addrType = Address.localStationAddr
@@ -189,7 +189,7 @@ class Address:
             else:
                 raise ValueError, "unrecognized format"
 
-        elif isinstance(addr,types.TupleType):
+        elif isinstance(addr, types.TupleType):
             addr, port = addr
             self.addrPort = int(port)
 
@@ -265,7 +265,7 @@ class Address:
 
     def __eq__(self,arg):
         # try an coerce it into an address
-        if not isinstance(arg,Address):
+        if not isinstance(arg, Address):
             arg = Address(arg)
 
         # all of the components must match
@@ -300,7 +300,7 @@ def unpack_ip_addr(addr):
 
 class LocalStation(Address):
 
-    def __init__(self,addr):
+    def __init__(self, addr):
         self.addrType = Address.localStationAddr
         self.addrNet = None
         if isinstance(addr,types.IntType):
@@ -376,17 +376,33 @@ class GlobalBroadcast(Address):
 #   PCI
 #
 
+@bacpypes_debugging
 class PCI(_PCI):
 
     _debug_contents = ('pduExpectingReply', 'pduNetworkPriority')
     
-    def __init__(self, **kwargs):
-        _PCI.__init__(self, **kwargs)
-        
-        # pick up some optional kwargs
-        self.pduExpectingReply = kwargs.get('expectingReply', 0)     # see 6.2.2 (1 or 0)
-        self.pduNetworkPriority = kwargs.get('networkPriority', 0)   # see 6.2.2 (0..3)
-        
+    def __init__(self, *args, **kwargs):
+        if _debug: PCI._debug("__init__ %r %r", args, kwargs)
+
+        # split out the keyword arguments that belong to this class
+        my_kwargs = {}
+        other_kwargs = {}
+        for element in ('expectingReply', 'networkPriority'):
+            if element in kwargs:
+                my_kwargs[element] = kwargs[element]
+        for kw in kwargs:
+            if kw not in my_kwargs:
+                other_kwargs[kw] = kwargs[kw]
+        if _debug: PCI._debug("    - my_kwargs: %r", my_kwargs)
+        if _debug: PCI._debug("    - other_kwargs: %r", other_kwargs)
+
+        # call some superclass, if there is one
+        super(PCI, self).__init__(*args, **other_kwargs)
+
+        # set the attribute/property values for the ones provided
+        self.pduExpectingReply = my_kwargs.get('expectingReply', 0)     # see 6.2.2 (1 or 0)
+        self.pduNetworkPriority = my_kwargs.get('networkPriority', 0)   # see 6.2.2 (0..3)
+
     def update(self, pci):
         """Copy the PCI fields."""
         _PCI.update(self, pci)
@@ -399,11 +415,12 @@ class PCI(_PCI):
 #   PDU
 #
 
+@bacpypes_debugging
 class PDU(PCI, PDUData):
 
     def __init__(self, *args, **kwargs):
-        PCI.__init__(self, **kwargs)
-        PDUData.__init__(self, *args)
+        if _debug: PDU._debug("__init__ %r %r", args, kwargs)
+        super(PDU, self).__init__(*args, **kwargs)
 
     def __str__(self):
         return '<%s %s -> %s : %s>' % (self.__class__.__name__, self.pduSource, self.pduDestination, _str_to_hex(self.pduData,'.'))

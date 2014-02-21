@@ -9,7 +9,7 @@ import struct
 import types
 
 from errors import DecodingError, ConfigurationError
-from debugging import ModuleLogger, DebugContents, Logging, function_debugging
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 
 # some debugging
 _debug = 0
@@ -47,15 +47,33 @@ def _hex_to_str(x, sep=''):
 #   PCI
 #
 
+@bacpypes_debugging
 class PCI(DebugContents):
 
     _debug_contents = ('pduUserData+', 'pduSource', 'pduDestination')
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        if _debug: PCI._debug("__init__ %r %r", args, kwargs)
+
+        # split out the keyword arguments that belong to this class
+        my_kwargs = {}
+        other_kwargs = {}
+        for element in ('user_data', 'source', 'destination'):
+            if element in kwargs:
+                my_kwargs[element] = kwargs[element]
+        for kw in kwargs:
+            if kw not in my_kwargs:
+                other_kwargs[kw] = kwargs[kw]
+        if _debug: PCI._debug("    - my_kwargs: %r", my_kwargs)
+        if _debug: PCI._debug("    - other_kwargs: %r", other_kwargs)
+
+        # call some superclass, if there is one
+        super(PCI, self).__init__(*args, **other_kwargs)
+
         # pick up some optional kwargs
-        self.pduUserData = kwargs.get('user_data', None)
-        self.pduSource = kwargs.get('source', None)
-        self.pduDestination = kwargs.get('destination', None)
+        self.pduUserData = my_kwargs.get('user_data', None)
+        self.pduSource = my_kwargs.get('source', None)
+        self.pduDestination = my_kwargs.get('destination', None)
 
     def update(self, pci):
         """Copy the PCI fields."""
@@ -67,13 +85,24 @@ class PCI(DebugContents):
 #   PDUData
 #
 
+@bacpypes_debugging
 class PDUData(object):
 
-    def __init__(self, data=''):
+    def __init__(self, data='', *args, **kwargs):
+        if _debug: PDUData._debug("__init__ %r %r %r", data, args, kwargs)
+
+        # this call will fail if there are args or kwargs, but not if there
+        # is another class in the __mro__ of this thing being constructed
+        super(PDUData, self).__init__(*args, **kwargs)
+
+        # if this was passed a PDUData object, this
+        # function acts like a copy constructor
         if isinstance(data, PDUData):
             self.pduData = data.pduData
-        else:
+        elif isinstance(data, str):
             self.pduData = data
+        else:
+            raise TypeError, "data must be PDUData or a string, was " + str(type(data))
 
     def get(self):
         if len(self.pduData) == 0:
@@ -137,11 +166,11 @@ class PDUData(object):
 #   PDU
 #
 
+@bacpypes_debugging
 class PDU(PCI, PDUData):
 
     def __init__(self, data='', **kwargs):
-        PCI.__init__(self, **kwargs)
-        PDUData.__init__(self, data)
+        if _debug: PDU._debug("__init__ %r %r", data, kwargs)
 
         # pick up some optional kwargs
         user_data = kwargs.get('user_data', None)
@@ -149,15 +178,16 @@ class PDU(PCI, PDUData):
         destination = kwargs.get('destination', None)
 
         # carry source and destination from another PDU
+        # so this can act like a copy constructor
         if isinstance(data, PDU):
             # allow parameters to override values
-            self.pduUserData = user_data or data.pduUserData
-            self.pduSource = source or data.pduSource
-            self.pduDestination = destination or data.pduDestination
-        else:
-            self.pduUserData = user_data
-            self.pduSource = source
-            self.pduDestination = destination
+            user_data = user_data or data.pduUserData
+            source = source or data.pduSource
+            destination = destination or data.pduDestination
+
+        # now continue on
+        PCI.__init__(self, user_data=user_data, source=source, destination=destination)
+        PDUData.__init__(self, data)
 
     def __str__(self):
         return '<%s %s -> %s : %s>' % (self.__class__.__name__,
@@ -170,9 +200,12 @@ class PDU(PCI, PDUData):
 #   Client
 #
 
+@bacpypes_debugging
 class Client:
 
     def __init__(self, cid=None):
+        if _debug: Client._debug("__init__ cid=%r", cid)
+
         self.clientID = cid
         self.clientPeer = None
         if cid is not None:
@@ -200,9 +233,12 @@ class Client:
 #   Server
 #
 
+@bacpypes_debugging
 class Server:
 
     def __init__(self, sid=None):
+        if _debug: Server._debug("__init__ sid=%r", sid)
+
         self.serverID = sid
         self.serverPeer = None
         if sid is not None:
@@ -230,13 +266,18 @@ class Server:
 #   Debug
 #
 
+@bacpypes_debugging
 class Debug(Client, Server):
 
     def __init__(self, label=None, cid=None, sid=None):
+        if _debug: Debug._debug("__init__ label=%r cid=%r sid=%r", label, cid, sid)
+
         Client.__init__(self, cid)
         Server.__init__(self, sid)
+
+        # save the label
         self.label = label
-        
+
     def confirmation(self, *args, **kwargs):
         print "Debug(%s).confirmation" % (self.label,)
         for i, arg in enumerate(args):
@@ -269,9 +310,12 @@ class Debug(Client, Server):
 #   Echo
 #
 
-class Echo(Client, Server, Logging):
+@bacpypes_debugging
+class Echo(Client, Server):
 
     def __init__(self, cid=None, sid=None):
+        if _debug: Echo._debug("__init__ cid=%r sid=%r", cid, sid)
+
         Client.__init__(self, cid)
         Server.__init__(self, sid)
         
@@ -295,7 +339,8 @@ class Echo(Client, Server, Logging):
 #   at the same time.
 #
 
-class ServiceAccessPoint(Logging):
+@bacpypes_debugging
+class ServiceAccessPoint:
 
     def __init__(self, sapID=None):
         if _debug: ServiceAccessPoint._debug("__init__(%s)", sapID)
@@ -340,7 +385,8 @@ class ServiceAccessPoint(Logging):
 #   ApplicationServiceElement
 #
 
-class ApplicationServiceElement(Logging):
+@bacpypes_debugging
+class ApplicationServiceElement:
 
     def __init__(self, aseID=None):
         if _debug: ApplicationServiceElement._debug("__init__(%s)", aseID)
@@ -415,11 +461,11 @@ class DebugServiceElement:
 #   bind
 #
 
-@function_debugging
+@bacpypes_debugging
 def bind(*args):
     """bind a list of clients and servers together, top down."""
     if _debug: bind._debug("bind %r", args)
-        
+
     # generic bind is pairs of names
     if not args:
         # find unbound clients and bind them

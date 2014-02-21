@@ -6,7 +6,7 @@ BACnet Streaming Link Layer Service
 
 import random
 
-from debugging import DebugContents, function_debugging, ModuleLogger
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 from errors import *
 
 from comm import Client, bind, ApplicationServiceElement
@@ -25,7 +25,7 @@ _log = ModuleLogger(globals())
 #   _Packetize
 #
 
-@function_debugging
+@bacpypes_debugging
 def _Packetize(data):
     if _debug: _Packetize._debug("_Packetize %r", data)
 
@@ -57,7 +57,8 @@ def _Packetize(data):
 #   _StreamToPacket
 #
 
-class _StreamToPacket(StreamToPacket, Logging):
+@bacpypes_debugging
+class _StreamToPacket(StreamToPacket):
 
     def __init__(self):
         if _debug: _StreamToPacket._debug("__init__")
@@ -71,7 +72,8 @@ class _StreamToPacket(StreamToPacket, Logging):
 #   UserInformation
 #
 
-class UserInformation(DebugContents, Logging):
+@bacpypes_debugging
+class UserInformation(DebugContents):
 
     _debug_contents = ('username', 'password*', 'service', 'proxyNetwork')
 
@@ -99,7 +101,8 @@ class UserInformation(DebugContents, Logging):
 #   ConnectionState
 #
 
-class ConnectionState(DebugContents, Logging):
+@bacpypes_debugging
+class ConnectionState(DebugContents):
 
     NOT_AUTHENTICATED   = 0     # no authentication attempted
     REQUESTED           = 1     # access request sent to the server (client only)
@@ -132,7 +135,8 @@ class ConnectionState(DebugContents, Logging):
 #   ServiceAdapter
 #
 
-class ServiceAdapter(Logging):
+@bacpypes_debugging
+class ServiceAdapter:
 
     _authentication_required = False
 
@@ -212,7 +216,8 @@ class ServiceAdapter(Logging):
 #   NetworkServiceAdapter
 #
 
-class NetworkServiceAdapter(ServiceAdapter, NetworkAdapter, Logging):
+@bacpypes_debugging
+class NetworkServiceAdapter(ServiceAdapter, NetworkAdapter):
 
     def __init__(self, mux, sap, net, cid=None):
         if _debug: NetworkServiceAdapter._debug("__init__ %r %r %r status=%r cid=%r", mux, sap, net, cid)
@@ -223,7 +228,8 @@ class NetworkServiceAdapter(ServiceAdapter, NetworkAdapter, Logging):
 #   TCPServerMultiplexer
 #
 
-class TCPServerMultiplexer(Client, Logging):
+@bacpypes_debugging
+class TCPServerMultiplexer(Client):
 
     def __init__(self, addr=None):
         if _debug: TCPServerMultiplexer._debug("__init__ %r", addr)
@@ -572,7 +578,8 @@ class TCPServerMultiplexer(Client, Logging):
 #   TCPClientMultiplexer
 #
 
-class TCPClientMultiplexer(Client, Logging):
+@bacpypes_debugging
+class TCPClientMultiplexer(Client):
 
     def __init__(self):
         if _debug: TCPClientMultiplexer._debug("__init__")
@@ -789,7 +796,8 @@ class TCPClientMultiplexer(Client, Logging):
 #   TCPMultiplexerASE
 #
 
-class TCPMultiplexerASE(ApplicationServiceElement, Logging):
+@bacpypes_debugging
+class TCPMultiplexerASE(ApplicationServiceElement):
 
     def __init__(self, mux):
         if _debug: TCPMultiplexerASE._debug("__init__ %r", mux)
@@ -837,7 +845,8 @@ class TCPMultiplexerASE(ApplicationServiceElement, Logging):
 #   DeviceToDeviceServerService
 #
 
-class DeviceToDeviceServerService(NetworkServiceAdapter, Logging):
+@bacpypes_debugging
+class DeviceToDeviceServerService(NetworkServiceAdapter):
 
     serviceID = DEVICE_TO_DEVICE_SERVICE_ID
 
@@ -878,7 +887,8 @@ class DeviceToDeviceServerService(NetworkServiceAdapter, Logging):
 #   DeviceToDeviceClientService
 #
 
-class DeviceToDeviceClientService(NetworkServiceAdapter, Logging):
+@bacpypes_debugging
+class DeviceToDeviceClientService(NetworkServiceAdapter):
 
     serviceID = DEVICE_TO_DEVICE_SERVICE_ID
 
@@ -969,7 +979,8 @@ class DeviceToDeviceClientService(NetworkServiceAdapter, Logging):
 #   RouterToRouterService
 #
 
-class RouterToRouterService(NetworkServiceAdapter, Logging):
+@bacpypes_debugging
+class RouterToRouterService(NetworkServiceAdapter):
 
     serviceID = ROUTER_TO_ROUTER_SERVICE_ID
 
@@ -1085,7 +1096,8 @@ class RouterToRouterService(NetworkServiceAdapter, Logging):
 #   ProxyServiceNetworkAdapter
 #
 
-class ProxyServiceNetworkAdapter(NetworkAdapter, Logging):
+@bacpypes_debugging
+class ProxyServiceNetworkAdapter(NetworkAdapter):
 
     def __init__(self, conn, sap, net, cid=None):
         if _debug: ProxyServiceNetworkAdapter._debug("__init__ %r %r %r status=0 cid=%r", conn, sap, net, cid)
@@ -1142,7 +1154,8 @@ class ProxyServiceNetworkAdapter(NetworkAdapter, Logging):
 #   ProxyServerService
 #
 
-class ProxyServerService(ServiceAdapter, Logging):
+@bacpypes_debugging
+class ProxyServerService(ServiceAdapter):
 
     serviceID = PROXY_SERVICE_ID
 
@@ -1187,7 +1200,8 @@ class ProxyServerService(ServiceAdapter, Logging):
 #   ProxyClientService
 #
 
-class ProxyClientService(ServiceAdapter, Client, Logging):
+@bacpypes_debugging
+class ProxyClientService(ServiceAdapter, Client):
 
     serviceID = PROXY_SERVICE_ID
 

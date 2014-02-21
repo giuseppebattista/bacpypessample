@@ -92,6 +92,52 @@ def run(spin=SPIN):
     running = False
 
 #
+#   run_once
+#
+
+def run_once():
+    """
+    Make a pass through the scheduled tasks and deferred functions just
+    like the run() function but without the asyncore call (so there is no 
+    socket IO actviity) and the timers.
+    """
+    _log.debug("run_once")
+    global taskManager, deferredFns
+
+    # reference the task manager (a singleton)
+    taskManager = TaskManager()
+
+    try:
+        delta = 0.0
+        while delta == 0.0:
+            # get the next task
+            task, delta = taskManager.get_next_task()
+            _log.debug("    - task, delta: %r, %r", task, delta)
+
+            # if there is a task to process, do it
+            if task:
+                taskManager.process_task(task)
+
+            # check for deferred functions
+            while deferredFns:
+                # get a reference to the list
+                fnlist = deferredFns
+                deferredFns = []
+
+                # call the functions
+                for fn, args, kwargs in fnlist:
+                    _log.debug("    - call: %r %r %r", fn, args, kwargs)
+                    fn( *args, **kwargs)
+
+                # done with this list
+                del fnlist
+
+    except KeyboardInterrupt:
+        _log.info("keyboard interrupt")
+    except Exception, e:
+        _log.exception("an error has occurred: %s", e)
+
+#
 #   stop
 #
 

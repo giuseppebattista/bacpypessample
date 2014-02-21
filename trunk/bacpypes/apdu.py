@@ -5,7 +5,7 @@ Application Layer Protocol Data Units
 """
 
 from errors import DecodingError
-from debugging import ModuleLogger, DebugContents, Logging
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 
 from pdu import *
 from primitivedata import *
@@ -72,15 +72,18 @@ def decode_max_apdu_response(arg):
 #   APCI
 #
 
-class APCI(PCI, DebugContents, Logging):
+@bacpypes_debugging
+class APCI(PCI, DebugContents):
 
     _debug_contents = ('apduType', 'apduSeg', 'apduMor', 'apduSA', 'apduSrv'
         , 'apduNak', 'apduSeq', 'apduWin', 'apduMaxSegs', 'apduMaxResp'
         , 'apduService', 'apduInvokeID', 'apduAbortRejectReason'
         )
         
-    def __init__(self):
-        PCI.__init__(self)
+    def __init__(self, *args, **kwargs):
+        if _debug: APCI._debug("__init__ %r %r", args, kwargs)
+        super(APCI, self).__init__(*args, **kwargs)
+
         self.apduType = None
         self.apduSeg = None                 # segmented
         self.apduMor = None                 # more follows
@@ -318,15 +321,17 @@ class APCI(PCI, DebugContents, Logging):
 
 class APDU(APCI, PDUData):
 
-    def __init__(self, *args):
-        APCI.__init__(self)
-        PDUData.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        if _debug: APDU._debug("__init__ %r %r", args, kwargs)
+        super(APDU, self).__init__(*args, **kwargs)
 
     def encode(self, pdu):
+        if _debug: APCI._debug("encode %s", str(pdu))
         APCI.encode(self, pdu)
         pdu.put_data(self.pduData)
 
     def decode(self, pdu):
+        if _debug: APCI._debug("decode %s", str(pdu))
         APCI.decode(self, pdu)
         self.pduData = pdu.get_data(len(pdu.pduData))
 
@@ -361,11 +366,14 @@ class _APDU(APDU):
 #   ConfirmedRequestPDU
 #
 
+@bacpypes_debugging
 class ConfirmedRequestPDU(_APDU):
     pduType = 0
     
-    def __init__(self, choice=None):
-        APDU.__init__(self)
+    def __init__(self, choice=None, *args, **kwargs):
+        if _debug: ConfirmedRequestPDU._debug("__init__ %r %r %r", choice, args, kwargs)
+        super(ConfirmedRequestPDU, self).__init__(*args, **kwargs)
+
         self.apduType = ConfirmedRequestPDU.pduType
         self.apduService = choice
         self.pduExpectingReply = 1
@@ -385,11 +393,14 @@ register_apdu_type(ConfirmedRequestPDU)
 #   UnconfirmedRequestPDU
 #
 
+@bacpypes_debugging
 class UnconfirmedRequestPDU(_APDU):
     pduType = 1
-    
-    def __init__(self, choice=None):
-        APDU.__init__(self)
+
+    def __init__(self, choice=None, *args, **kwargs):
+        if _debug: UnconfirmedRequestPDU._debug("__init__ %r %r %r", choice, args, kwargs)
+        super(UnconfirmedRequestPDU, self).__init__(*args, **kwargs)
+
         self.apduType = UnconfirmedRequestPDU.pduType
         self.apduService = choice
 
@@ -408,11 +419,14 @@ register_apdu_type(UnconfirmedRequestPDU)
 #   SimpleAckPDU
 #
 
+@bacpypes_debugging
 class SimpleAckPDU(_APDU):
     pduType = 2
 
-    def __init__(self, choice=None, invokeID=None, context=None):
-        APDU.__init__(self)
+    def __init__(self, choice=None, invokeID=None, context=None, *args, **kwargs):
+        if _debug: SimpleAckPDU._debug("__init__ %r %r %r %r %r", choice, invokeID, context, args, kwargs)
+        super(SimpleAckPDU, self).__init__(*args, **kwargs)
+
         self.apduType = SimpleAckPDU.pduType
         self.apduService = choice
         self.apduInvokeID = invokeID
@@ -437,11 +451,14 @@ register_apdu_type(SimpleAckPDU)
 #   ComplexAckPDU
 #
 
+@bacpypes_debugging
 class ComplexAckPDU(_APDU):
     pduType = 3
 
-    def __init__(self, choice=None, invokeID=None, context=None):
-        APDU.__init__(self)
+    def __init__(self, choice=None, invokeID=None, context=None, *args, **kwargs):
+        if _debug: ComplexAckPDU._debug("__init__ %r %r %r %r %r", choice, invokeID, context, args, kwargs)
+        super(ComplexAckPDU, self).__init__(*args, **kwargs)
+
         self.apduType = ComplexAckPDU.pduType
         self.apduService = choice
         self.apduInvokeID = invokeID
@@ -466,11 +483,14 @@ register_apdu_type(ComplexAckPDU)
 #   SegmentAckPDU
 #
 
+@bacpypes_debugging
 class SegmentAckPDU(_APDU):
     pduType = 4
 
-    def __init__(self, nak=None, srv=None, invokeID=None, sequenceNumber=None, windowSize=None):
-        APDU.__init__(self)
+    def __init__(self, nak=None, srv=None, invokeID=None, sequenceNumber=None, windowSize=None, *args, **kwargs):
+        if _debug: SegmentAckPDU._debug("__init__ %r %r %r %r %r %r %r", nak, srv, invokeID, sequenceNumber, windowSize, args, kwargs)
+        super(SegmentAckPDU, self).__init__(*args, **kwargs)
+
         if nak is None: raise ValueError, "nak is None"
         if srv is None: raise ValueError, "srv is None"
         if invokeID is None: raise ValueError, "invokeID is None"
@@ -498,11 +518,14 @@ register_apdu_type(SegmentAckPDU)
 #   ErrorPDU
 #
 
+@bacpypes_debugging
 class ErrorPDU(_APDU):
     pduType = 5
 
-    def __init__(self, choice=None, invokeID=None, context=None):
-        APDU.__init__(self)
+    def __init__(self, choice=None, invokeID=None, context=None, *args, **kwargs):
+        if _debug: ErrorPDU._debug("__init__ %r %r %r %r %r", choice, invokeID, context, args, kwargs)
+        super(ErrorPDU, self).__init__(*args, **kwargs)
+
         self.apduType = ErrorPDU.pduType
         self.apduService = choice
         self.apduInvokeID = invokeID
@@ -544,11 +567,14 @@ class RejectReason(Enumerated):
 
 expand_enumerations(RejectReason)
 
+@bacpypes_debugging
 class RejectPDU(_APDU):
     pduType = 6
     
-    def __init__(self, invokeID=None, reason=None, context=None):
-        APDU.__init__(self)
+    def __init__(self, invokeID=None, reason=None, context=None, *args, **kwargs):
+        if _debug: RejectPDU._debug("__init__ %r %r %r %r %r", invokeID, reason, context, args, kwargs)
+        super(RejectPDU, self).__init__(*args, **kwargs)
+
         self.apduType = RejectPDU.pduType
         self.apduInvokeID = invokeID
         if isinstance(reason, str):
@@ -599,11 +625,14 @@ class AbortReason(Enumerated):
 
 expand_enumerations(AbortReason)
 
+@bacpypes_debugging
 class AbortPDU(_APDU):
     pduType = 7
-    
-    def __init__(self, srv=None, invokeID=None, reason=None, context=None):
-        APDU.__init__(self)
+
+    def __init__(self, srv=None, invokeID=None, reason=None, context=None, *args, **kwargs):
+        if _debug: AbortPDU._debug("__init__ %r %r %r %r %r %r", srv, invokeID, reason, context, args, kwargs)
+        super(AbortPDU, self).__init__(*args, **kwargs)
+
         self.apduType = AbortPDU.pduType
         self.apduSrv = srv
         self.apduInvokeID = invokeID
@@ -639,11 +668,14 @@ register_apdu_type(AbortPDU)
 #   APCISequence
 #
 
-class APCISequence(APCI, Sequence, Logging):
+@bacpypes_debugging
+class APCISequence(APCI, Sequence):
 
-    def __init__(self, **kwargs):
-        APCI.__init__(self)
-        Sequence.__init__(self, **kwargs)
+    def __init__(self, *args, **kwargs):
+        if _debug: APCISequence._debug("__init__ %r %r", args, kwargs)
+        super(APCISequence, self).__init__(*args, **kwargs)
+
+        # start with an empty tag list
         self._tag_list = None
 
     def encode(self, apdu):
@@ -676,49 +708,53 @@ class APCISequence(APCI, Sequence, Logging):
 #   ConfirmedRequestSequence
 #
 
+@bacpypes_debugging
 class ConfirmedRequestSequence(APCISequence, ConfirmedRequestPDU):
 
     serviceChoice = None
     
-    def __init__(self, **kwargs):
-        APCISequence.__init__(self, **kwargs)
-        ConfirmedRequestPDU.__init__(self, self.serviceChoice)
+    def __init__(self, *args, **kwargs):
+        if _debug: ConfirmedRequestSequence._debug("__init__ %r %r", args, kwargs)
+        super(ConfirmedRequestSequence, self).__init__(*args, choice=self.serviceChoice, **kwargs)
 
 #
 #   ComplexAckSequence
 #
 
+@bacpypes_debugging
 class ComplexAckSequence(APCISequence, ComplexAckPDU):
 
     serviceChoice = None
 
-    def __init__(self, **kwargs):
-        APCISequence.__init__(self, **kwargs)
-        ComplexAckPDU.__init__(self, self.serviceChoice, kwargs.get('invokeID'), context=kwargs.get('context', None))
+    def __init__(self, *args, **kwargs):
+        if _debug: ComplexAckSequence._debug("__init__ %r %r", args, kwargs)
+        super(ComplexAckSequence, self).__init__(*args, choice=self.serviceChoice, **kwargs)
 
 #
 #   UnconfirmedRequestSequence
 #
 
+@bacpypes_debugging
 class UnconfirmedRequestSequence(APCISequence, UnconfirmedRequestPDU):
 
     serviceChoice = None
 
-    def __init__(self, **kwargs):
-        APCISequence.__init__(self, **kwargs)
-        UnconfirmedRequestPDU.__init__(self, self.serviceChoice)
+    def __init__(self, *args, **kwargs):
+        if _debug: UnconfirmedRequestSequence._debug("__init__ %r %r", args, kwargs)
+        super(UnconfirmedRequestSequence, self).__init__(*args, choice=self.serviceChoice, **kwargs)
 
 #
 #   ErrorSequence
 #
 
+@bacpypes_debugging
 class ErrorSequence(APCISequence, ErrorPDU):
 
     serviceChoice = None
 
-    def __init__(self, **kwargs):
-        APCISequence.__init__(self, **kwargs)
-        ErrorPDU.__init__(self, self.serviceChoice, kwargs.get('invokeID'), context=kwargs.get('context', None))
+    def __init__(self, *args, **kwargs):
+        if _debug: ErrorSequence._debug("__init__ %r %r", args, kwargs)
+        super(ErrorSequence, self).__init__(*args, choice=self.serviceChoice, **kwargs)
 
 #------------------------------
 
