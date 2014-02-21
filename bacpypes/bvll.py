@@ -5,7 +5,7 @@ BACnet Virtual Link Layer Module
 """
 
 from errors import EncodingError, DecodingError
-from debugging import ModuleLogger, DebugContents, Logging
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 
 from pdu import *
 
@@ -23,7 +23,8 @@ def register_bvlpdu_type(klass):
 #   BVLCI
 #
 
-class BVLCI(PCI, DebugContents, Logging):
+@bacpypes_debugging
+class BVLCI(PCI, DebugContents):
 
     _debug_contents = ('bvlciType', 'bvlciFunction', 'bvlciLength')
     
@@ -40,8 +41,10 @@ class BVLCI(PCI, DebugContents, Logging):
     originalUnicastNPDU                 = 0x0A
     originalBroadcastNPDU               = 0x0B
 
-    def __init__(self, *args):
-        PCI.__init__(self)
+    def __init__(self, *args, **kwargs):
+        if _debug: BVLCI._debug("__init__ %r %r", args, kwargs)
+        super(BVLCI, self).__init__(*args, **kwargs)
+
         self.bvlciType = 0x81
         self.bvlciFunction = None
         self.bvlciLength = None
@@ -54,7 +57,7 @@ class BVLCI(PCI, DebugContents, Logging):
         
     def encode(self, pdu):
         """encode the contents of the BVLCI into the PDU."""
-        if _debug: BVLCI._debug("encode %r", pdu)
+        if _debug: BVLCI._debug("encode %s", str(pdu))
 
         # copy the basics
         PCI.update(pdu, self)
@@ -69,7 +72,7 @@ class BVLCI(PCI, DebugContents, Logging):
 
     def decode(self, pdu):
         """decode the contents of the PDU into the BVLCI."""
-        if _debug: BVLCI._debug("decode %r", pdu)
+        if _debug: BVLCI._debug("decode %s", str(pdu))
 
         # copy the basics
         PCI.update(self, pdu)
@@ -116,11 +119,12 @@ class BVLCI(PCI, DebugContents, Logging):
 #   BVLPDU
 #
 
+@bacpypes_debugging
 class BVLPDU(BVLCI, PDUData):
 
-    def __init__(self, *args):
-        BVLCI.__init__(self)
-        PDUData.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        if _debug: BVLPDU._debug("__init__ %r %r", args, kwargs)
+        super(BVLPDU, self).__init__(*args, **kwargs)
 
     def encode(self, pdu):
         BVLCI.encode(self, pdu)
@@ -139,11 +143,12 @@ class BVLPDU(BVLCI, PDUData):
 class Result(BVLCI):
 
     _debug_contents = ('bvlciResultCode',)
-    
+
     messageType = BVLCI.result
-    
-    def __init__(self, code=None):
-        BVLCI.__init__(self)
+
+    def __init__(self, code=None, *args, **kwargs):
+        super(Result, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.result
         self.bvlciLength = 6
         self.bvlciResultCode = code
@@ -168,8 +173,9 @@ class WriteBroadcastDistributionTable(BVLCI):
     
     messageType = BVLCI.writeBroadcastDistributionTable
 
-    def __init__(self, bdt=[]):
-        BVLCI.__init__(self)
+    def __init__(self, bdt=[], *args, **kwargs):
+        super(WriteBroadcastDistributionTable, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.writeBroadcastDistributionTable
         self.bvlciLength = 4 + 10 * len(bdt)
         self.bvlciBDT = bdt
@@ -197,8 +203,9 @@ register_bvlpdu_type(WriteBroadcastDistributionTable)
 class ReadBroadcastDistributionTable(BVLCI):
     messageType = BVLCI.readBroadcastDistributionTable
 
-    def __init__(self):
-        BVLCI.__init__(self)
+    def __init__(self, *args, **kwargs):
+        super(ReadBroadcastDistributionTable, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.readBroadcastDistributionTable
         self.bvlciLength = 4
         
@@ -220,8 +227,9 @@ class ReadBroadcastDistributionTableAck(BVLCI):
     
     messageType = BVLCI.readBroadcastDistributionTableAck
 
-    def __init__(self, bdt=[]):
-        BVLCI.__init__(self)
+    def __init__(self, bdt=[], *args, **kwargs):
+        super(ReadBroadcastDistributionTableAck, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.readBroadcastDistributionTableAck
         self.bvlciLength = 4 + 10 * len(bdt)
         self.bvlciBDT = bdt
@@ -259,12 +267,13 @@ class ForwardedNPDU(BVLPDU):
     
     messageType = BVLCI.forwardedNPDU
 
-    def __init__(self, addr=None, *args):
-        BVLPDU.__init__(self, *args)
+    def __init__(self, addr=None, *args, **kwargs):
+        super(ForwardedNPDU, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.forwardedNPDU
         self.bvlciLength = 10 + len(self.pduData)
         self.bvlciAddress = addr
-        
+
     def encode(self, bvlpdu):
         # make sure the length is correct
         self.bvlciLength = 10 + len(self.pduData)
@@ -311,8 +320,9 @@ class RegisterForeignDevice(BVLCI):
     
     messageType = BVLCI.registerForeignDevice
 
-    def __init__(self, ttl=None):
-        BVLCI.__init__(self)
+    def __init__(self, ttl=None, *args, **kwargs):
+        super(RegisterForeignDevice, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.registerForeignDevice
         self.bvlciLength = 6
         self.bvlciTimeToLive = ttl
@@ -335,8 +345,9 @@ class ReadForeignDeviceTable(BVLCI):
 
     messageType = BVLCI.readForeignDeviceTable
 
-    def __init__(self, ttl=None):
-        BVLCI.__init__(self)
+    def __init__(self, ttl=None, *args, **kwargs):
+        super(ReadForeignDeviceTable, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.readForeignDeviceTable
         self.bvlciLength = 4
         
@@ -358,8 +369,9 @@ class ReadForeignDeviceTableAck(BVLCI):
     
     messageType = BVLCI.readForeignDeviceTableAck
 
-    def __init__(self, fdt=[]):
-        BVLCI.__init__(self)
+    def __init__(self, fdt=[], *args, **kwargs):
+        super(ReadForeignDeviceTableAck, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.readForeignDeviceTableAck
         self.bvlciLength = 4 + 10 * len(fdt)
         self.bvlciFDT = fdt
@@ -393,8 +405,9 @@ class DeleteForeignDeviceTableEntry(BVLCI):
     
     messageType = BVLCI.deleteForeignDeviceTableEntry
 
-    def __init__(self, addr=None):
-        BVLCI.__init__(self)
+    def __init__(self, addr=None, *args, **kwargs):
+        super(DeleteForeignDeviceTableEntry, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.deleteForeignDeviceTableEntry
         self.bvlciLength = 10
         self.bvlciAddress = addr
@@ -417,8 +430,9 @@ class DistributeBroadcastToNetwork(BVLPDU):
 
     messageType = BVLCI.distributeBroadcastToNetwork
 
-    def __init__(self, *args):
-        BVLPDU.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        super(DistributeBroadcastToNetwork, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.distributeBroadcastToNetwork
         self.bvlciLength = 4 + len(self.pduData)
         
@@ -440,8 +454,9 @@ register_bvlpdu_type(DistributeBroadcastToNetwork)
 class OriginalUnicastNPDU(BVLPDU):
     messageType = BVLCI.originalUnicastNPDU
 
-    def __init__(self, *args):
-        BVLPDU.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        super(OriginalUnicastNPDU, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.originalUnicastNPDU
         self.bvlciLength = 4 + len(self.pduData)
         
@@ -463,8 +478,9 @@ register_bvlpdu_type(OriginalUnicastNPDU)
 class OriginalBroadcastNPDU(BVLPDU):
     messageType = BVLCI.originalBroadcastNPDU
 
-    def __init__(self, *args):
-        BVLPDU.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        super(OriginalBroadcastNPDU, self).__init__(*args, **kwargs)
+
         self.bvlciFunction = BVLCI.originalBroadcastNPDU
         self.bvlciLength = 4 + len(self.pduData)
         

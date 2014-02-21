@@ -303,8 +303,9 @@ class LoggingFormatter(logging.Formatter):
         logging.Formatter.__init__(self, logging.BASIC_FORMAT, None)
 
         # check the color
-        if color not in range(8):
-            raise ValueError, "colors are 0 (black) through 7 (white)"
+        if color is not None:
+            if color not in range(8):
+                raise ValueError, "colors are 0 (black) through 7 (white)"
 
         # save the color
         self.color = color
@@ -331,7 +332,12 @@ class LoggingFormatter(logging.Formatter):
             # trim off the last '\n'
             msg = msg[:-1]
         except Exception, e:
-            msg = "LoggingFormatter exception: " + str(e)
+            record_attrs = [
+                attr + ": " + str(getattr(record, attr, "N/A")) 
+                for attr in ('name', 'level', 'pathname', 'lineno', 'msg', 'args', 'exc_info', 'func')
+                ]
+            record_attrs[:0] = ["LoggingFormatter exception: " + str(e)]
+            msg = "\n    ".join(record_attrs)
 
         if self.color is not None:
             msg = "\x1b[%dm" % (30+self.color,) + msg + "\x1b[0m"

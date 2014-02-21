@@ -5,7 +5,7 @@ NPDU
 """
 
 from errors import DecodingError
-from debugging import ModuleLogger, DebugContents, Logging
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 
 from pdu import *
 
@@ -23,7 +23,8 @@ def register_npdu_type(klass):
 #  NPCI
 #
 
-class NPCI(PCI, DebugContents, Logging):
+@bacpypes_debugging
+class NPCI(PCI, DebugContents):
 
     _debug_contents = ('npduVersion', 'npduControl', 'npduDADR', 'npduSADR'
         , 'npduHopCount', 'npduNetMessage', 'npduVendorID'
@@ -40,8 +41,9 @@ class NPCI(PCI, DebugContents, Logging):
     establishConnectionToNetwork    = 0x08
     disconnectConnectionToNetwork   = 0x09
 
-    def __init__(self, *args):
-        PCI.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        super(NPCI, self).__init__(*args, **kwargs)
+
         self.npduVersion = 1
         self.npduControl = None
         self.npduDADR = None
@@ -129,7 +131,7 @@ class NPCI(PCI, DebugContents, Logging):
 
     def decode(self, pdu):
         """decode the contents of the PDU and put them into the NPDU."""
-        if _debug: NPCI._debug("decode %r", pdu)
+        if _debug: NPCI._debug("decode %s", str(pdu))
 
         PCI.update(self, pdu)
 
@@ -224,9 +226,8 @@ class NPCI(PCI, DebugContents, Logging):
 
 class NPDU(NPCI, PDUData):
 
-    def __init__(self, *args):
-        NPCI.__init__(self)
-        PDUData.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        super(NPDU, self).__init__(*args, **kwargs)
 
     def encode(self, pdu):
         NPCI.encode(self, pdu)
@@ -248,8 +249,9 @@ class WhoIsRouterToNetwork(NPCI):
     
     messageType = 0x00
 
-    def __init__(self, net=None):
-        NPCI.__init__(self)
+    def __init__(self, net=None, *args, **kwargs):
+        super(WhoIsRouterToNetwork, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = WhoIsRouterToNetwork.messageType
         self.wirtnNetwork = net
         
@@ -277,8 +279,9 @@ class IAmRouterToNetwork(NPCI):
     
     messageType = 0x01
 
-    def __init__(self, netList=[]):
-        NPCI.__init__(self)
+    def __init__(self, netList=[], *args, **kwargs):
+        super(IAmRouterToNetwork, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = IAmRouterToNetwork.messageType
         self.iartnNetworkList = netList
         
@@ -305,8 +308,9 @@ class ICouldBeRouterToNetwork(NPCI):
     
     messageType = 0x02
 
-    def __init__(self, net=None, perf=None):
-        NPCI.__init__(self)
+    def __init__(self, net=None, perf=None, *args, **kwargs):
+        super(ICouldBeRouterToNetwork, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = ICouldBeRouterToNetwork.messageType
         self.icbrtnNetwork = net
         self.icbrtnPerformanceIndex = perf
@@ -333,8 +337,9 @@ class RejectMessageToNetwork(NPCI):
     
     messageType = 0x03
 
-    def __init__(self, reason=None, dnet=None):
-        NPCI.__init__(self)
+    def __init__(self, reason=None, dnet=None, *args, **kwargs):
+        super(RejectMessageToNetwork, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = RejectMessageToNetwork.messageType
         self.rmtnRejectionReason = reason
         self.rmtnDNET = dnet
@@ -361,8 +366,9 @@ class RouterBusyToNetwork(NPCI):
     
     messageType = 0x04
 
-    def __init__(self, netList=[]):
-        NPCI.__init__(self)
+    def __init__(self, netList=[], *args, **kwargs):
+        super(RouterBusyToNetwork, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = RouterBusyToNetwork.messageType
         self.rbtnNetworkList = netList
         
@@ -389,11 +395,12 @@ class RouterAvailableToNetwork(NPCI):
     
     messageType = 0x05
 
-    def __init__(self, netList=[]):
-        NPCI.__init__(self)
+    def __init__(self, netList=[], *args, **kwargs):
+        super(RouterAvailableToNetwork, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = RouterAvailableToNetwork.messageType
         self.ratnNetworkList = netList
-        
+
     def encode(self, npdu):
         NPCI.update(npdu, self)
         for net in self.ratnNetworkList:
@@ -428,8 +435,9 @@ class InitializeRoutingTable(NPCI):
     messageType = 0x06
     _debug_contents = ('irtTable++',)
 
-    def __init__(self, routingTable=[]):
-        NPCI.__init__(self)
+    def __init__(self, routingTable=[], *args, **kwargs):
+        super(InitializeRoutingTable, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = InitializeRoutingTable.messageType
         self.irtTable = routingTable
         
@@ -465,11 +473,12 @@ class InitializeRoutingTableAck(NPCI):
     messageType = 0x07
     _debug_contents = ('irtaTable++',)
 
-    def __init__(self, routingTable=[]):
-        NPCI.__init__(self)
+    def __init__(self, routingTable=[], *args, **kwargs):
+        super(InitializeRoutingTable, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = InitializeRoutingTableAck.messageType
         self.irtaTable = routingTable
-        
+
     def encode(self, npdu):
         NPCI.update(npdu, self)
         npdu.put(len(self.irtaTable))
@@ -478,11 +487,11 @@ class InitializeRoutingTableAck(NPCI):
             npdu.put(rte.rtPortID)
             npdu.put(len(rte.rtPortInfo))
             npdu.put_data(rte.rtPortInfo)
-    
+
     def decode(self, npdu):
         NPCI.update(self, npdu)
         self.irtaTable = []
-        
+
         rtLength = npdu.get()
         for i in range(rtLength):
             dnet = npdu.get_short()
@@ -504,17 +513,18 @@ class EstablishConnectionToNetwork(NPCI):
     
     messageType = 0x08
 
-    def __init__(self, dnet=None, terminationTime=None):
-        NPCI.__init__(self)
+    def __init__(self, dnet=None, terminationTime=None, *args, **kwargs):
+        super(EstablishConnectionToNetwork, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = EstablishConnectionToNetwork.messageType
         self.ectnDNET = dnet
         self.ectnTerminationTime = terminationTime
-        
+
     def encode(self, npdu):
         NPCI.update(npdu, self)
         npdu.put_short( self.ectnDNET )
         npdu.put( self.ectnTerminationTime )
-    
+
     def decode(self, npdu):
         NPCI.update(self, npdu)
         self.ectnDNET = npdu.get_short()
@@ -532,15 +542,16 @@ class DisconnectConnectionToNetwork(NPCI):
     
     messageType = 0x09
 
-    def __init__(self, dnet=None):
-        NPCI.__init__(self)
+    def __init__(self, dnet=None, *args, **kwargs):
+        super(DisconnectConnectionToNetwork, self).__init__(*args, **kwargs)
+
         self.npduNetMessage = DisconnectConnectionToNetwork.messageType
         self.dctnDNET = dnet
-        
+
     def encode(self, npdu):
         NPCI.update(npdu, self)
         npdu.put_short( self.dctnDNET )
-    
+
     def decode(self, npdu):
         NPCI.update(self, npdu)
         self.dctnDNET = npdu.get_short()

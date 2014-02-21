@@ -6,7 +6,7 @@ Network Service
 
 from copy import copy as _copy
 
-from debugging import ModuleLogger, DebugContents
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 from errors import ConfigurationError
 
 from comm import Client, Server, bind, \
@@ -57,11 +57,13 @@ class RouterReference(DebugContents):
 #   NetworkAdapter
 #
 
-class NetworkAdapter(Client, DebugContents, Logging):
+@bacpypes_debugging
+class NetworkAdapter(Client, DebugContents):
 
     _debug_contents = ('adapterSAP-', 'adapterNet')
 
     def __init__(self, sap, net, cid=None):
+        if _debug: NetworkAdapter._debug("__init__ %r (net=%r) cid=%r", sap, net, cid)
         Client.__init__(self, cid)
         self.adapterSAP = sap
         self.adapterNet = net
@@ -70,18 +72,18 @@ class NetworkAdapter(Client, DebugContents, Logging):
         sap.adapters.append(self)
 
     def confirmation(self, pdu):
-        """decode upstream PDUs and pass them up to the service access point."""
-        if _debug: NetworkAdapter._debug("confirmation %r", pdu)
+        """Decode upstream PDUs and pass them up to the service access point."""
+        if _debug: NetworkAdapter._debug("confirmation %r (net=%r)", pdu, self.adapterNet)
 
-        npdu = NPDU()
+        npdu = NPDU(user_data=pdu.pduUserData)
         npdu.decode(pdu)
         self.adapterSAP.process_npdu(self, npdu)
 
     def process_npdu(self, npdu):
-        """encode NPDUs from the service access point and send them downstream."""
-        if _debug: NetworkAdapter._debug("process_npdu %r", npdu)
+        """Encode NPDUs from the service access point and send them downstream."""
+        if _debug: NetworkAdapter._debug("process_npdu %r (net=%r)", npdu, self.adapterNet)
 
-        pdu = PDU()
+        pdu = PDU(user_data=npdu.pduUserData)
         npdu.encode(pdu)
         self.request(pdu)
 
@@ -95,12 +97,13 @@ class NetworkAdapter(Client, DebugContents, Logging):
 #   NetworkServiceAccessPoint
 #
 
-class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Logging):
+@bacpypes_debugging
+class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents):
 
     _debug_contents = ('adapters++', 'routers++', 'networks+'
         , 'localAdapter-', 'localAddress'
         )
-    
+
     def __init__(self, sap=None, sid=None):
         if _debug: NetworkServiceAccessPoint._debug("__init__ sap=%r sid=%r", sap, sid)
         ServiceAccessPoint.__init__(self, sap)
@@ -109,7 +112,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
         self.adapters = []          # list of adapters
         self.routers = {}           # (adapter, address) -> RouterReference
         self.networks = {}          # network -> RouterReference
-        
+
         self.localAdapter = None    # which one is local
         self.localAddress = None    # what is the local address
 
@@ -230,12 +233,12 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
         adapter = self.localAdapter or self.adapters[0]
 
         # build a generic APDU
-        apdu = _APDU()
+        apdu = _APDU(user_data=pdu.pduUserData)
         pdu.encode(apdu)
         if _debug: NetworkServiceAccessPoint._debug("    - apdu: %r", apdu)
 
         # build an NPDU specific to where it is going
-        npdu = NPDU()
+        npdu = NPDU(user_data=pdu.pduUserData)
         apdu.encode(npdu)
         if _debug: NetworkServiceAccessPoint._debug("    - npdu: %r", npdu)
 
@@ -400,7 +403,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
         if npdu.npduNetMessage is None:
             if processLocally and self.serverPeer:
                 # decode as a generic APDU
-                apdu = _APDU()
+                apdu = _APDU(user_data=npdu.pduUserData)
                 apdu.decode(_copy(npdu))
                 if _debug: NetworkServiceAccessPoint._debug("    - apdu: %r", apdu)
                 
@@ -449,7 +452,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
                     return
 
                 # do a deeper decode of the NPDU
-                xpdu = npdu_types[npdu.npduNetMessage]()
+                xpdu = npdu_types[npdu.npduNetMessage](user_data=npdu.pduUserData)
                 xpdu.decode(_copy(npdu))
                 
                 # pass to the service element
@@ -548,7 +551,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
         if _debug: NetworkServiceAccessPoint._debug("sap_indication %r %r", adapter, npdu)
 
         # encode it as a generic NPDU
-        xpdu = NPDU()
+        xpdu = NPDU(user_data=npdu.pduUserData)
         npdu.encode(xpdu)
         npdu._xpdu = xpdu
 
@@ -559,7 +562,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents, Loggi
         if _debug: NetworkServiceAccessPoint._debug("sap_confirmation %r %r", adapter, npdu)
 
         # encode it as a generic NPDU
-        xpdu = NPDU()
+        xpdu = NPDU(user_data=npdu.pduUserData)
         npdu.encode(xpdu)
         npdu._xpdu = xpdu
 
@@ -629,7 +632,7 @@ class NetworkServiceElement(ApplicationServiceElement):
                 if _debug: NetworkServiceElement._debug("    - found these: %r", netlist)
 
                 # build a response
-                iamrtn = IAmRouterToNetwork(netlist)
+                iamrtn = IAmRouterToNetwork(netlist, user_data=npdu.pduUserData)
                 iamrtn.pduDestination = npdu.pduSource
 
                 # send it back
@@ -645,7 +648,7 @@ class NetworkServiceElement(ApplicationServiceElement):
                     if _debug: NetworkServiceElement._debug("    - found it directly connected")
 
                     # build a response
-                    iamrtn = IAmRouterToNetwork([npdu.wirtnNetwork])
+                    iamrtn = IAmRouterToNetwork([npdu.wirtnNetwork], user_data=npdu.pduUserData)
                     iamrtn.pduDestination = npdu.pduSource
 
                     # send it back
@@ -663,7 +666,7 @@ class NetworkServiceElement(ApplicationServiceElement):
                         if _debug: NetworkServiceElement._debug("    - found on adapter: %r", rref.adapter)
 
                         # build a response
-                        iamrtn = IAmRouterToNetwork([npdu.wirtnNetwork])
+                        iamrtn = IAmRouterToNetwork([npdu.wirtnNetwork], user_data=npdu.pduUserData)
                         iamrtn.pduDestination = npdu.pduSource
 
                         # send it back
@@ -673,7 +676,7 @@ class NetworkServiceElement(ApplicationServiceElement):
                     if _debug: NetworkServiceElement._debug("    - forwarding request to other adapters")
 
                     # build a request
-                    whoisrtn = WhoIsRouterToNetwork(npdu.wirtnNetwork)
+                    whoisrtn = WhoIsRouterToNetwork(npdu.wirtnNetwork, user_data=npdu.pduUserData)
                     whoisrtn.pduDestination = LocalBroadcast()
 
                     # if the request had a source, forward it along

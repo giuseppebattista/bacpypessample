@@ -8,7 +8,7 @@ import random
 from copy import deepcopy
 
 from errors import ConfigurationError
-from debugging import ModuleLogger, Logging
+from debugging import ModuleLogger, bacpypes_debugging
 
 from core import deferred
 from pdu import Address
@@ -22,7 +22,8 @@ _log = ModuleLogger(globals())
 #   Network
 #
 
-class Network(Logging):
+@bacpypes_debugging
+class Network:
 
     def __init__(self, dropPercent=0.0):
         if _debug: Network._debug("__init__ dropPercent=%r", dropPercent)
@@ -80,7 +81,8 @@ class Network(Logging):
 #   Node
 #
 
-class Node(Server, Logging):
+@bacpypes_debugging
+class Node(Server):
 
     def __init__(self, addr, lan=None, promiscuous=False, spoofing=False, sid=None):
         if _debug:

@@ -6,7 +6,7 @@ BACnet Virtual Link Layer Service
 
 from time import time as _time
 
-from debugging import ModuleLogger, DebugContents
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 from errors import *
 
 import udp
@@ -48,7 +48,8 @@ class _MultiplexServer(Server):
 #   UDPMultiplexer
 #
 
-class UDPMultiplexer(Logging):
+@bacpypes_debugging
+class UDPMultiplexer:
 
     def __init__(self, addr=None, noBroadcast=False):
         if _debug: UDPMultiplexer._debug("__init__ %r noBroadcast=%r", addr, noBroadcast)
@@ -143,7 +144,8 @@ class UDPMultiplexer(Logging):
 #   BTR
 #
 
-class BTR(Client, Server, DebugContents, Logging):
+@bacpypes_debugging
+class BTR(Client, Server, DebugContents):
 
     _debug_contents = ('peers+',)
     
@@ -228,7 +230,8 @@ class BTR(Client, Server, DebugContents, Logging):
 #   AnnexJCodec
 #
 
-class AnnexJCodec(Client, Server, Logging):
+@bacpypes_debugging
+class AnnexJCodec(Client, Server):
 
     def __init__(self, cid=None, sid=None):
         if _debug: AnnexJCodec._debug("__init__ cid=%r sid=%r", cid, sid)
@@ -267,7 +270,8 @@ class AnnexJCodec(Client, Server, Logging):
 #   BIPSAP
 #
 
-class BIPSAP(ServiceAccessPoint, Logging):
+@bacpypes_debugging
+class BIPSAP(ServiceAccessPoint):
 
     def __init__(self, sap=None):
         """A BIP service access point."""
@@ -290,7 +294,8 @@ class BIPSAP(ServiceAccessPoint, Logging):
 #   BIPSimple
 #
 
-class BIPSimple(BIPSAP, Client, Server, Logging):
+@bacpypes_debugging
+class BIPSimple(BIPSAP, Client, Server):
 
     def __init__(self, sapID=None, cid=None, sid=None):
         """A BIP node."""
@@ -305,8 +310,7 @@ class BIPSimple(BIPSAP, Client, Server, Logging):
         # check for local stations
         if pdu.pduDestination.addrType == Address.localStationAddr:
             # make an original unicast PDU
-            xpdu = OriginalUnicastNPDU(pdu)
-            xpdu.pduDestination = pdu.pduDestination
+            xpdu = OriginalUnicastNPDU(pdu, destination=pdu.pduDestination, user_data=pdu.pduUserData)
             if _debug: BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it downstream
@@ -315,8 +319,7 @@ class BIPSimple(BIPSAP, Client, Server, Logging):
         # check for broadcasts
         elif pdu.pduDestination.addrType == Address.localBroadcastAddr:
             # make an original broadcast PDU
-            xpdu = OriginalBroadcastNPDU(pdu)
-            xpdu.pduDestination = pdu.pduDestination
+            xpdu = OriginalBroadcastNPDU(pdu, destination=pdu.pduDestination, user_data=pdu.pduUserData)
             if _debug: BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it downstream
@@ -343,7 +346,7 @@ class BIPSimple(BIPSAP, Client, Server, Logging):
 
         elif isinstance(pdu, OriginalUnicastNPDU):
             # build a vanilla PDU
-            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination)
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination, user_data=pdu.pduUserData)
             if _debug: BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it upstream
@@ -351,7 +354,7 @@ class BIPSimple(BIPSAP, Client, Server, Logging):
             
         elif isinstance(pdu, OriginalBroadcastNPDU):
             # build a PDU with a local broadcast address
-            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast(), user_data=pdu.pduUserData)
             if _debug: BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it upstream
@@ -359,7 +362,7 @@ class BIPSimple(BIPSAP, Client, Server, Logging):
             
         elif isinstance(pdu, ForwardedNPDU):
             # build a PDU with the source from the real source
-            xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress, destination=LocalBroadcast())
+            xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress, destination=LocalBroadcast(), user_data=pdu.pduUserData)
             if _debug: BIPSimple._debug("    - xpdu: %r", xpdu)
             
             # send it upstream
@@ -372,7 +375,8 @@ class BIPSimple(BIPSAP, Client, Server, Logging):
 #   BIPForeign
 #
 
-class BIPForeign(BIPSAP, Client, Server, OneShotTask, DebugContents, Logging):
+@bacpypes_debugging
+class BIPForeign(BIPSAP, Client, Server, OneShotTask, DebugContents):
 
     _debug_contents = ('registrationStatus', 'bbmdAddress', 'bbmdTimeToLive')
 
@@ -410,7 +414,7 @@ class BIPForeign(BIPSAP, Client, Server, OneShotTask, DebugContents, Logging):
         # check for local stations
         if pdu.pduDestination.addrType == Address.localStationAddr:
             # make an original unicast PDU
-            xpdu = OriginalUnicastNPDU(pdu)
+            xpdu = OriginalUnicastNPDU(pdu, user_data=pdu.pduUserData)
             xpdu.pduDestination = pdu.pduDestination
 
             # send it downstream
@@ -419,7 +423,7 @@ class BIPForeign(BIPSAP, Client, Server, OneShotTask, DebugContents, Logging):
         # check for broadcasts
         elif pdu.pduDestination.addrType == Address.localBroadcastAddr:
             # make an original broadcast PDU
-            xpdu = DistributeBroadcastToNetwork(pdu)
+            xpdu = DistributeBroadcastToNetwork(pdu, user_data=pdu.pduUserData)
             xpdu.pduDestination = self.bbmdAddress
 
             # send it downstream
@@ -469,14 +473,14 @@ class BIPForeign(BIPSAP, Client, Server, OneShotTask, DebugContents, Logging):
 
         elif isinstance(pdu, OriginalUnicastNPDU):
             # build a vanilla PDU
-            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination)
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination, user_data=pdu.pduUserData)
 
             # send it upstream
             self.response(xpdu)
 
         elif isinstance(pdu, ForwardedNPDU):
             # build a PDU with the source from the real source
-            xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress, destination=LocalBroadcast())
+            xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress, destination=LocalBroadcast(), user_data=pdu.pduUserData)
 
             # send it upstream
             self.response(xpdu)
@@ -527,7 +531,8 @@ class BIPForeign(BIPSAP, Client, Server, OneShotTask, DebugContents, Logging):
 #   BIPBBMD
 #
 
-class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
+@bacpypes_debugging
+class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents):
 
     _debug_contents = ('bbmdAddress', 'bbmdBDT+', 'bbmdFDT+')
 
@@ -552,7 +557,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         # check for local stations
         if pdu.pduDestination.addrType == Address.localStationAddr:
             # make an original unicast PDU
-            xpdu = OriginalUnicastNPDU(pdu)
+            xpdu = OriginalUnicastNPDU(pdu, user_data=pdu.pduUserData)
             xpdu.pduDestination = pdu.pduDestination
             if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
 
@@ -562,7 +567,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
         # check for broadcasts
         elif pdu.pduDestination.addrType == Address.localBroadcastAddr:
             # make an original broadcast PDU
-            xpdu = OriginalBroadcastNPDU(pdu)
+            xpdu = OriginalBroadcastNPDU(pdu, user_data=pdu.pduUserData)
             xpdu.pduDestination = pdu.pduDestination
             if _debug: BIPBBMD._debug("    - original broadcast xpdu: %r", xpdu)
 
@@ -570,7 +575,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
             self.request(xpdu)
 
             # make a forwarded PDU
-            xpdu = ForwardedNPDU(self.bbmdAddress, pdu)
+            xpdu = ForwardedNPDU(self.bbmdAddress, pdu, user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - forwarded xpdu: %r", xpdu)
 
             # send it to the peers
@@ -599,7 +604,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 
         elif isinstance(pdu, WriteBroadcastDistributionTable):
             # build a response
-            xpdu = Result(code=99)
+            xpdu = Result(code=99, user_data=pdu.pduUserData)
             xpdu.pduDestination = pdu.pduSource
 
             # send it downstream
@@ -607,7 +612,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 
         elif isinstance(pdu, ReadBroadcastDistributionTable):
             # build a response
-            xpdu = ReadBroadcastDistributionTableAck(self.bbmdBDT)
+            xpdu = ReadBroadcastDistributionTableAck(self.bbmdBDT, user_data=pdu.pduUserData)
             xpdu.pduDestination = pdu.pduSource
             if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
 
@@ -620,14 +625,14 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 
         elif isinstance(pdu, ForwardedNPDU):
             # build a PDU with the source from the real source
-            xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress) # , destination=LocalBroadcast())
+            xpdu = PDU(pdu.pduData, source=pdu.bvlciAddress, destination=LocalBroadcast(), user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - upstream xpdu: %r", xpdu)
 
             # send it upstream
             self.response(xpdu)
 
             # build a forwarded NPDU to send out
-            xpdu = ForwardedNPDU(pdu.bvlciAddress, pdu)
+            xpdu = ForwardedNPDU(pdu.bvlciAddress, pdu, destination=None, user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - forwarded xpdu: %r", xpdu)
 
             # look for self as first entry in the BDT
@@ -647,8 +652,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
             stat = self.register_foreign_device(pdu.pduSource, pdu.bvlciTimeToLive)
 
             # build a response
-            xpdu = Result(code=stat)
-            xpdu.pduDestination = pdu.pduSource
+            xpdu = Result(code=stat, destination=pdu.pduSource, user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
 
             # send it downstream
@@ -656,8 +660,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 
         elif isinstance(pdu, ReadForeignDeviceTable):
             # build a response
-            xpdu = ReadForeignDeviceTableAck(self.bbmdFDT)
-            xpdu.pduDestination = pdu.pduSource
+            xpdu = ReadForeignDeviceTableAck(self.bbmdFDT, destination=pdu.pduSource, user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
 
             # send it downstream
@@ -672,7 +675,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
             stat = self.delete_foreign_device_table_entry(pdu.bvlciAddress)
 
             # build a response
-            xpdu = Result(code=stat)
+            xpdu = Result(code=stat, user_data=pdu.pduUserData)
             xpdu.pduDestination = pdu.pduSource
             if _debug: BIPBBMD._debug("    - xpdu: %r", xpdu)
 
@@ -681,14 +684,14 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 
         elif isinstance(pdu, DistributeBroadcastToNetwork):
             # build a PDU with a local broadcast address
-            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast(), user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - upstream xpdu: %r", xpdu)
 
             # send it upstream
             self.response(xpdu)
 
             # build a forwarded NPDU to send out
-            xpdu = ForwardedNPDU(pdu.pduSource, pdu)
+            xpdu = ForwardedNPDU(pdu.pduSource, pdu, user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - forwarded xpdu: %r", xpdu)
 
             # send it to the peers
@@ -711,7 +714,7 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 
         elif isinstance(pdu, OriginalUnicastNPDU):
             # build a vanilla PDU
-            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination)
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=pdu.pduDestination, user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - upstream xpdu: %r", xpdu)
 
             # send it upstream
@@ -719,14 +722,14 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 
         elif isinstance(pdu, OriginalBroadcastNPDU):
             # build a PDU with a local broadcast address
-            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast())
+            xpdu = PDU(pdu.pduData, source=pdu.pduSource, destination=LocalBroadcast(), user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - upstream xpdu: %r", xpdu)
 
             # send it upstream
             self.response(xpdu)
 
             # make a forwarded PDU
-            xpdu = ForwardedNPDU(pdu.pduSource, pdu)
+            xpdu = ForwardedNPDU(pdu.pduSource, pdu, user_data=pdu.pduUserData)
             if _debug: BIPBBMD._debug("    - forwarded xpdu: %r", xpdu)
 
             # send it to the peers
@@ -850,7 +853,8 @@ class BIPBBMD(BIPSAP, Client, Server, RecurringTask, DebugContents, Logging):
 #   BVLLServiceElement
 #
 
-class BVLLServiceElement(ApplicationServiceElement, Logging):
+@bacpypes_debugging
+class BVLLServiceElement(ApplicationServiceElement):
 
     def __init__(self, aseID=None):
         if _debug: BVLLServiceElement._debug("__init__ aseID=%r", aseID)
@@ -875,3 +879,4 @@ class BVLLServiceElement(ApplicationServiceElement, Logging):
             getattr(self, fn)(npdu)
         else:
             BVLLServiceElement._warning("no handler for %s", fn)
+

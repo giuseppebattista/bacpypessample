@@ -7,7 +7,7 @@ Constructed Data
 import sys
 
 from errors import DecodingError
-from debugging import ModuleLogger, Logging, function_debugging
+from debugging import ModuleLogger, bacpypes_debugging
 
 from primitivedata import *
 
@@ -31,15 +31,39 @@ class Element:
 #   Sequence
 #
 
-class Sequence(Logging):
+@bacpypes_debugging
+class Sequence(object):
 
     sequenceElements = []
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        """
+        Create a sequence element, optionally providing attribute/property values.
+        """
+        if _debug: Sequence._debug("__init__ %r %r", args, kwargs)
+
+        # split out the keyword arguments that belong to this class
+        my_kwargs = {}
+        other_kwargs = {}
         for element in self.sequenceElements:
-            setattr(self, element.name, kwargs.get(element.name, None))
+            if element.name in kwargs:
+                my_kwargs[element.name] = kwargs[element.name]
+        for kw in kwargs:
+            if kw not in my_kwargs:
+                other_kwargs[kw] = kwargs[kw]
+        if _debug: Sequence._debug("    - my_kwargs: %r", my_kwargs)
+        if _debug: Sequence._debug("    - other_kwargs: %r", other_kwargs)
+
+        # call some superclass, if there is one
+        super(Sequence, self).__init__(*args, **other_kwargs)
+
+        # set the attribute/property values for the ones provided
+        for element in self.sequenceElements:
+            setattr(self, element.name, my_kwargs.get(element.name, None))
 
     def encode(self, taglist):
+        """
+        """
         if _debug: Sequence._debug("encode %r", taglist)
         global _sequence_of_classes
 
@@ -286,7 +310,7 @@ class Sequence(Logging):
 _sequence_of_map = {}
 _sequence_of_classes = {}
 
-@function_debugging
+@bacpypes_debugging
 def SequenceOf(klass):
     """Function to return a class that can encode and decode a list of
     some other type."""
@@ -308,7 +332,8 @@ def SequenceOf(klass):
         raise TypeError, "sequences of arrays disallowed"
 
     # define a generic class for lists
-    class _SequenceOf(Logging):
+    @bacpypes_debugging
+    class _SequenceOf:
 
         subtype = None
 
@@ -454,7 +479,8 @@ def ArrayOf(klass):
         raise TypeError, "arrays of SequenceOf disallowed"
 
     # define a generic class for arrays
-    class ArrayOf(Array, Logging):
+    @bacpypes_debugging
+    class ArrayOf(Array):
 
         subtype = None
 
@@ -682,13 +708,36 @@ def ArrayOf(klass):
 #   Choice
 #
 
-class Choice(Logging):
+@bacpypes_debugging
+class Choice(object):
 
     choiceElements = []
 
     def __init__(self, **kwargs):
+        """
+        Create a choice element, optionally providing attribute/property values.
+        There should only be one, but that is not strictly enforced.
+        """
+        if _debug: Choice._debug("__init__ %r", kwargs)
+
+        # split out the keyword arguments that belong to this class
+        my_kwargs = {}
+        other_kwargs = {}
         for element in self.choiceElements:
-            setattr(self, element.name, kwargs.get(element.name, None))
+            if element.name in kwargs:
+                my_kwargs[element.name] = kwargs[element.name]
+        for kw in kwargs:
+            if kw not in my_kwargs:
+                other_kwargs[kw] = kwargs[kw]
+        if _debug: Choice._debug("    - my_kwargs: %r", my_kwargs)
+        if _debug: Choice._debug("    - other_kwargs: %r", other_kwargs)
+
+        # call some superclass, if there is one
+        super(Choice, self).__init__(**other_kwargs)
+
+        # set the attribute/property values for the ones provided
+        for element in self.choiceElements:
+            setattr(self, element.name, my_kwargs.get(element.name, None))
 
     def encode(self, taglist):
         if _debug: Choice._debug("(%r)encode %r %r", self.__class__.__name__, taglist)
@@ -879,7 +928,8 @@ class Choice(Logging):
 #   Any
 #
 
-class Any(Logging):
+@bacpypes_debugging
+class Any:
 
     def __init__(self, *args):
         self.tagList = TagList()
@@ -1016,7 +1066,8 @@ class Any(Logging):
 #   AnyAtomic
 #
 
-class AnyAtomic(Logging):
+@bacpypes_debugging
+class AnyAtomic:
 
     def __init__(self, element=None):
         self.valueTag = None

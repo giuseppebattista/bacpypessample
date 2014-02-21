@@ -13,7 +13,7 @@ from debugging import function_debugging, ModuleLogger, Logging
 from primitivedata import *
 from constructeddata import *
 from basetypes import *
-from apdu import Error, EventNotificationParameters, ReadAccessSpecification, ReadAccessResult
+from apdu import EventNotificationParameters, ReadAccessSpecification, ReadAccessResult
 
 # some debugging
 _debug = 0

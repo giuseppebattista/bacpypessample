@@ -7,7 +7,7 @@ Application Layer
 from time import time as _time
 
 from errors import *
-from debugging import ModuleLogger, DebugContents, Logging
+from debugging import ModuleLogger, DebugContents, bacpypes_debugging
 
 from comm import Client, ServiceAccessPoint, ApplicationServiceElement
 from task import OneShotTask
@@ -61,7 +61,8 @@ SEGMENTED_CONFIRMATION = 5
 COMPLETED = 6
 ABORTED = 7
 
-class SSM(OneShotTask, DebugContents, Logging):
+@bacpypes_debugging
+class SSM(OneShotTask, DebugContents):
 
     transactionLabels = ['IDLE'
         , 'SEGMENTED_REQUEST', 'AWAIT_CONFIRMATION', 'AWAIT_RESPONSE'
@@ -249,7 +250,8 @@ class SSM(OneShotTask, DebugContents, Logging):
 #   ClientSSM - Client Segmentation State Machine
 #
 
-class ClientSSM(SSM, Logging):
+@bacpypes_debugging
+class ClientSSM(SSM):
 
     def __init__(self, sap):
         SSM.__init__(self, sap)
@@ -1015,7 +1017,8 @@ class ServerSSM(SSM):
 #   StateMachineAccessPoint
 #
 
-class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint, Logging):
+@bacpypes_debugging
+class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
 
     def __init__(self, device, sap=None, cid=None):
         if _debug: StateMachineAccessPoint._debug("__init__ %r sap=%r cid=%r", device, sap, cid)

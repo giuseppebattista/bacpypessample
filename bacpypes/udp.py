@@ -4,10 +4,8 @@
 UDP Communications Module
 """
 
-import sys
 import asyncore
 import socket
-import traceback
 import cPickle
 import Queue
 
