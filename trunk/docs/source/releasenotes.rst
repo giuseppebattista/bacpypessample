@@ -5,6 +5,116 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.9.2
+-------------
+
+Apart from the usual bug fixes and small new features, this release changes
+almost all of the ``__init__`` functions to use ``super()`` rather than
+calling the parent class initializer.
+
+New School Initialization
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For example, while the old code did
+this::
+
+    class Foo(Bar):
+    
+        def __init__(self):
+            Bar.__init__(self)
+            self.foo = 12
+
+New the code does this::
+
+    class Foo(Bar):
+    
+        def __init__(self, *args, **kwargs):
+            super(Foo, self).__init__(*args, **kwargs)
+            self.foo = 12
+
+If you draw an inheritance tree starting with ``PDUData`` at the top and 
+ending with something like ``ReadPropertyRequest`` at the bottom, you will 
+see lots of branching and merging.  Calling the parent class directly may 
+lead to the same base class being "initialized" more than once which was 
+causing all kinds of havoc.
+
+Simply replacing the one with the new wasn't quite good enough however, 
+because it could lead to a situation where a keyword arguement needed to be 
+"consumed" if it existed because it didn't make sense for the parent class 
+or any of its parents.  In many cases this works::
+
+    class Foo(Bar):
+    
+        def __init__(self, foo_arg=None, *args, **kwargs):
+            super(Foo, self).__init__(*args, **kwargs)
+            self.foo = 12
+
+When the parent class initializer gets called the ``foo_arg`` will be a 
+regular parameter and won't be in the ``kwargs`` that get passed up the 
+inheritance tree.  However, with ``Sequence`` and ``Choice`` there is 
+no knowledge of what the keyword parameters are going to be without going 
+through the associated element lists.  So those two classes go to great 
+lengths to divide the kwargs into "mine" and "other".
+
+New User Data PDU Attribute
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+I have been working on a fairly complicated application that is a combination 
+of being a BBMD on multiple networks and router between them.  The twist is 
+that there are rules that govern what segments of the networks can see each 
+other.  To manage this, there needed to be a way to attach an object at the bottom 
+of the stack when a PDU is received and make sure that context information 
+is maintained all the way up through the stack to the application layer and 
+then back down again.
+
+To accomplish this there is a ``pduUserData`` attribute you can set and as 
+long as the stack is dealing with that PDU or the derived encoded/decoded 
+PDUs, that reference is maintained.
+
+Revisions `r246 <http://sourceforge.net/p/bacpypes/code/246>`_
+through `r254 <http://sourceforge.net/p/bacpypes/code/254>`_.
+
+* The sample HTTP server was using the old syle argument parser 
+  and the old version didn't have the options leading to confusion.
+  `r246 <http://sourceforge.net/p/bacpypes/code/246>`_
+
+* Set the 'reuse' flag for broadcast sockets.  A BACneteer has
+  a workstation with two physical adapters connected to the same
+  LAN with different IP addresses assigned for each one.  Two
+  BACpypes applications were attempting to bind to the same 
+  broadcast address, this allows that scenerio to work.
+  `r247 <http://sourceforge.net/p/bacpypes/code/247>`_
+
+* Fix the help string and add a little more error checking to the
+  ReadPropertyMultiple.py sample application.
+  `r248 <http://sourceforge.net/p/bacpypes/code/248>`_
+
+* Add the --color option to debugging.  This wraps the output of the 
+  LoggingFormatter with ANSI CSI escape codes so the output from 
+  different log handlers is output in different colors.  When 
+  debugging is turned on for many modules it helps!
+  `r249 <http://sourceforge.net/p/bacpypes/code/249>`_
+
+* The WriteProperty method now has a ''direct'' parameter, this 
+  fixes the function signatures of the sample applications to include
+  it.
+  `r250 <http://sourceforge.net/p/bacpypes/code/250>`_
+
+* Change the ``__init__`` functions to use ``super()``, see explanation 
+  above.
+  `r251 <http://sourceforge.net/p/bacpypes/code/251>`_
+
+* Bump the minor version number.
+  `r252 <http://sourceforge.net/p/bacpypes/code/252>`_
+
+* Update the getting started document to include the new color debugging
+  option.  There should be more explanation of what that means exactly,
+  along with a link to the Wikipedia color code tables.
+  `r253 <http://sourceforge.net/p/bacpypes/code/253>`_
+
+* Update these release notes.
+  `r254 <http://sourceforge.net/p/bacpypes/code/254>`_
+
 Version 0.9.1
 -------------
 
