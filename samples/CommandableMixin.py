@@ -70,8 +70,8 @@ class CommandableMixin(object):
             self._pv_choice = 'constructedValue'
         if _debug: CommandableMixin._debug("    - _pv_choice: %r", self._pv_choice)
 
-    def WriteProperty(self, property, value, arrayIndex=None, priority=None):
-        if _debug: CommandableMixin._debug("WriteProperty %r %r arrayIndex=%r priority=%r", property, value, arrayIndex, priority)
+    def WriteProperty(self, property, value, arrayIndex=None, priority=None, direct=False):
+        if _debug: CommandableMixin._debug("WriteProperty %r %r arrayIndex=%r priority=%r direct=%r", property, value, arrayIndex, priority, direct)
 
         # when writing to the presentValue with a priority
         if (property == 'presentValue'):
@@ -127,7 +127,7 @@ class CommandableMixin(object):
         if _debug: CommandableMixin._debug("    - super: %r %r arrayIndex=%r priority=%r", property, value, arrayIndex, priority)
         super(CommandableMixin, self).WriteProperty(
             property, value,
-            arrayIndex=arrayIndex, priority=priority,
+            arrayIndex=arrayIndex, priority=priority, direct=direct,
             )
 
 #

@@ -64,8 +64,8 @@ class RandomValueProperty(Property):
 
         return value
 
-    def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
-        if _debug: RandomValueProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r", obj, value, arrayIndex, priority)
+    def WriteProperty(self, obj, value, arrayIndex=None, priority=None, direct=False):
+        if _debug: RandomValueProperty._debug("WriteProperty %r %r arrayIndex=%r priority=%r direct=%r", obj, value, arrayIndex, priority, direct)
         raise ExecutionError(errorClass='property', errorCode='writeAccessDenied')
 
 #
