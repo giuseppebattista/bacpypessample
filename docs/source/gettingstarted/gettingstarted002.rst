@@ -15,7 +15,7 @@ Whatever the command line parameters and additional options might be for
 an application, you can start with help::
 
     $ python WhoIsIAm.py --help
-    usage: WhoIsIAm.py [-h] [--buggers] [--debug [DEBUG [DEBUG ...]]] [--ini INI]
+    usage: WhoIsIAm.py [-h] [--buggers] [--debug [DEBUG [DEBUG ...]]] [--color] [--ini INI]
 
     This application presents a 'console' prompt to the user asking for Who-Is and
     I-Am commands which create the related APDUs, then lines up the coorresponding
@@ -26,6 +26,7 @@ an application, you can start with help::
       --buggers             list the debugging logger names
       --debug [DEBUG [DEBUG ...]]
                             add console log handler to each debugging logger
+      --color               use ANSI CSI color codes
       --ini INI             device object configuration file
 
 Listing Debugging Loggers
