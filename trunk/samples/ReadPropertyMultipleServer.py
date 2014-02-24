@@ -15,7 +15,7 @@ from bacpypes.core import run
 from bacpypes.primitivedata import Atomic, Real, Unsigned
 from bacpypes.constructeddata import Array, Any
 from bacpypes.basetypes import ServicesSupported, ErrorType
-from bacpypes.apdu import ReadPropertyMultipleACK, ReadAccessResult, ReadAccessResultElement, ReadAccessResultElementChoice, AbortPDU
+from bacpypes.apdu import ReadPropertyMultipleACK, ReadAccessResult, ReadAccessResultElement, ReadAccessResultElementChoice
 from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
 from bacpypes.object import AnalogValueObject, Property, PropertyError, register_object_type
 from bacpypes.apdu import Error
@@ -99,8 +99,8 @@ def ReadPropertyToAny(obj, propertyIdentifier, propertyArrayIndex=None):
     # change atomic values into something encodeable
     if issubclass(datatype, Atomic):
         value = datatype(value)
-    elif issubclass(datatype, Array) and (apdu.propertyArrayIndex is not None):
-        if apdu.propertyArrayIndex == 0:
+    elif issubclass(datatype, Array) and (propertyArrayIndex is not None):
+        if propertyArrayIndex == 0:
             value = Unsigned(value)
         elif issubclass(datatype.subtype, Atomic):
             value = datatype.subtype(value)
