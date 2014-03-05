@@ -1054,7 +1054,7 @@ class Any:
             use_dict.__setitem__('class', tag.tagClass)
             use_dict.__setitem__('number', tag.tagNumber)
             use_dict.__setitem__('lvt', tag.tagLVT)
-            use_dict.__setitem__('data', tag.tagData)
+            use_dict.__setitem__('data', '.'.join('%02X' % ord(c) for c in tag.tagData))
 
             # add it to the list
             rslt_list = use_dict
