@@ -4,17 +4,12 @@
 sample_http_server
 """
 
-import sys
-import logging
-
 import threading
 import simplejson
 import urlparse
 
 import SocketServer
 import SimpleHTTPServer
-
-from ConfigParser import ConfigParser
 
 from bacpypes.debugging import class_debugging, ModuleLogger
 from bacpypes.consolelogging import ConfigArgumentParser
