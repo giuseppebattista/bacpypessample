@@ -5,6 +5,43 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.9.4
+-------------
+
+This revision is an annouced release.  The combination of `r258 <http://sourceforge.net/p/bacpypes/code/258>`_
+and `r256 <http://sourceforge.net/p/bacpypes/code/256>`_ makes this important to get out
+to the community sooner rather than later.
+
+* The ``TimeSynchronizationRequest`` application layer PDUs have their ``time`` parameter
+  application encoded, not context encoded.
+  `r258 <http://sourceforge.net/p/bacpypes/code/258>`_
+
+* Bump the version number and update these release notes.
+  `r259 <http://sourceforge.net/p/bacpypes/code/259>`_
+
+Version 0.9.3
+-------------
+
+This release just has some minor bug fixes, but in order to get a large collection of 
+applications running quickly it was simpler to make minor release and install it on 
+other machines.  The version was release to PyPI but never annouced.
+
+Revisions `r255 <http://sourceforge.net/p/bacpypes/code/255>`_
+through `r257 <http://sourceforge.net/p/bacpypes/code/257>`_.
+
+* A simple copy/paste error from some other sample code.
+  `r255 <http://sourceforge.net/p/bacpypes/code/255>`_
+
+* When shuffling data around to other applications and databases (like MongoDB) there
+  are problems with raw string data, a.k.a., octet strings, or in Python3 terms byte
+  strings.  This is a simple mechanism to make hex strings out of the data portion of 
+  tag data.  This is subject to change to some other format as we get more experience 
+  with data in other applications.
+  `r256 <http://sourceforge.net/p/bacpypes/code/256>`_
+
+* Remove the "flakes" (modules that were imported but not used).
+  `r257 <http://sourceforge.net/p/bacpypes/code/257>`_
+
 Version 0.9.2
 -------------
 
