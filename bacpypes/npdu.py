@@ -474,7 +474,7 @@ class InitializeRoutingTableAck(NPCI):
     _debug_contents = ('irtaTable++',)
 
     def __init__(self, routingTable=[], *args, **kwargs):
-        super(InitializeRoutingTable, self).__init__(*args, **kwargs)
+        super(InitializeRoutingTableAck, self).__init__(*args, **kwargs)
 
         self.npduNetMessage = InitializeRoutingTableAck.messageType
         self.irtaTable = routingTable
