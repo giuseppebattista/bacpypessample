@@ -1139,7 +1139,7 @@ register_unconfirmed_request_type(UnconfirmedTextMessageRequest)
 class TimeSynchronizationRequest(UnconfirmedRequestSequence):
     serviceChoice = 6
     sequenceElements = \
-        [ Element('time', DateTime, 0)
+        [ Element('time', DateTime)
         ]
 
 register_unconfirmed_request_type(TimeSynchronizationRequest)
@@ -1149,7 +1149,7 @@ register_unconfirmed_request_type(TimeSynchronizationRequest)
 class UTCTimeSynchronizationRequest(UnconfirmedRequestSequence):
     serviceChoice = 9
     sequenceElements = \
-        [ Element('time', DateTime, 0)
+        [ Element('time', DateTime)
         ]
 
 register_unconfirmed_request_type(UTCTimeSynchronizationRequest)
