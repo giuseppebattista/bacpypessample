@@ -363,7 +363,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents):
                 
         # check for destination routing
         if (not npdu.npduDADR) or (npdu.npduDADR.addrType == Address.nullAddr):
-            processLocally = (not self.localAdapter) or (adapter is self.localAdapter)
+            processLocally = (not self.localAdapter) or (adapter is self.localAdapter) or (npdu.npduNetMessage is not None)
             forwardMessage = False
 
         elif npdu.npduDADR.addrType == Address.remoteBroadcastAddr:
@@ -573,6 +573,7 @@ class NetworkServiceAccessPoint(ServiceAccessPoint, Server, DebugContents):
 #   NetworkServiceElement
 #
 
+@bacpypes_debugging
 class NetworkServiceElement(ApplicationServiceElement):
 
     def __init__(self, eid=None):
