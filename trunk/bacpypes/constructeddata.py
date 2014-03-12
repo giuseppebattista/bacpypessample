@@ -271,7 +271,7 @@ class Sequence(object):
 
     def dict_contents(self, use_dict=None, as_class=dict):
         """Return the contents of an object as a dict."""
-        if _debug: _log.debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+        if _debug: Sequence._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
 
         # make/extend the dictionary of content
         if use_dict is None:
@@ -1040,7 +1040,7 @@ class Any:
 
     def dict_contents(self, use_dict=None, as_class=dict):
         """Return the contents of an object as a dict."""
-        if _debug: _log.debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+        if _debug: Any._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
 
         # result will be a list
         rslt_list = []

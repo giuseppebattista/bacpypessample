@@ -280,16 +280,19 @@ class APCI(PCI, DebugContents):
         else:
             raise DecodingError, "invalid APDU type"
 
-    def dict_contents(self, use_dict=None, as_class=dict):
+    def apci_contents(self, use_dict=None, as_class=dict):
         """Return the contents of an object as a dict."""
-        if _debug: APCI._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+        if _debug: APCI._debug("apci_contents use_dict=%r as_class=%r", use_dict, as_class)
 
         # make/extend the dictionary of content
         if use_dict is None:
             use_dict = as_class()
 
-        # deep call
-        super(APCI, self).dict_contents(use_dict=use_dict, as_class=as_class)
+        # copy the source and destination to make it easier to search
+        if self.pduSource:
+            use_dict.__setitem__('source', str(self.pduSource))
+        if self.pduDestination:
+            use_dict.__setitem__('destination', str(self.pduDestination))
 
         # loop through the elements
         for attr in APCI._debug_contents:
@@ -334,6 +337,24 @@ class APDU(APCI, PDUData):
         if _debug: APCI._debug("decode %s", str(pdu))
         APCI.decode(self, pdu)
         self.pduData = pdu.get_data(len(pdu.pduData))
+
+    def apdu_contents(self, use_dict=None, as_class=dict):
+        return PDUData.pdudata_contents(self, use_dict=use_dict, as_class=as_class)
+
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: NPDU._debug("dict_contents use_dict=%r as_class=%r key_values=%r", use_dict, as_class, key_values)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # call the parent classes
+        self.apci_contents(use_dict=use_dict, as_class=as_class)
+        self.apdu_contents(use_dict=use_dict, as_class=as_class)
+
+        # return what we built/updated
+        return use_dict
 
 #------------------------------
 
@@ -703,6 +724,23 @@ class APCISequence(APCI, Sequence):
 
         # pass the taglist to the Sequence for additional decoding
         Sequence.decode(self, self._tag_list)
+
+    def apdu_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: APCISequence._debug("apdu_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # set the function based on the class name
+        use_dict.__setitem__('function', self.__class__.__name__)
+
+        # fill in from the sequence contents
+        Sequence.dict_contents(self, use_dict=use_dict, as_class=as_class)
+
+        # return what we built/updated
+        return use_dict
 
 #
 #   ConfirmedRequestSequence
