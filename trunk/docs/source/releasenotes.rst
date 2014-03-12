@@ -5,6 +5,29 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.9.5
+-------------
+
+I have been working more on converting PDU's into JSON content that can be archived and searched in 
+MongoDB.
+
+* Simple bug, while I was updated in the ``__init__`` calling chain I got the class name wrong.
+  `r260 <http://sourceforge.net/p/bacpypes/code/260>`_
+
+* When there is network layer traffic on a port that is not the "local port" it still needs to be
+  processed by the local ``NetworkServiceElement``.  And trying to debug this problem, there was 
+  no debugger for the NSE!
+  `r261 <http://sourceforge.net/p/bacpypes/code/261>`_
+
+* As I have been shuffling around JSON-like content in various applications it became harder and 
+  harder to manage if the result of calling ``dict_content`` was going to return PCI layer information
+  (the NPCI, APCI, or BVLCI), or the "data" portion of the packet.  I also took the opportunity to 
+  use simpler names.
+  `r262 <http://sourceforge.net/p/bacpypes/code/262>`_
+
+* Bump the version number and update these release notes.
+  `r263 <http://sourceforge.net/p/bacpypes/code/263>`_
+
 Version 0.9.4
 -------------
 
