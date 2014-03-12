@@ -81,6 +81,33 @@ class PCI(DebugContents):
         self.pduSource = pci.pduSource
         self.pduDestination = pci.pduDestination
 
+    def pci_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: PCI._debug("pci_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # save the values
+        for k, v in (('user_data', self.pduUserData), ('source', self.pduSource), ('destination', self.pduDestination)):
+            if _debug: PCI._debug("    - %r: %r", k, v)
+            if v is None:
+                continue
+
+            if hasattr(v, 'dict_contents'):
+                v = v.dict_contents(as_class=as_class)
+            use_dict.__setitem__(k, v)
+
+        # return what we built/updated
+        return use_dict
+
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: PCI._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        return self.pci_contents(use_dict=use_dict, as_class=as_class)
+
 #
 #   PDUData
 #
@@ -148,19 +175,31 @@ class PDUData(object):
         else:
             file.write("%spduData = %r\n" % ('    ' * indent, self.pduData))
 
-    def dict_contents(self, use_dict=None, as_class=dict):
+    def pdudata_contents(self, use_dict=None, as_class=dict):
         """Return the contents of an object as a dict."""
-        if _debug: _log.debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+        if _debug: PDUData._debug("pdudata_contents use_dict=%r as_class=%r", use_dict, as_class)
 
         # make/extend the dictionary of content
         if use_dict is None:
             use_dict = as_class()
 
-        # add the data, even if it is empty
-        use_dict.__setitem__('pduData', self.pduData)
+        # add the data if it is not None
+        v = self.pduData
+        if v is not None:
+            if isinstance(v, types.StringType):
+                v = _str_to_hex(v)
+            elif hasattr(v, 'dict_contents'):
+                v = v.dict_contents(as_class=as_class)
+            use_dict.__setitem__('data', v)
 
         # return what we built/updated
         return use_dict
+
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: PDUData._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        return self.pdudata_contents(use_dict=use_dict, as_class=as_class)
 
 #
 #   PDU
@@ -195,6 +234,21 @@ class PDU(PCI, PDUData):
             self.pduDestination,
             _str_to_hex(self.pduData, '.')
             )
+
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: PDUData._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # call into the two base classes
+        self.pci_contents(use_dict=use_dict, as_class=as_class)
+        self.pdudata_contents(use_dict=use_dict, as_class=as_class)
+
+        # return what we built/updated
+        return use_dict
 
 #
 #   Client

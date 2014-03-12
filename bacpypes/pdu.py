@@ -411,6 +411,30 @@ class PCI(_PCI):
         self.pduExpectingReply = pci.pduExpectingReply
         self.pduNetworkPriority = pci.pduNetworkPriority
 
+    def pci_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: PCI._debug("pci_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # call the parent class
+        _PCI.pci_contents(self, use_dict=use_dict, as_class=as_class)
+
+        # save the values
+        use_dict.__setitem__('expectingReply', self.pduExpectingReply)
+        use_dict.__setitem__('networkPriority', self.pduNetworkPriority)
+
+        # return what we built/updated
+        return use_dict
+
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: PCI._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        return self.pci_contents(use_dict=use_dict, as_class=as_class)
+
 #
 #   PDU
 #
@@ -424,4 +448,19 @@ class PDU(PCI, PDUData):
 
     def __str__(self):
         return '<%s %s -> %s : %s>' % (self.__class__.__name__, self.pduSource, self.pduDestination, _str_to_hex(self.pduData,'.'))
+
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: PDUData._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # call into the two base classes
+        self.pci_contents(use_dict=use_dict, as_class=as_class)
+        self.pdudata_contents(use_dict=use_dict, as_class=as_class)
+
+        # return what we built/updated
+        return use_dict
 

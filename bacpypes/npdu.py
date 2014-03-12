@@ -13,6 +13,9 @@ from pdu import *
 _debug = 0
 _log = ModuleLogger(globals())
 
+def _str_to_hex(x, sep=''):
+    return sep.join(["%02X" % (ord(c),) for c in x])
+
 # a dictionary of message type values and classes
 npdu_types = {}
 
@@ -192,30 +195,49 @@ class NPCI(PCI, DebugContents):
             # application layer message
             self.npduNetMessage = None
 
-    def dict_contents(self, use_dict=None, as_class=dict):
+    def npci_contents(self, use_dict=None, as_class=dict):
         """Return the contents of an object as a dict."""
-        if _debug: NPCI._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+        if _debug: npci._debug("npci_contents use_dict=%r as_class=%r", use_dict, as_class)
 
         # make/extend the dictionary of content
         if use_dict is None:
+            if _debug: NPCI._debug("    - new use_dict")
             use_dict = as_class()
 
-        # deep call
-        super(NPCI, self).dict_contents(use_dict=use_dict, as_class=as_class)
+        # version and control are simple
+        use_dict.__setitem__('version', self.npduVersion)
+        use_dict.__setitem__('control', self.npduControl)
 
-        # loop through the elements
-        for attr in NPCI._debug_contents:
-            value = getattr(self, attr, None)
-            if value is None:
-                continue
+        # dnet/dlen/dadr
+        if self.npduDADR is not None:
+            if self.npduDADR.addrType == Address.remoteStationAddr:
+                use_dict.__setitem__('dnet', self.npduDADR.addrNet)
+                use_dict.__setitem__('dlen', self.npduDADR.addrLen)
+                use_dict.__setitem__('dadr', _str_to_hex(self.npduDADR.addrAddr or ''))
+            elif self.npduDADR.addrType == Address.remoteBroadcastAddr:
+                use_dict.__setitem__('dnet', self.npduDADR.addrNet)
+                use_dict.__setitem__('dlen', 0)
+                use_dict.__setitem__('dadr', '')
+            elif self.npduDADR.addrType == Address.globalBroadcastAddr:
+                use_dict.__setitem__('dnet', 0xFFFF)
+                use_dict.__setitem__('dlen', 0)
+                use_dict.__setitem__('dadr', '')
 
-            if attr == 'npduNetMessage':
-                mapped_value = npdu_types[self.npduNetMessage].__name__
-            else:
-                mapped_value = value
+        # snet/slen/sadr
+        if self.npduSADR is not None:
+            use_dict.__setitem__('snet', self.npduSADR.addrNet)
+            use_dict.__setitem__('slen', self.npduSADR.addrLen)
+            use_dict.__setitem__('sadr', _str_to_hex(self.npduSADR.addrAddr or ''))
 
-            # save the mapped value
-            use_dict.__setitem__(attr, mapped_value)
+        # hop count
+        if self.npduHopCount is not None:
+            use_dict.__setitem__('hop_count', self.npduHopCount)
+
+        # network layer message name decoded
+        if self.npduNetMessage is not None:
+            use_dict.__setitem__('net_message', self.npduNetMessage)
+        if self.npduVendorID is not None:
+            use_dict.__setitem__('vendor_id', self.npduVendorID)
 
         # return what we built/updated
         return use_dict
@@ -237,13 +259,54 @@ class NPDU(NPCI, PDUData):
         NPCI.decode(self, pdu)
         self.pduData = pdu.get_data(len(pdu.pduData))
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return PDUData.pdudata_contents(self, use_dict=use_dict, as_class=as_class)
+
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: NPDU._debug("dict_contents use_dict=%r as_class=%r key_values=%r", use_dict, as_class, key_values)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # call the parent classes
+        self.npci_contents(use_dict=use_dict, as_class=as_class)
+        self.npdu_contents(use_dict=use_dict, as_class=as_class)
+
+        # return what we built/updated
+        return use_dict
+
+#
+#   key_value_contents
+#
+
+@bacpypes_debugging
+def key_value_contents(use_dict=None, as_class=dict, key_values=()):
+    """Return the contents of an object as a dict."""
+    if _debug: key_value_contents._debug("key_value_contents use_dict=%r as_class=%r key_values=%r", use_dict, as_class, key_values)
+
+    # make/extend the dictionary of content
+    if use_dict is None:
+        use_dict = as_class()
+
+    # loop through the values and save them
+    for k, v in key_values:
+        if v is not None:
+            if hasattr(v, 'dict_contents'):
+                v = v.dict_contents(as_class=as_class)
+            use_dict.__setitem__(k, v)
+
+    # return what we built/updated
+    return use_dict
+
 #------------------------------
 
 #
 #   WhoIsRouterToNetwork
 #
 
-class WhoIsRouterToNetwork(NPCI):
+class WhoIsRouterToNetwork(NPDU):
 
     _debug_contents = ('wirtnNetwork',)
     
@@ -267,13 +330,20 @@ class WhoIsRouterToNetwork(NPCI):
         else:
             self.wirtnNetwork = None
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'WhoIsRouterToNetwork'),
+                ('network', self.wirtnNetwork),
+            ))
+
 register_npdu_type(WhoIsRouterToNetwork)
 
 #
 #   IAmRouterToNetwork
 #
 
-class IAmRouterToNetwork(NPCI):
+class IAmRouterToNetwork(NPDU):
 
     _debug_contents = ('iartnNetworkList',)
     
@@ -296,13 +366,20 @@ class IAmRouterToNetwork(NPCI):
         while npdu.pduData:
             self.iartnNetworkList.append(npdu.get_short())
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'IAmRouterToNetwork'),
+                ('network_list', self.iartnNetworkList),
+            ))
+
 register_npdu_type(IAmRouterToNetwork)
 
 #
 #   ICouldBeRouterToNetwork
 #
 
-class ICouldBeRouterToNetwork(NPCI):
+class ICouldBeRouterToNetwork(NPDU):
 
     _debug_contents = ('icbrtnNetwork','icbrtnPerformanceIndex')
     
@@ -325,13 +402,21 @@ class ICouldBeRouterToNetwork(NPCI):
         self.icbrtnNetwork = npdu.get_short()
         self.icbrtnPerformanceIndex = npdu.get()
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'ICouldBeRouterToNetwork'),
+                ('network', self.icbrtnNetwork),
+                ('performance_index', self.icbrtnPerformanceIndex),
+            ))
+
 register_npdu_type(ICouldBeRouterToNetwork)
 
 #
 #   RejectMessageToNetwork
 #
 
-class RejectMessageToNetwork(NPCI):
+class RejectMessageToNetwork(NPDU):
 
     _debug_contents = ('rmtnRejectReason','rmtnDNET')
     
@@ -354,13 +439,21 @@ class RejectMessageToNetwork(NPCI):
         self.rmtnRejectionReason = npdu.get()
         self.rmtnDNET = npdu.get_short()
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'RejectMessageToNetwork'),
+                ('reject_reason', self.rmtnRejectionReason),
+                ('dnet', self.rmtnDNET),
+            ))
+
 register_npdu_type(RejectMessageToNetwork)
 
 #
 #   RouterBusyToNetwork
 #
 
-class RouterBusyToNetwork(NPCI):
+class RouterBusyToNetwork(NPDU):
 
     _debug_contents = ('rbtnNetworkList',)
     
@@ -383,13 +476,20 @@ class RouterBusyToNetwork(NPCI):
         while npdu.pduData:
             self.rbtnNetworkList.append(npdu.get_short())
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'RouterBusyToNetwork'),
+                ('network_list', self.rbtnNetworkList),
+            ))
+
 register_npdu_type(RouterBusyToNetwork)
 
 #
 #   RouterAvailableToNetwork
 #
 
-class RouterAvailableToNetwork(NPCI):
+class RouterAvailableToNetwork(NPDU):
 
     _debug_contents = ('ratnNetworkList',)
     
@@ -412,6 +512,13 @@ class RouterAvailableToNetwork(NPCI):
         while npdu.pduData:
             self.ratnNetworkList.append(npdu.get_short())
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'RouterAvailableToNetwork'),
+                ('network_list', self.ratnNetworkList),
+            ))
+
 register_npdu_type(RouterAvailableToNetwork)
 
 #
@@ -427,11 +534,25 @@ class RoutingTableEntry(DebugContents):
         self.rtPortID = portID
         self.rtPortInfo = portInfo
 
+    def dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        # save the content
+        use_dict.__setitem__('dnet', self.rtDNET)
+        use_dict.__setitem__('port_id', self.rtPortID)
+        use_dict.__setitem__('port_info', self.rtPortInfo)
+
+        # return what we built/updated
+        return use_dict
+
 #
 #   InitializeRoutingTable
 #
 
-class InitializeRoutingTable(NPCI):
+class InitializeRoutingTable(NPDU):
     messageType = 0x06
     _debug_contents = ('irtTable++',)
 
@@ -463,13 +584,24 @@ class InitializeRoutingTable(NPCI):
             rte = RoutingTableEntry(dnet, portID, portInfo)
             self.irtTable.append(rte)
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        routing_table = []
+        for rte in self.irtTable:
+            routing_table.append(rte.dict_contents(as_class=as_class))
+
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'InitializeRoutingTable'),
+                ('routing_table', routing_table),
+            ))
+
 register_npdu_type(InitializeRoutingTable)
 
 #
 #   InitializeRoutingTableAck
 #
 
-class InitializeRoutingTableAck(NPCI):
+class InitializeRoutingTableAck(NPDU):
     messageType = 0x07
     _debug_contents = ('irtaTable++',)
 
@@ -501,13 +633,24 @@ class InitializeRoutingTableAck(NPCI):
             rte = RoutingTableEntry(dnet, portID, portInfo)
             self.irtaTable.append(rte)
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        routing_table = []
+        for rte in self.irtaTable:
+            routing_table.append(rte.dict_contents(as_class=as_class))
+
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'InitializeRoutingTableAck'),
+                ('routing_table', routing_table),
+            ))
+
 register_npdu_type(InitializeRoutingTableAck)
 
 #
 #   EstablishConnectionToNetwork
 #
 
-class EstablishConnectionToNetwork(NPCI):
+class EstablishConnectionToNetwork(NPDU):
 
     _debug_contents = ('ectnDNET', 'ectnTerminationTime')
     
@@ -530,13 +673,21 @@ class EstablishConnectionToNetwork(NPCI):
         self.ectnDNET = npdu.get_short()
         self.ectnTerminationTime = npdu.get()
 
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'EstablishConnectionToNetwork'),
+                ('dnet', self.ectnDNET),
+                ('termination_time', self.ectnTerminationTime),
+            ))
+
 register_npdu_type(EstablishConnectionToNetwork)
 
 #
 #   DisconnectConnectionToNetwork
 #
 
-class DisconnectConnectionToNetwork(NPCI):
+class DisconnectConnectionToNetwork(NPDU):
 
     _debug_contents = ('dctnDNET',)
     
@@ -555,6 +706,13 @@ class DisconnectConnectionToNetwork(NPCI):
     def decode(self, npdu):
         NPCI.update(self, npdu)
         self.dctnDNET = npdu.get_short()
+
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'DisconnectConnectionToNetwork'),
+                ('dnet', self.dctnDNET),
+            ))
 
 register_npdu_type(DisconnectConnectionToNetwork)
 
