@@ -97,15 +97,15 @@ class ArgumentParser(argparse.ArgumentParser):
             action="store_true",
             )
 
-    def parse_args(self):
+    def parse_args(self, *args, **kwargs):
         """Parse the arguments as usual, then add default processing."""
         if _debug: ArgumentParser._debug("parse_args")
 
         # pass along to the parent class
-        args = argparse.ArgumentParser.parse_args(self)
+        result_args = argparse.ArgumentParser.parse_args(self, *args, **kwargs)
 
         # check to dump labels
-        if args.buggers:
+        if result_args.buggers:
             loggers = logging.Logger.manager.loggerDict.keys()
             loggers.sort()
             for loggerName in loggers:
@@ -113,18 +113,18 @@ class ArgumentParser(argparse.ArgumentParser):
             sys.exit(0)
 
         # check for debug
-        if args.debug is None:
+        if result_args.debug is None:
             # --debug not specified
             bug_list = []
-        elif not args.debug:
+        elif not result_args.debug:
             # --debug, but no arguments
             bug_list = ["__main__"]
         else:
             # --debug with arguments
-            bug_list = args.debug
+            bug_list = result_args.debug
 
         # attach any that are specified
-        if args.color:
+        if result_args.color:
             for i, debug_name in enumerate(bug_list):
                 ConsoleLogHandler(debug_name, color=(i % 6) + 2)
         else:
@@ -132,7 +132,7 @@ class ArgumentParser(argparse.ArgumentParser):
                 ConsoleLogHandler(debug_name)
 
         # return what was parsed
-        return args
+        return result_args
 
 #
 #   ConfigArgumentParser
@@ -159,16 +159,16 @@ class ConfigArgumentParser(ArgumentParser):
             default="BACpypes.ini",
             )
 
-    def parse_args(self):
+    def parse_args(self, *args, **kwargs):
         """Parse the arguments as usual, then add default processing."""
         if _debug: ConfigArgumentParser._debug("parse_args")
 
         # pass along to the parent class
-        args = ArgumentParser.parse_args(self)
+        result_args = ArgumentParser.parse_args(self, *args, **kwargs)
 
         # read in the configuration file
         config = ConfigParser()
-        config.read(args.ini)
+        config.read(result_args.ini)
         if _debug: _log.debug("    - config: %r", config)
 
         # check for BACpypes section
@@ -180,7 +180,8 @@ class ConfigArgumentParser(ArgumentParser):
         if _debug: _log.debug("    - ini_obj: %r", ini_obj)
 
         # add the object to the parsed arguments
-        setattr(args, 'ini', ini_obj)
+        setattr(result_args, 'ini', ini_obj)
 
         # return what was parsed
-        return args
+        return result_args
+
