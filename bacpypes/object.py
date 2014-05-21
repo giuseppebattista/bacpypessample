@@ -7,7 +7,7 @@ Object
 import sys
 import types
 
-from errors import ConfigurationError
+from errors import ConfigurationError, ExecutionError
 from debugging import function_debugging, ModuleLogger, Logging
 
 from primitivedata import *
@@ -165,7 +165,7 @@ class Property(Logging):
 
             # see if it can be changed
             if not self.mutable:
-                raise RuntimeError, "%s immutable property" % (self.identifier,)
+                raise ExecutionError(errorClass='property', errorCode='writeAccessDenied')
 
         # if it's atomic assume correct datatype
         if issubclass(self.datatype, Atomic):
@@ -885,7 +885,7 @@ class CalendarObject(Object):
 
 @register_object_type
 class CharacterStringValueObject(Object):
-    objectType = 'characterStringValue'
+    objectType = 'characterstringValue'
     properties = \
         [ ReadableProperty('presentValue', CharacterString)
         , ReadableProperty('statusFlags', StatusFlags)
