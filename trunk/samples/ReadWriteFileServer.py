@@ -1,25 +1,22 @@
 #!/usr/bin/python
 
 """
-sample015.py
+ReadWriteFileServer.py
+
+This sample application is a BACnet device that has one record access file at
+('file', 1) and one stream access file at ('file', 2).
 """
 
-import sys
-import logging
 import random
 import string
 
-from ConfigParser import ConfigParser
-
-from bacpypes.debugging import bacpypes_debugging, DebugContents, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.debugging import bacpypes_debugging, ModuleLogger
+from bacpypes.consolelogging import ConfigArgumentParser
 
 from bacpypes.core import run
 
-from bacpypes.primitivedata import Real
 from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
 from bacpypes.object import FileObject, register_object_type
-from bacpypes.apdu import Error
 
 from bacpypes.basetypes import ServicesSupported
 
@@ -166,41 +163,19 @@ register_object_type(LocalStreamAccessFileObject)
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
+    # parse the command line arguments
+    args = ConfigArgumentParser(description=__doc__).parse_args()
 
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
-
-    _log.debug("initialization")
-
-    # read in a configuration file
-    config = ConfigParser()
-    if ('--ini' in sys.argv):
-        indx = sys.argv.index('--ini')
-        ini_file = sys.argv[indx + 1]
-        if not config.read(ini_file):
-            raise RuntimeError, "configuration file %r not found" % (ini_file,)
-        del sys.argv[indx:indx+2]
-    elif not config.read('BACpypes.ini'):
-        raise RuntimeError, "configuration file not found"
+    if _debug: _log.debug("initialization")
+    if _debug: _log.debug("    - args: %r", args)
 
     # make a device object
     this_device = LocalDeviceObject(
-        objectName=config.get('BACpypes','objectName'),
-        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
-        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
-        segmentationSupported=config.get('BACpypes','segmentationSupported'),
-        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        objectName=args.ini.objectname,
+        objectIdentifier=int(args.ini.objectidentifier),
+        maxApduLengthAccepted=int(args.ini.maxapdulengthaccepted),
+        segmentationSupported=args.ini.segmentationsupported,
+        vendorIdentifier=int(args.ini.vendoridentifier),
         )
 
     # build a bit string that knows about the bit names
@@ -210,32 +185,28 @@ try:
     pss['readProperty'] = 1
     pss['writeProperty'] = 1
     pss['atomicReadFile'] = 1
+    pss['atomicWriteFile'] = 1
 
     # set the property value to be just the bits
     this_device.protocolServicesSupported = pss.value
 
     # make a sample application
-    this_application = BIPSimpleApplication(
-        this_device,
-        config.get('BACpypes','address'),
-        )
+    this_application = BIPSimpleApplication(this_device, args.ini.address)
 
-    # make a record access file
+    # make a record access file, add to the device
     f1 = LocalRecordAccessFileObject(
         objectIdentifier=('file', 1),
         objectName='RecordAccessFile1'
         )
     _log.debug("    - f1: %r", f1)
+    this_application.add_object(f1)
 
-    # make a stream access file
+    # make a stream access file, add to the device
     f2 = LocalStreamAccessFileObject(
         objectIdentifier=('file', 2),
         objectName='StreamAccessFile2'
         )
     _log.debug("    - f2: %r", f2)
-
-    # add them to the device
-    this_application.add_object(f1)
     this_application.add_object(f2)
 
     _log.debug("running")

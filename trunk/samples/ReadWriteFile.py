@@ -1,23 +1,25 @@
 #!/usr/bin/python
 
 """
-sample016.py
+ReadWriteFile.py
+
+This application presents a 'console' prompt to the user asking for commands.
+
+The 'readrecord' and 'writerecord' commands are used with record oriented files,
+and the 'readstream' and 'writestream' commands are used with stream oriented 
+files.
 """
 
 import sys
-import logging
-
-from ConfigParser import ConfigParser
 
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger
-from bacpypes.consolelogging import ConsoleLogHandler
+from bacpypes.consolelogging import ConfigArgumentParser
 from bacpypes.consolecmd import ConsoleCmd
 
 from bacpypes.core import run
 
-from bacpypes.pdu import Address, GlobalBroadcast
+from bacpypes.pdu import Address
 from bacpypes.app import LocalDeviceObject, BIPSimpleApplication
-from bacpypes.object import get_object_class, get_datatype
 
 from bacpypes.apdu import Error, AbortPDU, \
     AtomicReadFileRequest, \
@@ -228,50 +230,19 @@ class TestConsoleCmd(ConsoleCmd):
 #
 
 try:
-    if ('--buggers' in sys.argv):
-        loggers = logging.Logger.manager.loggerDict.keys()
-        loggers.sort()
-        for loggerName in loggers:
-            sys.stdout.write(loggerName + '\n')
-        sys.exit(0)
+    # parse the command line arguments
+    args = ConfigArgumentParser(description=__doc__).parse_args()
 
-    if ('--debug' in sys.argv):
-        indx = sys.argv.index('--debug')
-        i = indx + 1
-        while (i < len(sys.argv)) and (not sys.argv[i].startswith('--')):
-            ConsoleLogHandler(sys.argv[i])
-            i += 1
-        del sys.argv[indx:i]
-
-    _log.debug("initialization")
-
-    # read in a configuration file
-    config = ConfigParser()
-    if ('--ini' in sys.argv):
-        indx = sys.argv.index('--ini')
-        ini_file = sys.argv[indx + 1]
-        if not config.read(ini_file):
-            raise RuntimeError, "configuration file %r not found" % (ini_file,)
-        del sys.argv[indx:indx+2]
-    elif not config.read('BACpypes.ini'):
-        raise RuntimeError, "configuration file not found"
-
-    # get the address from the config file
-    addr = config.get('BACpypes', 'address')
-
-    # maybe use a different port
-    if '--port' in sys.argv:
-        i = sys.argv.index('--port')
-        addr += ':' + sys.argv[i+1]
-    _log.debug("    - addr: %r", addr)
+    if _debug: _log.debug("initialization")
+    if _debug: _log.debug("    - args: %r", args)
 
     # make a device object
     this_device = LocalDeviceObject(
-        objectName=config.get('BACpypes','objectName'),
-        objectIdentifier=config.getint('BACpypes','objectIdentifier'),
-        maxApduLengthAccepted=config.getint('BACpypes','maxApduLengthAccepted'),
-        segmentationSupported=config.get('BACpypes','segmentationSupported'),
-        vendorIdentifier=config.getint('BACpypes','vendorIdentifier'),
+        objectName=args.ini.objectname,
+        objectIdentifier=int(args.ini.objectidentifier),
+        maxApduLengthAccepted=int(args.ini.maxapdulengthaccepted),
+        segmentationSupported=args.ini.segmentationsupported,
+        vendorIdentifier=int(args.ini.vendoridentifier),
         )
 
     # build a bit string that knows about the bit names
@@ -280,13 +251,12 @@ try:
     pss['iAm'] = 1
     pss['readProperty'] = 1
     pss['writeProperty'] = 1
-    pss['atomicReadFile'] = 1
 
     # set the property value to be just the bits
     this_device.protocolServicesSupported = pss.value
 
     # make a simple application
-    this_application = TestApplication(this_device, addr)
+    this_application = TestApplication(this_device, args.ini.address)
     TestConsoleCmd()
 
     _log.debug("running")
