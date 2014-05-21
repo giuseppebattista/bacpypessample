@@ -1,9 +1,11 @@
 #!/usr/bin/python
 
 """
-This application presents a 'console' prompt to the user asking for read commands
-which create ReadPropertyRequest PDUs, then lines up the coorresponding ReadPropertyACK
-and prints the value.
+This application presents a 'console' prompt to the user asking for commands.
+
+For 'read' commands it will create ReadPropertyRequest PDUs, then lines up the
+coorresponding ReadPropertyACK and prints the value.  For 'write' commands it
+will create WritePropertyRequst PDUs and prints out a simple acknowledgement.
 """
 
 import sys
@@ -168,6 +170,8 @@ class ReadWritePropertyConsoleCmd(ConsoleCmd):
                     value = int(value)
                 elif datatype is Real:
                     value = float(value)
+                elif datatype is Unsigned:
+                    value = int(value)
                 value = datatype(value)
             elif issubclass(datatype, Array) and (indx is not None):
                 if indx == 0:
