@@ -5,6 +5,22 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.10.1
+--------------
+
+This version contains more contributions that should have been included in the previous
+release, but I updated the library in a different order than the mailing list.  Sigh.
+
+* The library did not return the correct error for writing to immutable properties.
+  `r269 <http://sourceforge.net/p/bacpypes/code/269>`_
+
+* The lowerCamelCase for CharacterStringValue objects was incorrect and didn't match
+  the enumeration value.
+  `r270 <http://sourceforge.net/p/bacpypes/code/270>`_
+
+* Bump the version number and update these release notes.
+  `r271 <http://sourceforge.net/p/bacpypes/code/271>`_
+
 Version 0.10
 ------------
 
