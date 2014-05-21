@@ -5,6 +5,31 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.10
+------------
+
+This version contains updates courtesy of contributions from other BACpypes users, of whom 
+I am grateful!
+
+* The consolelogging module ConfigArgumentParser inherits from the built-in ArgumentParser
+  class, but the parse_args didn't have the same function signature.
+  `r264 <http://sourceforge.net/p/bacpypes/code/264>`_
+
+* The MultipleReadProperty new sample application has a list of points and it shows how
+  to put those points into a queue so each one of them can be read sequentially.
+  `r265 <http://sourceforge.net/p/bacpypes/code/265>`_
+
+* The Read Access and Stream Access choices in the atomic file services were backwards, 
+  stream access is choice zero (0) and record access is one (1).
+  `r266 <http://sourceforge.net/p/bacpypes/code/266>`_
+
+* In the process of confirming that the file access services were in fact wrong, I decided 
+  to update the sample applications and give them better names.
+  `r267 <http://sourceforge.net/p/bacpypes/code/267>`_
+
+* Bump the version number and update these release notes.
+  `r268 <http://sourceforge.net/p/bacpypes/code/268>`_
+
 Version 0.9.5
 -------------
 
