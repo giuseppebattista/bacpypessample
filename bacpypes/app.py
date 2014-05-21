@@ -19,6 +19,7 @@ from bvllservice import BIPSimple, BIPForeign, AnnexJCodec, UDPMultiplexer
 from object import Property, PropertyError, DeviceObject
 from apdu import ConfirmedRequestPDU, SimpleAckPDU, RejectPDU, RejectReason
 from apdu import IAmRequest, ReadPropertyACK, Error
+from errors import ExecutionError
 
 from apdu import \
     AtomicReadFileACK, \
@@ -51,7 +52,7 @@ class CurrentDateProperty(Property):
         return now.value
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
-        raise RuntimeError, "%s immutable property" % (self.identifier,)
+        raise ExecutionError(errorClass='property', errorCode='writeAccessDenied')
 
 #
 #   CurrentTimeProperty
@@ -73,7 +74,7 @@ class CurrentTimeProperty(Property):
         return now.value
 
     def WriteProperty(self, obj, value, arrayIndex=None, priority=None):
-        raise RuntimeError, "%s immutable property" % (self.identifier,)
+        raise ExecutionError(errorClass='property', errorCode='writeAccessDenied')
 
 #
 #   LocalDeviceObject
