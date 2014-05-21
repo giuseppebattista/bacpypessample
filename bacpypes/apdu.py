@@ -1373,8 +1373,8 @@ class AtomicReadFileRequestAccessMethodChoiceRecordAccess(Sequence):
 
 class AtomicReadFileRequestAccessMethodChoice(Choice):
     choiceElements = \
-        [ Element('recordAccess', AtomicReadFileRequestAccessMethodChoiceRecordAccess, 0)
-        , Element('streamAccess', AtomicReadFileRequestAccessMethodChoiceStreamAccess, 1)
+        [ Element('streamAccess', AtomicReadFileRequestAccessMethodChoiceStreamAccess, 0)
+        , Element('recordAccess', AtomicReadFileRequestAccessMethodChoiceRecordAccess, 1)
         ]
 
 class AtomicReadFileRequest(ConfirmedRequestSequence):
@@ -1431,8 +1431,8 @@ class AtomicWriteFileRequestAccessMethodChoiceRecordAccess(Sequence):
 
 class AtomicWriteFileRequestAccessMethodChoice(Choice):
     choiceElements = \
-        [ Element('recordAccess', AtomicWriteFileRequestAccessMethodChoiceRecordAccess, 0)
-        , Element('streamAccess', AtomicWriteFileRequestAccessMethodChoiceStreamAccess, 1)
+        [ Element('streamAccess', AtomicWriteFileRequestAccessMethodChoiceStreamAccess, 0)
+        , Element('recordAccess', AtomicWriteFileRequestAccessMethodChoiceRecordAccess, 1)
         ]
 
 class AtomicWriteFileRequest(ConfirmedRequestSequence):
