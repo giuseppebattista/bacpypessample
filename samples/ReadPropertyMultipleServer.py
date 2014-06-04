@@ -169,7 +169,8 @@ class ReadPropertyMultipleApplication(BIPSimpleApplication):
         """Respond to a ReadPropertyMultiple Request."""
         if _debug: ReadPropertyMultipleApplication._debug("do_ReadPropertyMultipleRequest %r", apdu)
 
-        # response is a list of read access results
+        # response is a list of read access results (or an error)
+        resp = None
         read_access_result_list = []
 
         # loop through the request
@@ -190,6 +191,7 @@ class ReadPropertyMultipleApplication(BIPSimpleApplication):
             # make sure it exists
             if not obj:
                 resp = Error(errorClass='object', errorCode='unknownObject', context=apdu)
+                if _debug: ReadPropertyMultipleApplication._debug("    - unknown object error: %r", resp)
                 break
 
             # build a list of result elements
@@ -248,9 +250,10 @@ class ReadPropertyMultipleApplication(BIPSimpleApplication):
             read_access_result_list.append(read_access_result)
 
         # this is a ReadPropertyMultiple ack
-        resp = ReadPropertyMultipleACK(context=apdu)
-        resp.listOfReadAccessResults = read_access_result_list
-        if _debug: ReadPropertyMultipleApplication._debug("    - resp: %r", resp)
+        if not resp:
+            resp = ReadPropertyMultipleACK(context=apdu)
+            resp.listOfReadAccessResults = read_access_result_list
+            if _debug: ReadPropertyMultipleApplication._debug("    - resp: %r", resp)
 
         # return the result
         self.response(resp)
