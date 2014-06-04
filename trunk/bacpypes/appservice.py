@@ -1044,7 +1044,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
         self.serverTransactions = []
         self.applicationTimeout = device.apduTimeout        # how long the application has to respond
 
-    def get_next_invoke_id(self):
+    def get_next_invoke_id(self, addr):
         """Called by clients to get an unused invoke ID."""
         if _debug: StateMachineAccessPoint._debug("get_next_invoke_id")
             
@@ -1058,7 +1058,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
                 raise RuntimeError, "no available invoke ID"
 
             for tr in self.clientTransactions:
-                if invokeID == tr.invokeID:
+                if (invokeID == tr.invokeID) and (addr == tr.remoteDevice.address):
                     break
             else:
                 break
@@ -1178,7 +1178,7 @@ class StateMachineAccessPoint(DeviceInfo, Client, ServiceAccessPoint):
         elif isinstance(apdu, ConfirmedRequestPDU):
             # make sure it has an invoke ID
             if apdu.apduInvokeID is None:
-                apdu.apduInvokeID = self.get_next_invoke_id()
+                apdu.apduInvokeID = self.get_next_invoke_id(apdu.pduDestination)
             else:
                 # verify the invoke ID isn't already being used
                 for tr in self.clientTransactions:
