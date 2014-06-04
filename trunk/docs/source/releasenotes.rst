@@ -5,6 +5,33 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.10.2
+--------------
+
+This version contains bug fixes.
+
+* The invokeID for outbound client requests must be unique per server, but can be
+  the same value for different servers.  I had solved this problem once before in the 
+  sample HTTP server code, but didn't migrate the code into the core library.  At 
+  some point there was some other code that couldn't generate more than 255 requests, so 
+  this never got tested.  Other BACneteers are more aggressive!
+  `r272 <http://sourceforge.net/p/bacpypes/code/272>`_
+
+* The segment count of a confirmed ack is at least one, even if there is no PDU data.
+  This was solved on the client side (in the client segmentation state machine for seeing
+  if requests needed to be segmented on the way out) but not on the server side.  This
+  fixes that bug.
+  `r273 <http://sourceforge.net/p/bacpypes/code/273>`_
+
+* The ReadPropertyMultipleServer code would see that an object didn't exist and build an
+  error response, which was oblitered by the default code at the bottom of the loop so 
+  it was never returned.  Now if any of the read access specifications refers to an object 
+  that doesn't exist the request will correctly return an error.
+  `r274 <http://sourceforge.net/p/bacpypes/code/274>`_
+
+* Bump the version number and update these release notes.
+  `r275 <http://sourceforge.net/p/bacpypes/code/275>`_
+
 Version 0.10.1
 --------------
 
