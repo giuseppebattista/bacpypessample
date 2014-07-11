@@ -39,9 +39,9 @@ def console_interrupt(*args):
 
 class ConsoleCmd(cmd.Cmd, Thread, Logging):
 
-    def __init__(self, prompt="> ", allow_exec=False):
+    def __init__(self, prompt="> ", allow_exec=False, stdin=None, stdout=None):
         if _debug: ConsoleCmd._debug("__init__")
-        cmd.Cmd.__init__(self)
+        cmd.Cmd.__init__(self, stdin=stdin, stdout=stdout)
         Thread.__init__(self, name="ConsoleCmd")
 
         # save the prompt and exec option
@@ -116,24 +116,24 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         self.type2count = type2count
         self.type2all = type2all
 
-        fmt = "%-30s %-30s %6s %6s %6s"
-        print fmt % ("Module", "Type", "Count", "dCount", "dRef")
+        fmt = "%-30s %-30s %6s %6s %6s\n"
+        self.stdout.write(fmt % ("Module", "Type", "Count", "dCount", "dRef"))
 
         # sorted by count
         ct.sort(lambda x, y: cmp(y[2], x[2]))
         for i in range(min(10,len(ct))):
             m, n, c, delta1, delta2 = ct[i]
-            print fmt % (m, n, c, delta1, delta2)
-        print
+            self.stdout.write(fmt % (m, n, c, delta1, delta2))
+        self.stdout.write("\n")
 
-        print fmt % ("Module", "Type", "Count", "dCount", "dRef")
+        self.stdout.write(fmt % ("Module", "Type", "Count", "dCount", "dRef"))
 
         # sorted by module and class
         ct.sort()
         for m, n, c, delta1, delta2 in ct:
             if delta1 or delta2:
-                print fmt % (m, n, c, delta1, delta2)
-        print
+                self.stdout.write(fmt % (m, n, c, delta1, delta2))
+        self.stdout.write("\n")
 
     def do_bugin(self, args):
         """bugin [ <logger> ]  - add a console logging handler to a logger"""
@@ -153,14 +153,14 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
 
         # add a logging handler
         if not logger:
-            print 'not a valid logger name'
+            self.stdout.write("not a valid logger name\n")
         elif loggerName in self.handlers:
-            print loggerName, 'already has a handler'
+            self.stdout.write("%s already has a handler\n" % loggerName)
         else:
             handler = ConsoleLogHandler(logger)
             self.handlers[loggerName] = handler
-            print "handler to", loggerName, "added"
-        print
+            self.stdout.write("handler to %s added\n" % loggerName)
+        self.stdout.write("\n")
 
     def do_bugout(self, args):
         """bugout [ <logger> ]  - remove a console logging handler from a logger"""
@@ -180,9 +180,9 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
 
         # remove the logging handler
         if not logger:
-            print 'not a valid logger name'
+            self.stdout.write("not a valid logger name\n")
         elif not loggerName in self.handlers:
-            print 'no handler for', loggerName
+            self.stdout.write("no handler for %s\n" % loggerName)
         else:
             handler = self.handlers[loggerName]
             del self.handlers[loggerName]
@@ -195,8 +195,8 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
 
             # remove it from the logger
             logger.removeHandler(handler)
-            print "handler to", loggerName, "removed"
-        print
+            self.stdout.write("handler to %s removed\n" % loggerName)
+        self.stdout.write("\n")
 
     def do_buggers(self, args):
         """buggers  - list the console logging handlers"""
@@ -204,9 +204,11 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         if _debug: ConsoleCmd._debug("do_buggers %r", args)
 
         if not self.handlers:
-            print "no handlers"
+            self.stdout.write("no handlers\n")
         else:
-            print "handlers:", ', '.join(loggerName or '__root__' for loggerName in self.handlers)
+            self.stdout.write("handlers: ")
+            self.stdout.write(', '.join(loggerName or '__root__' for loggerName in self.handlers))
+            self.stdout.write("\n")
 
         loggers = logging.Logger.manager.loggerDict.keys()
         loggers.sort()
@@ -215,10 +217,10 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
                 continue
 
             if loggerName in self.handlers:
-                print '*', loggerName
+                self.stdout.write("* %s\n" % loggerName)
             else:
-                print ' ', loggerName
-        print
+                self.stdout.write("  %s\n" % loggerName)
+        self.stdout.write("\n")
 
     #-----
 
@@ -254,7 +256,7 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
             readline.read_history_file(sys.argv[0] + ".history")
         except Exception, e:
             if not isinstance(e, IOError):
-                print "history error:", e
+                self.stdout.write("history error: %s\n" % e)
 
     def postloop(self):
         """Take care of any unfinished business.
@@ -263,11 +265,11 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         try:
             readline.write_history_file(sys.argv[0]+".history")
         except Exception, e:
-            print "history error:", e
+            self.stdout.write("history error: %s\n" % e)
 
         cmd.Cmd.postloop(self)   ## Clean up command completion
 
-        print "Exiting..."
+        self.stdout.write("Exiting...\n")
         core.stop()
 
     def precmd(self, line):
@@ -297,5 +299,4 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         try:
             exec(line) in self._locals, self._globals
         except Exception, e:
-            print e.__class__, ":", e
-            print
+            self.stdout.write("%s : %s\n" % (e.__class__, e))
