@@ -1286,17 +1286,17 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
                 apdu.encode(xpdu)
                 apdu._xpdu = xpdu
             except Exception, e:
-                ApplicationServiceAccessPoint._exception("confirmed request decoding error: %r", e)
-                raise e
-            
+                ApplicationServiceAccessPoint._exception("confirmed request encoding error: %r", e)
+                return
+
         elif isinstance(apdu, UnconfirmedRequestPDU):
             try:
                 xpdu = UnconfirmedRequestPDU()
                 apdu.encode(xpdu)
                 apdu._xpdu = xpdu
             except Exception, e:
-                ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", e)
-                raise e
+                ApplicationServiceAccessPoint._exception("unconfirmed request encoding error: %r", e)
+                return
 
         else:
             if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type?!")
@@ -1318,18 +1318,22 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             if not atype:
                 if _debug: ApplicationServiceAccessPoint._debug("    - no complex ack decoder")
                 return
-                
-            xpdu = atype()
-            xpdu.decode(apdu)
-                
+
+            try:
+                xpdu = atype()
+                xpdu.decode(apdu)
+            except Exception, e:
+                ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", e)
+                return
+
         elif isinstance(apdu, ErrorPDU):
             atype = error_types.get(apdu.apduService)
             if not atype:
                 if _debug: ApplicationServiceAccessPoint._debug("    - no special error decoder")
                 atype = Error
 
-            xpdu = atype()
             try:
+                xpdu = atype()
                 xpdu.decode(apdu)
             except:
                 xpdu = Error(errorClass=0, errorCode=0)
@@ -1341,7 +1345,7 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             xpdu = apdu
             
         else:
-            if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type?!")
+            if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type")
             return
         
         if _debug: ApplicationServiceAccessPoint._debug("    - xpdu %r", xpdu)
@@ -1370,7 +1374,7 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             xpdu = apdu
             
         else:
-            if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type?!")
+            if _debug: ApplicationServiceAccessPoint._debug("    - unknown PDU type")
             return
 
         if _debug: ApplicationServiceAccessPoint._debug("    - xpdu %r", xpdu)
