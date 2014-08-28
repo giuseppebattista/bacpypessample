@@ -5,6 +5,41 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.10.3
+--------------
+
+This version contains some enhancements and bug fixes.
+
+* Sangeeth Saravanaraj submitted an enchancement that allows the ConsoleCmd class
+  to accept stdin and stdout parameters and replaces the print statements with 
+  self.stdout.write calls.  Thank you!
+  `r276 <http://sourceforge.net/p/bacpypes/code/276>`_
+
+* This is a new filter that looks for Who-Is and I-Am messages related to a specific
+  device instance number in a pcap file.
+  `r277 <http://sourceforge.net/p/bacpypes/code/277>`_
+
+* This minor enhancement allows longs in the object type for an object identifier
+  ``__init__`` parameter rather than just ints.
+  `r278 <http://sourceforge.net/p/bacpypes/code/278>`_
+
+* Application service access point encode and decoding errors bail out of the effort
+  rather than raising an error.  There is a very long running application that I have
+  that would decode an APDU incorrectly every once in a great while, but it was very
+  difficult to track down.  I think this was actually field device that was adding 
+  additional cruft on the end of a packet and BACpypes would raise an error.  I need 
+  the stack to toss these errant PDUs out as if they never happened.
+  It would be nice if there was a logging hook that developers could use to track
+  when this happens.
+  `r279 <http://sourceforge.net/p/bacpypes/code/279>`_
+
+* This is a pair of sample applications for proprietary object types and proprietary
+  properties to demonstrate how to extend the core types.
+  `r280 <http://sourceforge.net/p/bacpypes/code/280>`_
+
+* Bump the version number and update these release notes.
+  `r281 <http://sourceforge.net/p/bacpypes/code/281>`_
+
 Version 0.10.2
 --------------
 
