@@ -1360,12 +1360,14 @@ class ObjectIdentifier(Atomic):
         if isinstance(objType, types.IntType):
             # try and make it pretty
             objType = self.objectTypeClass._xlate_table.get(objType, objType)
+        elif isinstance(objType, types.LongType):
+            objType = self.objectTypeClass._xlate_table.get(objType, int(objType))
         elif isinstance(objType, types.StringType):
             # make sure the type is known
             if objType not in self.objectTypeClass._xlate_table:
                 raise ValueError, "unrecognized object type '%s'" % (objType,)
         else:
-            raise TypeError, "invalid datatype for objType"
+            raise TypeError, "invalid datatype for objType: %r, %r" % (type(objType), objType)
 
         # pack the components together
         self.value = (objType, objInstance)
