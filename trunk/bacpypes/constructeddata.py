@@ -997,6 +997,24 @@ class Any:
             # return what was built
             return helper.value
 
+        # check for an array element
+        elif _array_of_classes.has_key(klass):
+            # build a sequence helper
+            helper = klass()
+
+            # make a copy of the tag list
+            t = TagList(self.tagList[:])
+
+            # let it decode itself
+            helper.decode(t)
+
+            # make sure everything was consumed
+            if len(t) != 0:
+                raise DecodingError, "incomplete cast"
+
+            # return what was built with Python list semantics
+            return helper.value[1:]
+
         elif issubclass(klass, Atomic):
             # make sure there's only one piece
             if len(self.tagList) == 0:
