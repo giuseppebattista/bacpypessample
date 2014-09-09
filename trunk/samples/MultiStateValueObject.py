@@ -5,9 +5,7 @@ This sample application provides a single MultiState Value Object to test
 reading and writing its various properties.
 """
 
-import random
-
-from bacpypes.debugging import bacpypes_debugging, ModuleLogger
+from bacpypes.debugging import ModuleLogger
 from bacpypes.consolelogging import ConfigArgumentParser
 
 from bacpypes.core import run
