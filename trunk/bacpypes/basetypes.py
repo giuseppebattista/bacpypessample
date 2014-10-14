@@ -1604,7 +1604,7 @@ class TimeStamp(Choice):
 class TimeValue(Sequence):
     sequenceElements = \
         [ Element('time', Time)
-        , Element('value', Any)
+        , Element('value', AnyAtomic)
         ]
 
 class WeekNDay(OctetString):
