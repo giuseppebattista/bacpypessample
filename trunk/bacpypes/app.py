@@ -103,16 +103,21 @@ class LocalDeviceObject(DeviceObject, Logging):
             if attr not in kwargs:
                 kwargs[attr] = value
 
+        # proceed as usual
+        DeviceObject.__init__(self, **kwargs)
+
         # create a default implementation of an object list for local devices.
         # If it is specified in the kwargs, that overrides this default.
         if ('objectList' not in kwargs):
-            objectList = ArrayOf(ObjectIdentifier)()
-            if ('objectIdentifier' in kwargs):
-                objectList.append(kwargs['objectIdentifier'])
-            kwargs['objectList'] = objectList
+            self.objectList = ArrayOf(ObjectIdentifier)([self.objectIdentifier])
 
-        # proceed as usual
-        DeviceObject.__init__(self, **kwargs)
+            # if the object has a property list and one wasn't provided
+            # in the kwargs, then it was created by default and the objectList
+            # property should be included
+            if ('propertyList' not in kwargs) and self.propertyList:
+                # make sure it's not already there
+                if 'objectList' not in self.propertyList:
+                    self.propertyList.append('objectList')
 
 #
 #   Application
