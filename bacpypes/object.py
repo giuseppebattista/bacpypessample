@@ -280,7 +280,7 @@ class ObjectIdentifierProperty(ReadableProperty, Logging):
         # make it easy to default
         if value is None:
             pass
-        elif isinstance(value, types.IntType) or isinstance(value, types.LongType):
+        elif isinstance(value, (types.IntType, types.LongType)):
             value = (obj.objectType, value)
         elif isinstance(value, types.TupleType) and len(value) == 2:
             if value[0] != obj.objectType:
@@ -307,7 +307,7 @@ class Object(Logging):
 
     def __init__(self, **kwargs):
         """Create an object, with default property values as needed."""
-        if _debug: Object._debug("__init__ %r", kwargs)
+        if _debug: Object._debug("__init__(%s) %r", self.__class__.__name__, kwargs)
 
         # map the python names into property names and make sure they 
         # are appropriate for this object
@@ -428,6 +428,37 @@ class Object(Logging):
 
         # return the datatype
         return prop.datatype
+
+    def _dict_contents(self, use_dict=None, as_class=dict):
+        """Return the contents of an object as a dict."""
+        if _debug: Object._debug("dict_contents use_dict=%r as_class=%r", use_dict, as_class)
+
+        # make/extend the dictionary of content
+        if use_dict is None:
+            use_dict = as_class()
+
+        klasses = list(self.__class__.__mro__)
+        klasses.reverse()
+
+        # build a list of properties "bottom up"
+        properties = []
+        for c in klasses:
+            properties.extend(getattr(c, 'properties', []))
+
+        # print out the values
+        for prop in properties:
+            value = prop.ReadProperty(self)
+            if value is None:
+                continue
+
+            if hasattr(value, "dict_contents"):
+                value = value.dict_contents(as_class=as_class)
+
+            # save the value
+            use_dict.__setitem__(prop.identifier, value)
+
+        # return what we built/updated
+        return use_dict
 
     def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
         """Print out interesting things about the object."""
@@ -1507,11 +1538,11 @@ class PulseConverterObject(Object):
 class ScheduleObject(Object):
     objectType = 'schedule'
     properties = \
-        [ ReadableProperty('presentValue', Any)
+        [ ReadableProperty('presentValue', AnyAtomic)
         , ReadableProperty('effectivePeriod', DateRange)
         , OptionalProperty('weeklySchedule', ArrayOf(DailySchedule))
         , OptionalProperty('exceptionSchedule', ArrayOf(SpecialEvent))
-        , ReadableProperty('scheduleDefault', Any)
+        , ReadableProperty('scheduleDefault', AnyAtomic)
         , ReadableProperty('listOfObjectPropertyReferences', SequenceOf(DeviceObjectPropertyReference))
         , ReadableProperty('priorityForWriting', Unsigned)
         , ReadableProperty('statusFlags', StatusFlags)
