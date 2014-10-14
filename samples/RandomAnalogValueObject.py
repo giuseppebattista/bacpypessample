@@ -87,7 +87,7 @@ try:
     # make a device object
     this_device = LocalDeviceObject(
         objectName=args.ini.objectname,
-        objectIdentifier=int(args.ini.objectidentifier),
+        objectIdentifier=('device', int(args.ini.objectidentifier)),
         maxApduLengthAccepted=int(args.ini.maxapdulengthaccepted),
         segmentationSupported=args.ini.segmentationsupported,
         vendorIdentifier=int(args.ini.vendoridentifier),
@@ -102,6 +102,9 @@ try:
         )
     _log.debug("    - ravo1: %r", ravo1)
 
+    ravo1d = ravo1._dict_contents()
+    print ravo1d
+
     ravo2 = RandomAnalogValueObject(
         objectIdentifier=('analogValue', 2), objectName='Random2'
         )
@@ -112,7 +115,7 @@ try:
     this_application.add_object(ravo2)
     _log.debug("    - object list: %r", this_device.objectList)
 
-    _log.debug("running")
+    print this_device._dict_contents()
 
     run()
 
