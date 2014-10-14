@@ -91,7 +91,7 @@ class Sequence(object):
                 # might need to encode a closing tag
                 if element.context is not None:
                     taglist.append(ClosingTag(element.context))
-            elif issubclass(element.klass, Atomic):
+            elif issubclass(element.klass, (Atomic, AnyAtomic)):
                 # a helper cooperates between the atomic value and the tag
                 if _debug: Sequence._debug("    - build helper: %r %r", element.klass, value)
                 helper = element.klass(value)
@@ -118,7 +118,7 @@ class Sequence(object):
                 if element.context is not None:
                     taglist.append(ClosingTag(element.context))
             else:
-                raise TypeError, "'%s' must be a %s" % (element.name, element.klass.__name__)
+                raise TypeError, "'%s' must be of type %s" % (element.name, element.klass.__name__)
 
     def decode(self, taglist):
         if _debug: Sequence._debug("decode %r", taglist)
@@ -203,6 +203,34 @@ class Sequence(object):
                 # now save the value
                 setattr(self, element.name, helper.value)
 
+            # check for an AnyAtomic element
+            elif issubclass(element.klass, AnyAtomic):
+                # convert it to application encoding
+                if element.context is not None:
+                    if tag.tagClass != Tag.contextTagClass or tag.tagNumber != element.context:
+                        if not element.optional:
+                            raise DecodingError, "'%s' expected context tag %d" % (element.name, element.context)
+                        else:
+                            setattr(self, element.name, None)
+                            continue
+                    tag = tag.context_to_app(element.klass._app_tag)
+                else:
+                    if tag.tagClass != Tag.applicationTagClass:
+                        if not element.optional:
+                            raise DecodingError, "'%s' expected application tag" % (element.name,)
+                        else:
+                            setattr(self, element.name, None)
+                            continue
+
+                # consume the tag
+                taglist.Pop()
+
+                # a helper cooperates between the atomic value and the tag
+                helper = element.klass(tag)
+
+                # now save the value
+                setattr(self, element.name, helper.value)
+
             # some kind of structure
             else:
                 if element.context is not None:
@@ -259,7 +287,7 @@ class Sequence(object):
                 helper = element.klass(value)
                 helper.debug_contents(indent+1, file, _ids)
                 
-            elif issubclass(element.klass, Atomic):
+            elif issubclass(element.klass, (Atomic, AnyAtomic)):
                 file.write("%s%s = %r\n" % ("    " * indent, element.name, value))
                 
             elif isinstance(value, element.klass):
@@ -288,7 +316,10 @@ class Sequence(object):
                 mapped_value = helper.dict_contents(as_class=as_class)
 
             elif issubclass(element.klass, Atomic):
-                mapped_value = value
+                mapped_value = value                        ### ambiguous
+
+            elif issubclass(element.klass, AnyAtomic):
+                mapped_value = value.value                  ### ambiguous
 
             elif isinstance(value, element.klass):
                 mapped_value = value.dict_contents(as_class=as_class)
@@ -350,6 +381,8 @@ def SequenceOf(klass):
         def append(self, value):
             if issubclass(self.subtype, Atomic):
                 pass
+            elif issubclass(self.subtype, AnyAtomic) and not isinstance(value, Atomic):
+                raise TypeError, "instance of an atomic type required"
             elif not isinstance(value, self.subtype):
                 raise TypeError, "%s value required" % (self.subtype.__name__,)
             self.value.append(value)
@@ -363,7 +396,7 @@ def SequenceOf(klass):
         def encode(self, taglist):
             if _debug: _SequenceOf._debug("(%r)encode %r", self.__class__.__name__, taglist)
             for value in self.value:
-                if issubclass(self.subtype, Atomic):
+                if issubclass(self.subtype, (Atomic, AnyAtomic)):
                     # a helper cooperates between the atomic value and the tag
                     helper = self.subtype(value)
 
@@ -387,7 +420,7 @@ def SequenceOf(klass):
                 if tag.tagClass == Tag.closingTagClass:
                     return
 
-                if issubclass(self.subtype, Atomic):
+                if issubclass(self.subtype, (Atomic, AnyAtomic)):
                     if _debug: _SequenceOf._debug("    - building helper: %r %r", self.subtype, tag)
                     taglist.Pop()
 
@@ -410,7 +443,7 @@ def SequenceOf(klass):
         def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
             i = 0
             for value in self.value:
-                if issubclass(self.subtype, Atomic):
+                if issubclass(self.subtype, (Atomic, AnyAtomic)):
                     file.write("%s[%d] = %r\n" % ("    " * indent, i, value))
                 elif isinstance(value, self.subtype):
                     file.write("%s[%d]" % ("    " * indent, i))
@@ -425,7 +458,9 @@ def SequenceOf(klass):
 
             for value in self.value:
                 if issubclass(self.subtype, Atomic):
-                    mapped_value.append(value)
+                    mapped_value.append(value)              ### ambiguous
+                elif issubclass(self.subtype, AnyAtomic):
+                    mapped_value.append(value.value)        ### ambiguous
                 elif isinstance(value, self.subtype):
                     mapped_value.append(value.dict_contents(as_class=as_class))
 
@@ -487,7 +522,7 @@ def ArrayOf(klass):
         def __init__(self, value=None):
             if value is None:
                 self.value = [0]
-            elif isinstance(value,types.ListType):
+            elif isinstance(value, types.ListType):
                 self.value = [len(value)]
                 self.value.extend(value)
             else:
@@ -496,6 +531,8 @@ def ArrayOf(klass):
         def append(self, value):
             if issubclass(self.subtype, Atomic):
                 pass
+            elif issubclass(self.subtype, AnyAtomic) and not isinstance(value, Atomic):
+                raise TypeError, "instance of an atomic type required"
             elif not isinstance(value, self.subtype):
                 raise TypeError, "%s value required" % (self.subtype.__name__,)
             self.value.append(value)
@@ -552,7 +589,7 @@ def ArrayOf(klass):
             if _debug: ArrayOf._debug("(%r)encode %r", self.__class__.__name__, taglist)
 
             for value in self.value[1:]:
-                if issubclass(self.subtype, Atomic):
+                if issubclass(self.subtype, (Atomic, AnyAtomic)):
                     # a helper cooperates between the atomic value and the tag
                     helper = self.subtype(value)
 
@@ -579,7 +616,7 @@ def ArrayOf(klass):
                 if tag.tagClass == Tag.closingTagClass:
                     break
 
-                if issubclass(self.subtype, Atomic):
+                if issubclass(self.subtype, (Atomic, AnyAtomic)):
                     if _debug: ArrayOf._debug("    - building helper: %r %r", self.subtype, tag)
                     taglist.Pop()
 
@@ -618,7 +655,7 @@ def ArrayOf(klass):
             else:
                 value = self.value[item]
                 
-                if issubclass(self.subtype, Atomic):
+                if issubclass(self.subtype, (Atomic, AnyAtomic)):
                     # a helper cooperates between the atomic value and the tag
                     helper = self.subtype(self.value[item])
         
@@ -643,7 +680,7 @@ def ArrayOf(klass):
 
                 # save the value
                 self.value = helper.value
-            elif issubclass(self.subtype, Atomic):
+            elif issubclass(self.subtype, (Atomic, AnyAtomic)):
                 if _debug: ArrayOf._debug("    - building helper: %r", self.subtype)
                     
                 # a helper cooperates between the atomic value and the tag
@@ -672,7 +709,7 @@ def ArrayOf(klass):
             for i, value in value_list:
                 if i == 0:
                     file.write("%slength = %d\n" % ("    " * indent, value))
-                elif issubclass(self.subtype, Atomic):
+                elif issubclass(self.subtype, (Atomic, AnyAtomic)):
                     file.write("%s[%d] = %r\n" % ("    " * indent, i, value))
                 elif isinstance(value, self.subtype):
                     file.write("%s[%d]\n" % ("    " * indent, i))
@@ -686,7 +723,9 @@ def ArrayOf(klass):
 
             for value in self.value:
                 if issubclass(self.subtype, Atomic):
-                    mapped_value.append(value)
+                    mapped_value.append(value)              ### ambiguous
+                elif issubclass(self.subtype, AnyAtomic):
+                    mapped_value.append(value.value)        ### ambiguous
                 elif isinstance(value, self.subtype):
                     mapped_value.append(value.dict_contents(as_class=as_class))
 
@@ -747,7 +786,7 @@ class Choice(object):
             if value is None:
                 continue
 
-            if issubclass(element.klass,Atomic):
+            if issubclass(element.klass, (Atomic, AnyAtomic)):
                 # a helper cooperates between the atomic value and the tag
                 helper = element.klass(value)
 
@@ -825,7 +864,7 @@ class Choice(object):
                 break
 
             # check for an atomic element
-            elif issubclass(element.klass, Atomic):
+            elif issubclass(element.klass, (Atomic, AnyAtomic)):
                 # convert it to application encoding
                 if element.context is not None:
                     if tag.tagClass != Tag.contextTagClass or tag.tagNumber != element.context:
@@ -885,7 +924,7 @@ class Choice(object):
             if value is None:
                 continue
 
-            elif issubclass(element.klass, Atomic):
+            elif issubclass(element.klass, (Atomic, AnyAtomic)):
                 file.write("%s%s = %r\n" % ("    " * indent, element.name, value))
                 break
                 
@@ -914,7 +953,9 @@ class Choice(object):
                 continue
 
             if issubclass(element.klass, Atomic):
-                mapped_value = value
+                mapped_value = value                    ### ambiguous
+            elif issubclass(element.klass, AnyAtomic):
+                mapped_value = value.value              ### ambiguous
             elif isinstance(value, element.klass):
                 mapped_value = value.dict_contents(as_class=as_class)
 
@@ -970,6 +1011,10 @@ class Any:
             tag = Tag()
             element.encode(tag)
             t.append(tag)
+        elif isinstance(element, AnyAtomic):
+            tag = Tag()
+            element.value.encode(tag)
+            t.append(tag)
         else:
             element.encode(t)
 
@@ -1015,7 +1060,7 @@ class Any:
             # return what was built with Python list semantics
             return helper.value[1:]
 
-        elif issubclass(klass, Atomic):
+        elif issubclass(klass, (Atomic, AnyAtomic)):
             # make sure there's only one piece
             if len(self.tagList) == 0:
                 raise DecodingError, "missing cast component"
@@ -1087,54 +1132,47 @@ class Any:
 @bacpypes_debugging
 class AnyAtomic:
 
-    def __init__(self, element=None):
-        self.valueTag = None
+    def __init__(self, arg=None):
+        if _debug: AnyAtomic._debug("__init__ %r", arg)
 
-        # cast in the arg
-        if element:
-            self.cast_in(element)
+        # default to no value
+        self.value = None
 
-    def encode(self, taglist):
-        if _debug: AnyAtomic._debug("encode %r", taglist)
+        if arg is None:
+            pass
+        elif isinstance(arg, Atomic):
+            self.value = arg
+        elif isinstance(arg, Tag):
+            self.value = arg.app_to_object()
+        else:
+            raise TypeError, "invalid constructor datatype"
 
-        taglist.append(self.valueTag)
+    def encode(self, tag):
+        if _debug: AnyAtomic._debug("encode %r", tag)
 
-    def decode(self, taglist):
-        if _debug: AnyAtomic._debug("decode %r", taglist)
+        self.value.encode(tag)
 
-        if len(taglist) == 0:
-            raise DecodingError, "application tagged atomic value expected"
+    def decode(self, tag):
+        if _debug: AnyAtomic._debug("decode %r", tag)
 
-        tag = taglist.Peek()
-        if tag.tagClass != Tag.applicationTagClass:
-            raise DecodingError, "application tagged atomic value expected"
+        if (tag.tagClass != Tag.applicationTagClass):
+            raise ValueError, "application tag required"
 
-        self.valueTag = taglist.Pop()
+        # get the data
+        self.value = tag.app_to_object()
 
-    def cast_in(self, element):
-        """encode the element into the internal tag list."""
-        if _debug: AnyAtomic._debug("cast_in %r", element)
+    def __str__(self):
+        return "AnyAtomic(%s)" % (str(self.value), )
 
-        if not isinstance(element, Atomic):
-            raise RuntimeError, "atomic element expected"
+    def __repr__(self):
+        xid = id(self)
+        if (xid < 0): xid += (1L << 32)
 
-        self.valueTag = Tag()
-        element.encode(self.valueTag)
+        desc = self.__module__ + '.' + self.__class__.__name__
 
-    def cast_out(self, klass):
-        """Interpret the content as a particular class."""
-        if _debug: AnyAtomic._debug("cast_out %r", klass)
+        if self.value:
+            desc += "(" + self.value.__class__.__name__ + ")"
+            desc += ' ' + str(self.value)
 
-        if not issubclass(klass, Atomic):
-            raise RuntimeError, "atomic class expected"
-
-        # a helper cooperates between the atomic value and the tag
-        helper = klass(self.valueTag)
-
-        # return the value
-        return helper.value
-
-    def debug_contents(self, indent=1, file=sys.stdout, _ids=None):
-        if self.valueTag:
-            self.valueTag.debug_contents(indent, file, _ids)
+        return '<' + desc + ' instance at 0x%08x' % (xid,) + '>'
 
