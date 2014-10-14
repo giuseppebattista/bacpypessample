@@ -83,6 +83,8 @@ class ReadPropertyApplication(BIPSimpleApplication):
             if _debug: ReadPropertyApplication._debug("    - value: %r", value)
 
             sys.stdout.write(str(value) + '\n')
+            if hasattr(value, 'debug_contents'):
+                value.debug_contents(file=sys.stdout)
             sys.stdout.flush()
 
 #
