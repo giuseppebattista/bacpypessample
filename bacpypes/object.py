@@ -684,8 +684,8 @@ class AccumulatorObject(Object):
         , OptionalProperty('eventEnable', EventTransitionBits)
         , OptionalProperty('ackedTransitions', EventTransitionBits)
         , OptionalProperty('notifyType', NotifyType)
-        , OptionalProperty('eventTimeStamps', SequenceOf(TimeStamp))
-        , OptionalProperty('eventMessageTexts', SequenceOf(CharacterString))
+        , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
+        , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
         ]
 
 @register_object_type
@@ -969,7 +969,7 @@ class DatePatternValueObject(Object):
         , OptionalProperty('reliability', Reliability)
         , OptionalProperty('outOfService', Boolean)
         , OptionalProperty('priorityArray', PriorityArray)
-        , OptionalProperty('relinquishDefault', DateTime)
+        , OptionalProperty('relinquishDefault', Date)
         ]
 
 @register_object_type
@@ -1569,9 +1569,8 @@ class TimePatternValueObject(Object):
         , OptionalProperty('eventState', EventState)
         , OptionalProperty('reliability', Reliability)
         , OptionalProperty('outOfService', Boolean)
-        , OptionalProperty('isUtc', Boolean)
         , OptionalProperty('priorityArray', PriorityArray)
-        , OptionalProperty('relinquishDefault', DateTime)
+        , OptionalProperty('relinquishDefault', Time)
         ]
 
 @register_object_type
