@@ -1380,7 +1380,7 @@ class AtomicReadFileRequestAccessMethodChoice(Choice):
 class AtomicReadFileRequest(ConfirmedRequestSequence):
     serviceChoice = 6
     sequenceElements = \
-        [ Element('fileIdentifier', ObjectIdentifier, 0)
+        [ Element('fileIdentifier', ObjectIdentifier)
         , Element('accessMethod', AtomicReadFileRequestAccessMethodChoice)
         ]
 
@@ -1438,7 +1438,7 @@ class AtomicWriteFileRequestAccessMethodChoice(Choice):
 class AtomicWriteFileRequest(ConfirmedRequestSequence):
     serviceChoice = 7
     sequenceElements = \
-        [ Element('fileIdentifier', ObjectIdentifier, 0)
+        [ Element('fileIdentifier', ObjectIdentifier)
         , Element('accessMethod', AtomicWriteFileRequestAccessMethodChoice)
         ]
 
