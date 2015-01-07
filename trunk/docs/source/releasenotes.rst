@@ -5,6 +5,84 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.10.5
+--------------
+
+* Bill Roberts submitted a patch to clean up an old underscore, and I missed
+  the edit earlier.  Thanks Bill!
+  `r302 <http://sourceforge.net/p/bacpypes/code/302>`_
+
+* Bump the version number and release, notes to come later.
+  `r303 <http://sourceforge.net/p/bacpypes/code/303>`_
+
+Version 0.10.4
+--------------
+
+This version contains bug fixes.
+
+* Some BACneteer had an issue with MultiState Value Objects so I added some 
+  sample code to present one of these on the network so I could check to make
+  sure the encoding/decoding of property values was working correctly.
+
+  There was an issue with constructed data with elements that were arrays, 
+  the elements should have had Python list semantics rather than BACnet array 
+  semantics, so there is some additional checking for this in the 
+  decoding.
+  `r282 <http://sourceforge.net/p/bacpypes/code/282>`_
+
+* A branch was created for dealing with unicode strings rather than the default 
+  string encoding.  No final decision has been made on this issue, I need more 
+  experience.
+  `r283 <http://sourceforge.net/p/bacpypes/code/283>`_
+  `r284 <http://sourceforge.net/p/bacpypes/code/284>`_
+  `r285 <http://sourceforge.net/p/bacpypes/code/285>`_
+  `r286 <http://sourceforge.net/p/bacpypes/code/286>`_
+  `r287 <http://sourceforge.net/p/bacpypes/code/287>`_
+  `r289 <http://sourceforge.net/p/bacpypes/code/289>`_
+  `r290 <http://sourceforge.net/p/bacpypes/code/290>`_
+  `r291 <http://sourceforge.net/p/bacpypes/code/291>`_
+  `r292 <http://sourceforge.net/p/bacpypes/code/292>`_
+
+* Delete an unecessary import (a.k.a., "flake").
+  `r288 <http://sourceforge.net/p/bacpypes/code/288>`_
+
+* Handle the various combinations of present/missing values for the object 
+  identifier and object list keyword arguments to the device object better.
+  `r293 <http://sourceforge.net/p/bacpypes/code/293>`_
+
+* The Random Analog Value Object sample code used the object identifier keyword 
+  argument in a non-standard way, and I thought this fixed it, but it seems to 
+  have re-introduced some debugging code as well.  This needs investigation.
+  `r294 <http://sourceforge.net/p/bacpypes/code/294>`_
+
+* For sequences that specify "any atomic value" which is application encoded, 
+  the constructed data decoder presents those values as instances of one 
+  of the subclasses of Atomic rather that presenting them as Any which needs
+  more work decoding for the BACpypes developer.
+  `r295 <http://sourceforge.net/p/bacpypes/code/295>`_
+
+* This patch takes advantage of the r295 and applies it to the Schedule Object 
+  and the TimeValue, used in SpecialEvent, used in the exception Schedule.
+  `r296 <http://sourceforge.net/p/bacpypes/code/296>`_
+
+* In the Read Property sample code, if the value has a debug_contents API 
+  then it is called and this gives a little bit more detailed output.
+  `r297 <http://sourceforge.net/p/bacpypes/code/297>`_
+
+* New Schedule Object sample code.
+  `r298 <http://sourceforge.net/p/bacpypes/code/298>`_
+
+* The fileIdentifier parameter of the Atomic Read/Write File services is 
+  application encoded, not context encoded.
+  `r299 <http://sourceforge.net/p/bacpypes/code/299>`_
+
+* Bill Roberts submitted some patches to clean up element encoding errors, 
+  thank you Bill!
+  `r300 <http://sourceforge.net/p/bacpypes/code/300>`_
+
+* Bump the version number and release.  Notes to be committed later.
+  `r301 <http://sourceforge.net/p/bacpypes/code/301>`_
+
 Version 0.10.3
 --------------
 
