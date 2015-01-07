@@ -172,7 +172,7 @@ class Application(ApplicationServiceElement, Logging):
         if _debug: Application._debug("delete_object %r", obj)
 
         # extract the object name and identifier
-        object_name = obj.object_name
+        object_name = obj.objectName
         object_identifier = obj.objectIdentifier
 
         # delete it from the application
