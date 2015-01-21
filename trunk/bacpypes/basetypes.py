@@ -83,6 +83,7 @@ class ObjectTypesSupported(BitString):
         , 'loadControl':28
         , 'structuredView':29
         , 'accessDoor':30
+        , 'accessCredential':32
         , 'accessPoint':33
         , 'accessRights':34
         , 'accessUser':35
