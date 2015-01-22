@@ -779,7 +779,7 @@ class Choice(object):
             setattr(self, element.name, my_kwargs.get(element.name, None))
 
     def encode(self, taglist):
-        if _debug: Choice._debug("(%r)encode %r %r", self.__class__.__name__, taglist)
+        if _debug: Choice._debug("(%r)encode %r", self.__class__.__name__, taglist)
 
         for element in self.choiceElements:
             value = getattr(self, element.name, None)
@@ -821,7 +821,7 @@ class Choice(object):
             raise AttributeError, "missing choice of %s" % (self.__class__.__name__,)
 
     def decode(self, taglist):
-        if _debug: Choice._debug("(%r)decode %r %r", self.__class__.__name__, taglist)
+        if _debug: Choice._debug("(%r)decode %r", self.__class__.__name__, taglist)
 
         # peek at the element
         tag = taglist.Peek()
