@@ -1712,8 +1712,8 @@ class ChannelValue(Choice):
 
 class ClientCOV(Choice):
     choiceElements = \
-        [ Element('realIncrement', Real, 0)
-        , Element('defaultIncrement', Null, 0)
+        [ Element('realIncrement', Real)
+        , Element('defaultIncrement', Null)
         ]
 
 class COVSubscription(Sequence):
