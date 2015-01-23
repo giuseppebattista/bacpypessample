@@ -5,6 +5,33 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.10.6
+--------------
+
+* Release notes from previous version.
+  `r304 <http://sourceforge.net/p/bacpypes/code/304>`_
+
+* The accessCredential object type was missing.
+  `r305 <http://sourceforge.net/p/bacpypes/code/305>`_
+
+* Incorrect number of formatting parameters to match actual parameters, only
+  appeared as warnings during debugging, but is definitely annoying.
+  `r306 <http://sourceforge.net/p/bacpypes/code/306>`_
+
+* New ReadRange sample code to assist with a developer question, keep them
+  coming!
+  `r307 <http://sourceforge.net/p/bacpypes/code/307>`_
+
+* The ClientCOV components are not supposed to be context encoded.
+  `r308 <http://sourceforge.net/p/bacpypes/code/308>`_
+
+* A change to make sure that an array property isn't None (uninitialized) before
+  attempting to index into it.
+  `r309 <http://sourceforge.net/p/bacpypes/code/309>`_
+
+* Bump the version number and update these release notes. 
+  `r310 <http://sourceforge.net/p/bacpypes/code/310>`_
+
 Version 0.10.5
 --------------
 
@@ -12,7 +39,7 @@ Version 0.10.5
   the edit earlier.  Thanks Bill!
   `r302 <http://sourceforge.net/p/bacpypes/code/302>`_
 
-* Bump the version number and release, notes to come later.
+* Bump the version number, release notes to come later.
   `r303 <http://sourceforge.net/p/bacpypes/code/303>`_
 
 Version 0.10.4

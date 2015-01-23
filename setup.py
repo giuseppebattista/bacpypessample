@@ -14,7 +14,7 @@ def read(fname):
 #
 
 setup(name='BACpypes',
-    version='0.10.5',
+    version='0.10.6',
     description='BACnet Python Library',
     author='Joel Bender',
     author_email='joel@carrickbender.com',
