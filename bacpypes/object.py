@@ -145,7 +145,7 @@ class Property(Logging):
             if not issubclass(self.datatype, Array):
                 raise ExecutionError(errorClass='property', errorCode='propertyIsNotAnArray')
 
-            if value:
+            if value is not None:
                 # dive in, the water's fine
                 value = value[arrayIndex]
 
