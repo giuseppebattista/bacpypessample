@@ -73,6 +73,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
         --buggers                       list the debugging logger names
         --debug [DBEUG [DEBUG ...]]     attach a console to loggers
+        --color                         debug in color
     """
 
     def __init__(self, **kwargs):
