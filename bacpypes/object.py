@@ -299,7 +299,7 @@ class Object(Logging):
     properties = \
         [ ObjectIdentifierProperty('objectIdentifier', ObjectIdentifier, optional=False)
         , ReadableProperty('objectName', CharacterString, optional=False)
-        , ReadableProperty('description', CharacterString, default='')
+        , ReadableProperty('description', CharacterString)
         , OptionalProperty('profileName', CharacterString)
         , ReadableProperty('propertyList', ArrayOf(PropertyIdentifier))
         ]
