@@ -1113,6 +1113,7 @@ class PropertyIdentifier(Enumerated):
         , 'bias':14
         , 'bitMask':342
         , 'bitText':343
+        , 'blinkWarnEnable':373
         , 'bufferSize':126
         , 'changeOfStateCount':15
         , 'changeOfStateTime':16
@@ -1138,6 +1139,9 @@ class PropertyIdentifier(Enumerated):
         , 'daylightSavingsStatus':24
         , 'daysRemaining':267
         , 'deadband':25
+        , 'defaultFadeTime':374
+        , 'defaultRampRate':375
+        , 'defaultStepIncrement':376
         , 'derivativeConstant':26
         , 'derivativeConstantUnits':27
         , 'description':28
@@ -1156,6 +1160,8 @@ class PropertyIdentifier(Enumerated):
         , 'doorUnlockDelayTime':232
         , 'dutyWindow':213
         , 'effectivePeriod':32
+        , 'egreeActive':386
+        , 'egressTime':377
         , 'elapsedActiveTime':33
         , 'entryPoints':268
         , 'enable':133
@@ -1187,8 +1193,10 @@ class PropertyIdentifier(Enumerated):
         , 'highLimit':45
         , 'inactiveText':46
         , 'inProcess':47
+        , 'inProgress':378
         , 'inputReference':181
         , 'instanceOf':48
+        , 'instantaneousPower':379
         , 'integralConstant':49
         , 'integralConstantUnits':50
         , 'intervalOffset':195
@@ -1206,6 +1214,8 @@ class PropertyIdentifier(Enumerated):
         , 'lastRestoreTime':157
         , 'lastUseTime':281
         , 'lifeSafetyAlarmValues':166
+        , 'lightingCommand':380
+        , 'lightingCommandDefaultPriority':381
         , 'limitEnable':52
         , 'limitMonitoringInterval':182
         , 'listOfGroupMembers':53
@@ -1232,6 +1242,7 @@ class PropertyIdentifier(Enumerated):
         , 'maximumOutput':61
         , 'maximumValue':135
         , 'maximumValueTimestamp':149
+        , 'maxActualValue':382
         , 'maxApduLengthAccepted':62
         , 'maxFailedAttempts':285
         , 'maxInfoFrames':63
@@ -1246,6 +1257,7 @@ class PropertyIdentifier(Enumerated):
         , 'minimumOutput':68
         , 'minimumValue':136
         , 'minimumValueTimestamp':150
+        , 'minActualValue':383
         , 'minPresValue':69
         , 'mode':160
         , 'modelName':70
@@ -1285,6 +1297,7 @@ class PropertyIdentifier(Enumerated):
         , 'passbackTimeout':301
         , 'polarity':84
         , 'positiveAccessRules':302
+        , 'power':384
         , 'prescale':185
         , 'presentValue':85
         , 'priority':86
@@ -1325,6 +1338,7 @@ class PropertyIdentifier(Enumerated):
         , 'securityPduTimeout':334
         , 'securityTimeWindow':335
         , 'segmentationSupported':107
+        , 'serialNumber':372
         , 'setpoint':108
         , 'setpointReference':109
         , 'setting':162
@@ -1359,6 +1373,7 @@ class PropertyIdentifier(Enumerated):
         , 'traceFlag':308
         , 'trackingValue':164
         , 'transactionNotificationClass':309
+        , 'transition':385
         , 'trigger':205
         , 'units':117
         , 'updateInterval':118
@@ -1383,6 +1398,7 @@ class PropertyIdentifier(Enumerated):
         , 'weeklySchedule':123
         , 'windowInterval':147
         , 'windowSamples':148
+        , 'writeStatus':370
         , 'zoneFrom':320
         , 'zoneMembers':165
         , 'zoneTo':321
@@ -1569,7 +1585,7 @@ class PropertyStates(Choice):
         , Element('accessCredentialDisable', AccessCredentialDisable, 33)
         , Element('authenticationStatus', AuthenticationStatus, 34)
         , Element('backupState', BackupState, 36)
-        , Element('writeStatus', WriteStatus, 37)
+        , Element('writeStatus', WriteStatus, 370)
         , Element('lightingInProgress', LightingInProgress, 38)
         , Element('lightingOperation', LightingOperation, 39)
         , Element('lightingTransition', LightingTransition, 40)
