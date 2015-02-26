@@ -732,7 +732,7 @@ register_npdu_type(DisconnectConnectionToNetwork)
 
 class WhatIsNetworkNumber(NPDU):
 
-    _debug_contents = (,)
+    _debug_contents = ()
 
     messageType = 0x12
 
