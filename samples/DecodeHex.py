@@ -68,7 +68,7 @@ def decode_packet(data):
     """decode the data, return some kind of PDU."""
     if _debug: decode_packet._debug("decode_packet %r", data)
 
-    # convert the hex data to an octect string
+    # convert the hex data to an octet string
     data = ''.join(chr(int(data[i:i+2], 16)) for i in range(0, len(data), 2))
 
     # build a PDU
