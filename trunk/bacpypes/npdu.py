@@ -43,6 +43,16 @@ class NPCI(PCI, DebugContents):
     initializeRoutingTableAck       = 0x07
     establishConnectionToNetwork    = 0x08
     disconnectConnectionToNetwork   = 0x09
+    challengeRequest                = 0x0A
+    securityPayload                 = 0x0B
+    securityResponse                = 0x0C
+    requestKeyUpdate                = 0x0D
+    updateKeySet                    = 0x0E
+    updateDistributionKey           = 0x0F
+    requestMasterKey                = 0x10
+    setMasterKey                    = 0x11
+    whatIsNetworkNumber             = 0x12
+    networkNumberIs                 = 0x13
 
     def __init__(self, *args, **kwargs):
         super(NPCI, self).__init__(*args, **kwargs)
@@ -715,4 +725,58 @@ class DisconnectConnectionToNetwork(NPDU):
             ))
 
 register_npdu_type(DisconnectConnectionToNetwork)
+
+#
+#   WhatIsNetworkNumber
+#
+
+class WhatIsNetworkNumber(NPDU):
+
+    _debug_contents = (,)
+
+    messageType = 0x12
+
+    def encode(self, npdu):
+        NPCI.update(npdu, self)
+
+    def decode(self, npdu):
+        NPCI.update(self, npdu)
+
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'WhatIsNetworkNumber'),
+            ))
+
+register_npdu_type(WhatIsNetworkNumber)
+
+#
+#   NetworkNumberIs
+#
+
+class NetworkNumberIs(NPDU):
+
+    _debug_contents = ('nniNET', 'nniFlag',)
+
+    messageType = 0x13
+
+    def encode(self, npdu):
+        NPCI.update(npdu, self)
+        npdu.put_short( self.nniNET )
+        npdu.put( self.nniFlag )
+
+    def decode(self, npdu):
+        NPCI.update(self, npdu)
+        self.nniNET = npdu.get_short()
+        self.nniFlag = npdu.get()
+
+    def npdu_contents(self, use_dict=None, as_class=dict):
+        return key_value_contents(use_dict=use_dict, as_class=as_class,
+            key_values=(
+                ('function', 'NetorkNumberIs'),
+                ('net', self.nniNET),
+                ('flag', self.nniFlag),
+            ))
+
+register_npdu_type(NetworkNumberIs)
 
