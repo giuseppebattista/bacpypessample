@@ -146,28 +146,28 @@ class WebServerApplication(BIPSimpleApplication):
         iocb.ioComplete.set()
 
 #
-#   ThreadedHTTPequestHandler
+#   ThreadedHTTPRequestHandler
 #
 
 @class_debugging
-class ThreadedHTTPequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class ThreadedHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_GET(self):
-        if _debug: ThreadedHTTPequestHandler._debug("do_GET")
+        if _debug: ThreadedHTTPRequestHandler._debug("do_GET")
 
         # get the thread
         cur_thread = threading.current_thread()
-        if _debug: ThreadedHTTPequestHandler._debug("    - cur_thread: %r", cur_thread)
+        if _debug: ThreadedHTTPRequestHandler._debug("    - cur_thread: %r", cur_thread)
 
         # parse query data and params to find out what was passed
         parsed_params = urlparse.urlparse(self.path)
-        if _debug: ThreadedHTTPequestHandler._debug("    - parsed_params: %r", parsed_params)
+        if _debug: ThreadedHTTPRequestHandler._debug("    - parsed_params: %r", parsed_params)
         parsed_query = urlparse.parse_qs(parsed_params.query)
-        if _debug: ThreadedHTTPequestHandler._debug("    - parsed_query: %r", parsed_query)
+        if _debug: ThreadedHTTPRequestHandler._debug("    - parsed_query: %r", parsed_query)
 
         # find the pieces
         args = parsed_params.path.split('/')
-        if _debug: ThreadedHTTPequestHandler._debug("    - args: %r", args)
+        if _debug: ThreadedHTTPRequestHandler._debug("    - args: %r", args)
 
         try:
             _, addr, obj_type, obj_inst = args[:4]
@@ -198,7 +198,7 @@ class ThreadedHTTPequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
             if len(args) == 6:
                 request.propertyArrayIndex = int(args[5])
-            if _debug: ThreadedHTTPequestHandler._debug("    - request: %r", request)
+            if _debug: ThreadedHTTPRequestHandler._debug("    - request: %r", request)
 
             # build an IOCB, save the request
             iocb = IOCB()
@@ -219,7 +219,7 @@ class ThreadedHTTPequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 result = { "value": iocb.ioResponse }
 
         except Exception, err:
-            ThreadedHTTPequestHandler._exception("exception: %r", err)
+            ThreadedHTTPRequestHandler._exception("exception: %r", err)
             result = { "exception": str(err) }
 
         # write the result
@@ -269,7 +269,7 @@ try:
 
     # local host, special port
     HOST, PORT = "", int(args.port)
-    server = ThreadedTCPServer((HOST, PORT), ThreadedHTTPequestHandler)
+    server = ThreadedTCPServer((HOST, PORT), ThreadedHTTPRequestHandler)
     if _debug: _log.debug("    - server: %r", server)
 
     # Start a thread with the server -- that thread will then start a thread for each request
