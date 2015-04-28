@@ -1388,15 +1388,15 @@ register_confirmed_request_type(AtomicReadFileRequest)
 
 class AtomicReadFileACKAccessMethodStreamAccess(Sequence):
     sequenceElements = \
-        [ Element('fileStartPosition', Integer, 0)
-        , Element('fileData', OctetString, 1)
+        [ Element('fileStartPosition', Integer)
+        , Element('fileData', OctetString)
         ]
 
 class AtomicReadFileACKAccessMethodRecordAccess(Sequence):
     sequenceElements = \
-        [ Element('fileStartRecord', Integer, 0)
-        , Element('returnedRecordCount', Unsigned, 1)
-        , Element('fileRecordData', SequenceOf(OctetString), 2)
+        [ Element('fileStartRecord', Integer)
+        , Element('returnedRecordCount', Unsigned)
+        , Element('fileRecordData', SequenceOf(OctetString))
         ]
 
 class AtomicReadFileACKAccessMethodChoice(Choice):
