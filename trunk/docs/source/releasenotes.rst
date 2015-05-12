@@ -5,6 +5,72 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.12.0
+--------------
+
+* Switch from distutils to setuptools to build a wheel
+  `r323 <http://sourceforge.net/p/bacpypes/code/323>`_
+
+* Updated to use twine to upload after building both an egg and a wheel
+  `r324 <http://sourceforge.net/p/bacpypes/code/324>`_
+
+* ReallyLongCamelCaseTypo
+  `r325 <http://sourceforge.net/p/bacpypes/code/325>`_
+
+* The pieces inside the AtomicReadFileACK should not have been context encoded, but the choice is context encoded
+  `r326 <http://sourceforge.net/p/bacpypes/code/326>`_
+
+* Additional properties and object types to get closer to 2012 edition
+  `r327 <http://sourceforge.net/p/bacpypes/code/327>`_
+
+* Additional properties and enumerations
+  `r328 <http://sourceforge.net/p/bacpypes/code/328>`_
+
+* Replace 'except X, T:' with 'except X as T:' for more modern code
+  `r329 <http://sourceforge.net/p/bacpypes/code/329>`_
+
+* Bump the version number and include release notes this time
+  `r330 <http://sourceforge.net/p/bacpypes/code/330>`_
+
+Version 0.11.0
+--------------
+
+* x
+  `r311 <http://sourceforge.net/p/bacpypes/code/311>`_
+
+* Examples of a RecurringTask and using that to read property values.
+  `r312 <http://sourceforge.net/p/bacpypes/code/312>`_
+
+* Minor documentation update, adding --color option
+  `r313 <http://sourceforge.net/p/bacpypes/code/313>`_
+
+* IP-to-IP router sample
+  `r314 <http://sourceforge.net/p/bacpypes/code/314>`_
+
+* Additional helper application for decoding UDP packet contents in hex
+  `r315 <http://sourceforge.net/p/bacpypes/code/315>`_
+
+* The 'description' property is optional, by giving it a default value it was always being created.
+  `r316 <http://sourceforge.net/p/bacpypes/code/316>`_
+
+* Spelling typo
+  `r317 <http://sourceforge.net/p/bacpypes/code/317>`_
+
+* Missing enumerations
+  `r318 <http://sourceforge.net/p/bacpypes/code/318>`_
+
+* WhatIsNetworkNumber and NetworkNumberIs decoding (no other support yet)
+  `r319 <http://sourceforge.net/p/bacpypes/code/319>`_
+
+* typo
+  `r320 <http://sourceforge.net/p/bacpypes/code/320>`_
+
+* reStructured text version of readme
+  `r321 <http://sourceforge.net/p/bacpypes/code/321>`_
+
+* Bump the version number
+  `r322 <http://sourceforge.net/p/bacpypes/code/322>`_
+
 Version 0.10.6
 --------------
 
