@@ -480,6 +480,16 @@ class Application(ApplicationServiceElement, Logging):
                 self.response(resp)
                 return
 
+            # check for read-only
+            if obj.readOnly:
+                resp = Error(errorClass='services',
+                    errorCode='fileAccessDenied',
+                    context=apdu
+                    )
+                if _debug: Application._debug("    - error resp: %r", resp)
+                self.response(resp)
+                return
+
             # pass along to the object
             start_record = obj.WriteFile(
                 apdu.accessMethod.recordAccess.fileStartRecord,
@@ -498,6 +508,16 @@ class Application(ApplicationServiceElement, Logging):
             if obj.fileAccessMethod != 'streamAccess':
                 resp = Error(errorClass='services',
                     errorCode='invalidFileAccessMethod',
+                    context=apdu
+                    )
+                if _debug: Application._debug("    - error resp: %r", resp)
+                self.response(resp)
+                return
+
+            # check for read-only
+            if obj.readOnly:
+                resp = Error(errorClass='services',
+                    errorCode='fileAccessDenied',
                     context=apdu
                     )
                 if _debug: Application._debug("    - error resp: %r", resp)
