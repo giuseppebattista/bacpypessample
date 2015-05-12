@@ -405,6 +405,7 @@ class DeviceStatus(Enumerated):
         , 'downloadRequired':2
         , 'downloadInProgress':3
         , 'nonOperational':4
+        , 'backupInProgress':5
         }
 
 class DoorAlarmState(Enumerated):
