@@ -388,7 +388,7 @@ class BackupState(Enumerated):
         , 'performingABackup':3
         , 'performingARestore':4
         , 'backupFailure':5
-        , 'restoreFailure':5
+        , 'restoreFailure':6
         }
 
 class BinaryPV(Enumerated):
