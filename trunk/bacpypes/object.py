@@ -507,9 +507,11 @@ class AccessCredentialObject(Object):
         , OptionalProperty('traceFlag', Boolean)
         , OptionalProperty('threatAuthority', AccessThreatLevel)
         , OptionalProperty('extendedTimeEnable', Boolean)
-        , OptionalProperty('masterExemption', Boolean)
-        , OptionalProperty('passbackExemption', Boolean)
-        , OptionalProperty('occupancyExemption', Boolean)
+        , OptionalProperty('authorizationExemptions', SequenceOf(AuthorizationException))
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
+#       , OptionalProperty('masterExemption', Boolean)
+#       , OptionalProperty('passbackExemption', Boolean)
+#       , OptionalProperty('occupancyExemption', Boolean)
         ]
 
 @register_object_type
@@ -543,6 +545,10 @@ class AccessDoorObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
         ]
 
 @register_object_type
@@ -590,6 +596,11 @@ class AccessPointObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)        
         ]
 
 @register_object_type
@@ -603,6 +614,7 @@ class AccessRightsObject(Object):
         , ReadableProperty('negativeAccessRules', ArrayOf(AccessRule))
         , ReadableProperty('positiveAccessRules', ArrayOf(AccessRule))
         , OptionalProperty('accompaniment', DeviceObjectReference)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -653,6 +665,12 @@ class AccessZoneObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)        
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)        
         ]
 
 @register_object_type
@@ -686,6 +704,30 @@ class AccumulatorObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
+        ]
+
+@register_object_type
+class AlertEnrollmentObject(Object):
+    objectType = 'alertEnrollment'
+    properties = \
+        [ ReadableProperty('presentValue', ObjectIdentifier)
+        , ReadableProperty('eventState', EventState)
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , ReadableProperty('notificationClass', Unsigned)
+        , OptionalProperty('eventEnable', EventTransitionBits)
+        , OptionalProperty('ackedTransitions', EventTransitionBits)
+        , OptionalProperty('notifyType', NotifyType)
+        , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
+        , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
         ]
 
 @register_object_type
@@ -715,6 +757,12 @@ class AnalogInputObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -745,6 +793,12 @@ class AnalogOutputObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -774,6 +828,12 @@ class AnalogValueObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -819,6 +879,12 @@ class BinaryInputObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))        
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -851,6 +917,12 @@ class BinaryOutputObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -881,6 +953,12 @@ class BinaryValueObject(Object):
         , OptionalProperty('notifyType',NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -904,6 +982,12 @@ class BitStringValueObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -912,6 +996,33 @@ class CalendarObject(Object):
     properties = \
         [ ReadableProperty('presentValue', Boolean)
         , ReadableProperty('dateList', SequenceOf(CalendarEntry)) 
+        ]
+
+@register_object_type
+class ChannelObject(Object):
+    objectType = 'channel'
+    properties = \
+        [ WritableProperty('presentValue', ChannelValue)
+        , ReadableProperty('lastPriority', Unsigned)
+        , ReadableProperty('writeStatus', WriteStatus)
+        , ReadableProperty('statusFlags', StatusFlags)
+        , OptionalProperty('reliability', Reliability)
+        , ReadableProperty('outOfService', Boolean)
+        , WritableProperty('listOfObjectPropertyReferences', ArrayOf(DeviceObjectPropertyReference))
+        , OptionalProperty('executionDelay', ArrayOf(Unsigned))
+        , OptionalProperty('allowGroupDelayInhibit', Boolean)
+        , WritableProperty('channelNumber', Unsigned)
+        , WritableProperty('controlGroups', ArrayOf(Unsigned))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('notificationClass', Unsigned)
+        , OptionalProperty('eventEnable', EventTransitionBits)
+        , OptionalProperty('eventState', EventState)
+        , OptionalProperty('ackedTransitions', EventTransitionBits)
+        , OptionalProperty('notifyType', NotifyType)
+        , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
+        , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -934,6 +1045,12 @@ class CharacterStringValueObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -956,7 +1073,17 @@ class CredentialDataInputObject(Object):
         , OptionalProperty('reliability', Reliability)
         , ReadableProperty('outOfService', Boolean)
         , ReadableProperty('supportedFormats', ArrayOf(AuthenticationFactorFormat))
-        , ReadableProperty('supportedFormatClasses', ArrayOf(Unsigned))
+        , OptionalProperty('supportedFormatClasses', ArrayOf(Unsigned))
+        , ReadableProperty('updateTime', TimeStamp)
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('notificationClass', Unsigned)
+        , OptionalProperty('eventEnable', EventTransitionBits)
+        , OptionalProperty('ackedTransitions', EventTransitionBits)
+        , OptionalProperty('notifyType', NotifyType)
+        , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
+        , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)        
         ]
 
 @register_object_type
@@ -1082,6 +1209,16 @@ class EventEnrollmentObject(Object):
         , ReadableProperty('notificationClass', Unsigned)
         , ReadableProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , ReadableProperty('statusFlags', StatusFlags)
+        , ReadableProperty('reliability', Reliability)
+        , OptionalProperty('faultType', FaultType)
+        , OptionalProperty('faultParameters', FaultParameter)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 #-----
@@ -1123,6 +1260,10 @@ class EventLogObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
         ]
 
 #-----
@@ -1165,8 +1306,14 @@ class GlobalGroupObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
         , OptionalProperty('covuPeriod', Unsigned)
         , OptionalProperty('covuRecipients', SequenceOf(Recipient))
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1201,6 +1348,15 @@ class IntegerValueObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
+        , OptionalProperty('minPresValue', Integer)
+        , OptionalProperty('maxPresValue', Integer)
+        , OptionalProperty('resolution', Integer)
         ]
 
 @register_object_type
@@ -1227,6 +1383,15 @@ class LargeAnalogValueObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
+        , OptionalProperty('minPresValue', Double)
+        , OptionalProperty('maxPresValue', Double)
+        , OptionalProperty('resolution', Double)
         ]
 
 @register_object_type
@@ -1252,6 +1417,12 @@ class LifeSafetyPointObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         , ReadableProperty('silenced', SilencedState)
         , ReadableProperty('operationExpected', LifeSafetyOperation)
         , OptionalProperty('maintenanceRequired', Maintenance)
@@ -1284,11 +1455,47 @@ class LifeSafetyZoneObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         , ReadableProperty('silenced', SilencedState)
         , ReadableProperty('operationExpected', LifeSafetyOperation)
         , OptionalProperty('maintenanceRequired', Boolean)
         , ReadableProperty('zoneMembers', SequenceOf(DeviceObjectReference))
         , OptionalProperty('memberOf', SequenceOf(DeviceObjectReference))
+        ]
+
+@register_object_type
+class LightingOutputObject(Object):
+    objectType = 'lightingOutput'
+    properties = \
+        [ WritableProperty('presentValue', Real)
+        , ReadableProperty('trackingValue', Real)
+        , WritableProperty('lightingCommand', LightingCommand)
+        , ReadableProperty('inProgress', LightingInProgress)
+        , ReadableProperty('statusFlags', StatusFlags)
+        , OptionalProperty('reliability', Reliability)
+        , ReadableProperty('outOfService', Boolean)
+        , ReadableProperty('blinkWarnEnable', Boolean)
+        , ReadableProperty('egressTime', Unsigned)
+        , ReadableProperty('egressActive', Boolean)
+        , ReadableProperty('defaultFadeTime', Unsigned)
+        , ReadableProperty('defaultRampRate', Real)
+        , ReadableProperty('defaultStepIncrement', Real)
+        , OptionalProperty('transition', LightingTransition)
+        , OptionalProperty('feedbackValue', Real)
+        , ReadableProperty('priorityArray', PriorityArray)
+        , ReadableProperty('relinquishDefault', Real)
+        , OptionalProperty('power', Real)
+        , OptionalProperty('instantaneousPower', Real)
+        , OptionalProperty('minActualValue', Real)
+        , OptionalProperty('maxActualValue', Real)
+        , ReadableProperty('lightingCommandDefaultPriority', Unsigned)
+        , OptionalProperty('covIncrement', Real)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1317,6 +1524,12 @@ class LoadControlObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1357,6 +1570,12 @@ class LoopObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1380,6 +1599,12 @@ class MultiStateInputObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1404,6 +1629,12 @@ class MultiStateOutputObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1428,6 +1659,12 @@ class MultiStateValueObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
         
 @register_object_type
@@ -1435,7 +1672,16 @@ class NetworkSecurityObject(Object):
     objectType = 'networkSecurity'
     properties = \
         [ WritableProperty('baseDeviceSecurityPolicy', SecurityLevel)
-### more
+        , WritableProperty('networkAccessSecurityPolicies', ArrayOf(NetworkSecurityPolicy))
+        , WritableProperty('securityTimeWindow', Unsigned)
+        , WritableProperty('packetReorderTime', Unsigned)
+        , ReadableProperty('distributionKeyRevision', Unsigned)
+        , ReadableProperty('keySets', ArrayOf(SecurityKeySet))
+        , WritableProperty('lastKeyServer', AddressBinding)
+        , WritableProperty('securityPDUTimeout', Unsigned)
+        , ReadableProperty('updateKeySetTimeout', Unsigned)
+        , ReadableProperty('supportedSecurityAlgorithms', SequenceOf(Unsigned))
+        , WritableProperty('doNotHide', Boolean)
         ]
 
 @register_object_type
@@ -1446,6 +1692,21 @@ class NotificationClassObject(Object):
         , ReadableProperty('priority', ArrayOf(Unsigned))
         , ReadableProperty('ackRequired', EventTransitionBits)
         , ReadableProperty('recipientList', SequenceOf(Destination))
+        ]
+
+@register_object_type
+class NotificationForwarderObject(Object):
+    objectType = 'notificationForwarder'
+    properties = \
+        [ ReadableProperty('statusFlags', StatusFlags)
+        , ReadableProperty('reliability', Reliability)
+        , ReadableProperty('outOfService', Boolean)
+        , ReadableProperty('recipientList', SequenceOf(Destination))
+        , WritableProperty('subscribedRecipients', SequenceOf(EventNotificationSubscription))
+        , ReadableProperty('processIdentifierFilter', ProcessIdSelection)
+        , OptionalProperty('portFilter', ArrayOf(PortPermission))
+        , ReadableProperty('localForwardingOnly', Boolean)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1485,6 +1746,15 @@ class PositiveIntegerValueObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
+        , OptionalProperty('minPresValue', Unsigned)        
+        , OptionalProperty('maxPresValue', Unsigned)        
+        , OptionalProperty('resolution', Unsigned)
         ]
 
 @register_object_type
@@ -1500,6 +1770,15 @@ class ProgramObject(Object):
         , ReadableProperty('statusFlags', StatusFlags)
         , OptionalProperty('reliability', Reliability)
         , ReadableProperty('outOfService', Boolean)
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('notificationClass', Unsigned)
+        , OptionalProperty('eventEnable', EventTransitionBits)
+        , OptionalProperty('ackedTransitions', EventTransitionBits)
+        , OptionalProperty('notifyType', NotifyType)
+        , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
+        , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1532,6 +1811,12 @@ class PulseConverterObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('timeDelayNormal', Unsigned)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1548,6 +1833,16 @@ class ScheduleObject(Object):
         , ReadableProperty('statusFlags', StatusFlags)
         , ReadableProperty('reliability', Reliability)
         , ReadableProperty('outOfService', Boolean)
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('notificationClass', Unsigned)
+        , OptionalProperty('eventEnable', EventTransitionBits)
+        , ReadableProperty('eventState', EventState)
+        , OptionalProperty('ackedTransitions', EventTransitionBits)
+        , OptionalProperty('notifyType', NotifyType)
+        , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
+        , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1621,11 +1916,11 @@ class TrendLogObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
-#       , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
-#       , OptionalProperty('eventDetectionEnable', Boolean)
-#       , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
-#       , OptionalProperty('eventAlgorithmInhibit', Boolean)
-#       , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
 @register_object_type
@@ -1658,10 +1953,10 @@ class TrendLogMultipleObject(Object):
         , OptionalProperty('notifyType', NotifyType)
         , OptionalProperty('eventTimeStamps', ArrayOf(TimeStamp))
         , OptionalProperty('eventMessageTexts', ArrayOf(CharacterString))
-#       , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
-#       , OptionalProperty('eventDetectionEnable', Boolean)
-#       , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
-#       , OptionalProperty('eventAlgorithmInhibit', Boolean)
-#       , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
+        , OptionalProperty('eventMessageTextsConfig', ArrayOf(CharacterString))
+        , OptionalProperty('eventDetectionEnable', Boolean)
+        , OptionalProperty('eventAlgorithmInhibitRef', ObjectPropertyReference)
+        , OptionalProperty('eventAlgorithmInhibit', Boolean)
+        , OptionalProperty('reliabilityEvaluationInhibit', Boolean)
         ]
 
