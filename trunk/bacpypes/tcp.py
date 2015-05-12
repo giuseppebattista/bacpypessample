@@ -137,7 +137,7 @@ class TCPClient(asyncore.dispatcher):
                 # sent the data upstream
                 deferred(self.response, PDU(msg))
 
-        except socket.error, err:
+        except socket.error as err:
             if (err.args[0] == 111):
                 deferred(TCPClient._error, "connection to %r refused", self.peer)
             else:
@@ -156,7 +156,7 @@ class TCPClient(asyncore.dispatcher):
             self.socketError = None
 
             self.request = self.request[sent:]
-        except socket.error, err:
+        except socket.error as err:
             if (err.args[0] == 111):
                 deferred(TCPClient._error, "connection to %r refused", self.peer)
             else:
@@ -425,7 +425,7 @@ class TCPServer(asyncore.dispatcher):
             else:
                 deferred(self.response, PDU(msg))
 
-        except socket.error, err:
+        except socket.error as err:
             if (err.args[0] == 111):
                 deferred(TCPServer._error, "connection to %r refused", self.peer)
             else:
@@ -444,7 +444,7 @@ class TCPServer(asyncore.dispatcher):
             self.socketError = None
 
             self.request = self.request[sent:]
-        except socket.error, why:
+        except socket.error as why:
             if (why.args[0] == 111):
                 deferred(TCPServer._error, "connection to %r refused", self.peer)
             else:
@@ -614,7 +614,7 @@ class TCPServerDirector(asyncore.dispatcher, Server, ServiceAccessPoint, DebugCo
             try:
                 self.bind(address)
                 break
-            except socket.error, err:
+            except socket.error as err:
                 hadBindErrors = True
                 TCPServerDirector._warning('bind error %r, sleep and try again', err)
                 _sleep(REBIND_SLEEP_INTERVAL)

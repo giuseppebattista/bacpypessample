@@ -84,8 +84,8 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         # let the real command run, trapping errors
         try:
             rslt = cmd.Cmd.onecmd(self, cmdString)
-        except Exception, e:
-            ConsoleCmd._exception("exception: %r", e)
+        except Exception as err:
+            ConsoleCmd._exception("exception: %r", err)
 
         # return what the command returned
         return rslt
@@ -254,9 +254,9 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
 
         try:
             readline.read_history_file(sys.argv[0] + ".history")
-        except Exception, e:
+        except Exception as err:
             if not isinstance(e, IOError):
-                self.stdout.write("history error: %s\n" % e)
+                self.stdout.write("history error: %s\n" % err)
 
     def postloop(self):
         """Take care of any unfinished business.
@@ -264,8 +264,8 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         """
         try:
             readline.write_history_file(sys.argv[0]+".history")
-        except Exception, e:
-            self.stdout.write("history error: %s\n" % e)
+        except Exception as err:
+            self.stdout.write("history error: %s\n" % err)
 
         cmd.Cmd.postloop(self)   ## Clean up command completion
 
@@ -298,5 +298,5 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
 
         try:
             exec(line) in self._locals, self._globals
-        except Exception, e:
-            self.stdout.write("%s : %s\n" % (e.__class__, e))
+        except Exception as err:
+            self.stdout.write("%s : %s\n" % (err.__class__, err))

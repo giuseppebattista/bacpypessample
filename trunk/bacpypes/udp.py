@@ -192,10 +192,10 @@ class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
             # send the PDU up to the client
             deferred(self._response, PDU(msg, source=addr))
 
-        except socket.timeout, why:
-            deferred(UDPDirector._error, "handle_read socket timeout: %s", why)
-        except socket.error, why:
-            if why[0] == 11:
+        except socket.timeout as err:
+            deferred(UDPDirector._error, "handle_read socket timeout: %s", err)
+        except socket.error as err:
+            if err.args[0] == 11:
                 pass
             else:
                 deferred(UDPDirector._error, "handle_read socket error: %s", why)
@@ -214,8 +214,8 @@ class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
             sent = self.socket.sendto(pdu.pduData, pdu.pduDestination)
             if _debug: deferred(UDPDirector._debug, "    - sent %d octets to %s", sent, pdu.pduDestination)
 
-        except socket.error, why:
-            deferred(UDPDirector._error, "handle_write socket error: %s", why)
+        except socket.error as err:
+            deferred(UDPDirector._error, "handle_write socket error: %s", err)
 
     def handle_close(self):
         """Remove this from the monitor when it's closed."""
