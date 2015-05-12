@@ -876,6 +876,16 @@ class EventType(Enumerated):
         , 'changeOfStatusFlags':18
         }
 
+class FaultType(Enumerated):
+    enumerations = \
+        { 'none':0
+        , 'fault-characterstring':1
+        , 'fault-extended':2
+        , 'fault-life-safety':3
+        , 'fault-state':4
+        , 'fault-status-flags':5
+        }
+
 class FileAccessMethod(Enumerated):
     enumerations = \
         { 'recordAccess':0
@@ -1092,6 +1102,7 @@ class PropertyIdentifier(Enumerated):
         , 'alignIntervals':193
         , 'all':8
         , 'allWritesSuccessful':9
+        , 'allowGroupDelayInhibit':365
         , 'apduSegmentTimeout':10
         , 'apduTimeout':11
         , 'applicationSoftwareVersion':12
@@ -1102,6 +1113,7 @@ class PropertyIdentifier(Enumerated):
         , 'authenticationPolicyList':258
         , 'authenticationPolicyNames':259
         , 'authenticationStatus':260
+        , 'authorizationExemptions':364
         , 'authorizationMode':261
         , 'autoSlaveDiscovery':169
         , 'averageValue':125
@@ -1117,8 +1129,10 @@ class PropertyIdentifier(Enumerated):
         , 'bufferSize':126
         , 'changeOfStateCount':15
         , 'changeOfStateTime':16
+        , 'channelNumber':366
         , 'clientCovIncrement':127
         , 'configurationFiles':154
+        , 'controlGroups':367
         , 'controlledVariableReference':19
         , 'controlledVariableUnits':20
         , 'controlledVariableValue':21
@@ -1160,19 +1174,24 @@ class PropertyIdentifier(Enumerated):
         , 'doorUnlockDelayTime':232
         , 'dutyWindow':213
         , 'effectivePeriod':32
-        , 'egreeActive':386
+        , 'egressActive':386
         , 'egressTime':377
         , 'elapsedActiveTime':33
         , 'entryPoints':268
         , 'enable':133
         , 'errorLimit':34
+        , 'eventAlgorithmInhibit':354
+        , 'eventAlgorithmInhibitRef':355
+        , 'eventDetectionEnable':353
         , 'eventEnable':35
         , 'eventMessageTexts':351
+        , 'eventMessageTextsConfig':352
         , 'eventState':36
         , 'eventTimeStamps':130
         , 'eventType':37
         , 'eventParameters':83
         , 'exceptionSchedule':38
+        , 'executionDelay':368
         , 'exitPoints':269
         , 'expectedShedLevel':214
         , 'expiryTime':270
@@ -1180,6 +1199,8 @@ class PropertyIdentifier(Enumerated):
         , 'failedAttemptEvents':272
         , 'failedAttempts':273
         , 'failedAttemptsTime':274
+        , 'faultParameters':358
+        , 'faultType':359
         , 'faultValues':39
         , 'feedbackValue':40
         , 'fileAccessMethod':41
@@ -1210,6 +1231,7 @@ class PropertyIdentifier(Enumerated):
         , 'lastCredentialRemovedTime':280
         , 'lastKeyServer':331
         , 'lastNotifyRecord':173
+        , 'lastPriority':369
         , 'lastRestartReason':196
         , 'lastRestoreTime':157
         , 'lastUseTime':281
@@ -1222,6 +1244,7 @@ class PropertyIdentifier(Enumerated):
         , 'listOfObjectPropertyReferences':54
         , 'listOfSessionKeys':55
         , 'localDate':56
+        , 'localForwardingOnly':360
         , 'localTime':57
         , 'location':58
         , 'lockStatus':233
@@ -1296,6 +1319,7 @@ class PropertyIdentifier(Enumerated):
         , 'passbackMode':300
         , 'passbackTimeout':301
         , 'polarity':84
+        , 'portFilter':363
         , 'positiveAccessRules':302
         , 'power':384
         , 'prescale':185
@@ -1304,6 +1328,7 @@ class PropertyIdentifier(Enumerated):
         , 'priorityArray':87
         , 'priorityForWriting':88
         , 'processIdentifier':89
+        , 'processIdentifierFilter':361
         , 'profileName':168
         , 'programChange':90
         , 'programLocation':91
@@ -1323,6 +1348,7 @@ class PropertyIdentifier(Enumerated):
         , 'recordsSinceNotification':140
         , 'recordCount':141
         , 'reliability':103
+        , 'reliabilityEvaluationInhibit':357
         , 'relinquishDefault':104
         , 'requestedShedLevel':218
         , 'requestedUpdateInterval':348
@@ -1335,7 +1361,7 @@ class PropertyIdentifier(Enumerated):
         , 'scaleFactor':188
         , 'scheduleDefault':174
         , 'securedStatus':235
-        , 'securityPduTimeout':334
+        , 'securityPDUTimeout':334
         , 'securityTimeWindow':335
         , 'segmentationSupported':107
         , 'serialNumber':372
@@ -1357,6 +1383,7 @@ class PropertyIdentifier(Enumerated):
         , 'structuredObjectList':209
         , 'subordinateAnnotations':210
         , 'subordinateList':211
+        , 'subscribedRecipients':362
         , 'supportedFormats':304
         , 'supportedFormatClasses':305
         , 'supportedSecurityAlgorithms':336
@@ -1364,6 +1391,7 @@ class PropertyIdentifier(Enumerated):
         , 'threatAuthority':306
         , 'threatLevel':307
         , 'timeDelay':113
+        , 'timeDelayNormal':356
         , 'timeOfActiveTimeReset':114
         , 'timeOfDeviceRestart':203
         , 'timeOfStateCountReset':115
@@ -1545,6 +1573,12 @@ class ObjectPropertyReference(Sequence):
         [ Element('objectIdentifier', ObjectIdentifier, 0)
         , Element('propertyIdentifier', PropertyIdentifier, 1)
         , Element('propertyArrayIndex', Unsigned, 2, True)
+        ]
+
+class ProcessIdSelection(Choice):
+    choiceElements = \
+        [ Element('processIdentifier', Unsigned)
+        , Element('nullValue', Null)
         ]
 
 class PropertyStates(Choice):
@@ -1772,6 +1806,14 @@ class DeviceObjectPropertyValue(Sequence):
         , Element('value', Any, 4)
         ]
 
+class EventNotificationSubscription(Sequence):
+    sequenceElements = \
+        [ Element('recipient', Recipient, 0)
+        , Element('processIdentifier', Unsigned, 1)
+        , Element('issueConfirmedNotifications', Boolean, 2)
+        , Element('timeRemaining', Unsigned, 3)
+        ]
+
 class EventParameterChangeOfBitstring(Sequence):
     sequenceElements = \
         [ Element('timeDelay', Unsigned, 0)
@@ -1928,10 +1970,76 @@ class EventParameter(Choice):
         , Element('changeOfStatusflags', EventParameterChangeOfStatusFlags, 18)
         ]
 
+class FaultParameterCharacterString(Sequence):
+    sequenceElements = \
+        [ Element('listOfFaultValues', SequenceOf(CharacterString), 0)
+        ]
+
+class FaultParameterExtendedParameters(Choice):
+    choiceElements = \
+        [ Element('null', Null)
+        , Element('real', Real)
+        , Element('unsigned', Unsigned)
+        , Element('boolean', Boolean)
+        , Element('integer', Integer)
+        , Element('double', Double)
+        , Element('octet', OctetString)
+        , Element('characterString', CharacterString)
+        , Element('bitstring', BitString)
+        , Element('enum', Enumerated)
+        , Element('date', Date)
+        , Element('time', Time)
+        , Element('objectIdentifier', ObjectIdentifier)
+        , Element('reference', DeviceObjectPropertyReference, 0)
+        ]
+
+class FaultParameterExtended(Sequence):
+    sequenceElements = \
+        [ Element('vendorId', Unsigned, 0)
+        , Element('extendedFaultType', Unsigned, 1)
+        , Element('parameters', SequenceOf(FaultParameterExtendedParameters), 2)
+        ]
+
+class FaultParameterLifeSafety(Sequence):
+    sequenceElements = \
+        [ Element('listOfFaultValues', SequenceOf(LifeSafetyState), 0)
+        , Element('modePropertyReference', DeviceObjectPropertyReference, 1)
+        ]
+
+class FaultParameterState(Sequence):
+    sequenceElements = \
+        [ Element('listOfFaultValues', SequenceOf(PropertyStates), 0)
+        ]
+
+class FaultParameterStatusFlags(Sequence):
+    sequenceElements = \
+        [ Element('statusFlagsReference', DeviceObjectPropertyReference, 0)
+        ]
+
+class FaultParameter(Choice):
+    choiceElements = \
+        [ Element('none', Null, 0)
+        , Element('faultCharacterString', FaultParameterCharacterString, 1)
+        , Element('faultExtended', FaultParameterExtended, 2)
+        , Element('faultLifeSafety', FaultParameterLifeSafety, 3)
+        , Element('faultState', FaultParameterState, 4)
+        , Element('faultStatusFlags', FaultParameterStatusFlags, 5)
+        ]
+
 class KeyIdentifier(Sequence):
     sequenceElements = \
         [ Element('algorithm', Unsigned, 0)
         , Element('keyId', Unsigned, 1)
+        ]
+
+class LightingCommand(Sequence):
+    sequenceElements = \
+        [ Element('operation', LightingOperation, 0)
+        , Element('targetLevel', Real, 1) ### optional
+        , Element('rampRate', Real, 2)   ### optional
+        , Element('stepIncrement', Real, 3) ### optional
+        , Element('fadeTime', Unsigned, 4) ### optional
+        , Element('priority', Unsigned, 5) ### optional
         ]
 
 class LogDataLogData(Choice):
@@ -2163,6 +2271,12 @@ class OptionalCharacterString(Choice):
     choiceElements = \
         [ Element('null', Null)
         , Element('characterString', CharacterString)
+        ]
+
+class PortPermission(Sequence):
+    sequenceElements = \
+        [ Element('portId', Unsigned, 0)
+        , Element('enabled', Boolean, 1)
         ]
 
 class Prescale(Sequence):
