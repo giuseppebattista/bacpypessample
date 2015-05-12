@@ -86,7 +86,7 @@ def run(spin=SPIN):
         except KeyboardInterrupt:
             _log.info("keyboard interrupt")
             running = False
-        except Exception, e:
+        except Exception as e:
             _log.exception("an error has occurred: %s", e)
             
     running = False
@@ -134,7 +134,7 @@ def run_once():
 
     except KeyboardInterrupt:
         _log.info("keyboard interrupt")
-    except Exception, e:
+    except Exception as e:
         _log.exception("an error has occurred: %s", e)
 
 #

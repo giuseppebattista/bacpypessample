@@ -1251,8 +1251,8 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             try:
                 xpdu = atype()
                 xpdu.decode(apdu)
-            except Exception, e:
-                ApplicationServiceAccessPoint._exception("confirmed request decoding error: %r", e)
+            except Exception as err:
+                ApplicationServiceAccessPoint._exception("confirmed request decoding error: %r", err)
                 return
             
         elif isinstance(apdu, UnconfirmedRequestPDU):
@@ -1264,8 +1264,8 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             try:
                 xpdu = atype()
                 xpdu.decode(apdu)
-            except Exception, e:
-                ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", e)
+            except Exception as err:
+                ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", err)
                 return
                 
         else:
@@ -1276,7 +1276,7 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
 
         # forward the decoded packet
         self.sap_request(xpdu)
-        
+
     def sap_indication(self, apdu):
         if _debug: ApplicationServiceAccessPoint._debug("sap_indication %r", apdu)
         
@@ -1285,8 +1285,8 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
                 xpdu = ConfirmedRequestPDU()
                 apdu.encode(xpdu)
                 apdu._xpdu = xpdu
-            except Exception, e:
-                ApplicationServiceAccessPoint._exception("confirmed request encoding error: %r", e)
+            except Exception as err:
+                ApplicationServiceAccessPoint._exception("confirmed request encoding error: %r", err)
                 return
 
         elif isinstance(apdu, UnconfirmedRequestPDU):
@@ -1294,8 +1294,8 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
                 xpdu = UnconfirmedRequestPDU()
                 apdu.encode(xpdu)
                 apdu._xpdu = xpdu
-            except Exception, e:
-                ApplicationServiceAccessPoint._exception("unconfirmed request encoding error: %r", e)
+            except Exception as err:
+                ApplicationServiceAccessPoint._exception("unconfirmed request encoding error: %r", err)
                 return
 
         else:
@@ -1322,8 +1322,8 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             try:
                 xpdu = atype()
                 xpdu.decode(apdu)
-            except Exception, e:
-                ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", e)
+            except Exception as err:
+                ApplicationServiceAccessPoint._exception("unconfirmed request decoding error: %r", err)
                 return
 
         elif isinstance(apdu, ErrorPDU):
@@ -1335,7 +1335,8 @@ class ApplicationServiceAccessPoint(ApplicationServiceElement, ServiceAccessPoin
             try:
                 xpdu = atype()
                 xpdu.decode(apdu)
-            except:
+            except Exception as err:
+                ApplicationServiceAccessPoint._exception("error PDU decoding error: %r", err)
                 xpdu = Error(errorClass=0, errorCode=0)
 
         elif isinstance(apdu, RejectPDU):
