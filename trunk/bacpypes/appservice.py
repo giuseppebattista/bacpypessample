@@ -27,8 +27,8 @@ class DeviceInfo(DebugContents):
     _debug_contents = ('address', 'segmentationSupported'
         , 'maxApduLengthAccepted', 'maxSegmentsAccepted'
         )
-    
-    def __init__(self, address=None, segmentationSupported='no-segmentation', maxApduLengthAccepted=1024, maxSegmentsAccepted=None):
+
+    def __init__(self, address=None, segmentationSupported='noSegmentation', maxApduLengthAccepted=1024, maxSegmentsAccepted=None):
         if address is None:
             pass
         elif isinstance(address, Address):
