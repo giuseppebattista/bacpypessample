@@ -198,7 +198,7 @@ class UDPDirector(asyncore.dispatcher, Server, ServiceAccessPoint, Logging):
             if err.args[0] == 11:
                 pass
             else:
-                deferred(UDPDirector._error, "handle_read socket error: %s", why)
+                deferred(UDPDirector._error, "handle_read socket error: %s", err)
 
     def writable(self):
         """Return true iff there is a request pending."""
