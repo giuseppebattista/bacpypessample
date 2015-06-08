@@ -255,7 +255,7 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         try:
             readline.read_history_file(sys.argv[0] + ".history")
         except Exception as err:
-            if not isinstance(e, IOError):
+            if not isinstance(err, IOError):
                 self.stdout.write("history error: %s\n" % err)
 
     def postloop(self):
