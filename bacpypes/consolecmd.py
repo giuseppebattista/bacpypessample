@@ -265,7 +265,8 @@ class ConsoleCmd(cmd.Cmd, Thread, Logging):
         try:
             readline.write_history_file(sys.argv[0]+".history")
         except Exception as err:
-            self.stdout.write("history error: %s\n" % err)
+            if not isinstance(err, IOError):
+                self.stdout.write("history error: %s\n" % err)
 
         cmd.Cmd.postloop(self)   ## Clean up command completion
 
