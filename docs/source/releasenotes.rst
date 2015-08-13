@@ -5,6 +5,41 @@ Release Notes
 
 This page contains release notes.
 
+Version 0.12.1
+--------------
+
+* Add backup-in-progress to the Device Status enumeration
+  `r331 <http://sourceforge.net/p/bacpypes/code/331>`_
+
+* Correct the restoreFailure in BackupState
+  `r332 <http://sourceforge.net/p/bacpypes/code/332>`_
+
+* Check for read-only object when writing to a file
+  `r333 <http://sourceforge.net/p/bacpypes/code/333>`_
+
+* Wrong initial value for no segmentation (old enumeration syntax)
+  `r334 <http://sourceforge.net/p/bacpypes/code/334>`_
+
+* Wrong parameter
+  `r335 <http://sourceforge.net/p/bacpypes/code/335>`_
+
+* Missed variable name change
+  `r336 <http://sourceforge.net/p/bacpypes/code/336>`_
+
+* Mask errors writing the history file like they are when reading
+  `r337 <http://sourceforge.net/p/bacpypes/code/337>`_
+
+* Make sure that the vendor identifier is provided, and that localDate and
+  localTime are not
+  `r338 <http://sourceforge.net/p/bacpypes/code/338>`_
+
+* Add simple string parsing to Date and Time
+  `r339 <http://sourceforge.net/p/bacpypes/code/339>`_
+
+* Bump the version number, provide more focused classifiers, include release
+  notes
+  `r340 <http://sourceforge.net/p/bacpypes/code/340>`_
+
 Version 0.12.0
 --------------
 
@@ -17,7 +52,8 @@ Version 0.12.0
 * ReallyLongCamelCaseTypo
   `r325 <http://sourceforge.net/p/bacpypes/code/325>`_
 
-* The pieces inside the AtomicReadFileACK should not have been context encoded, but the choice is context encoded
+* The pieces inside the AtomicReadFileACK should not have been context encoded,
+  but the choice is context encoded
   `r326 <http://sourceforge.net/p/bacpypes/code/326>`_
 
 * Additional properties and object types to get closer to 2012 edition
@@ -35,7 +71,7 @@ Version 0.12.0
 Version 0.11.0
 --------------
 
-* x
+* Merge the 0.10.6 release
   `r311 <http://sourceforge.net/p/bacpypes/code/311>`_
 
 * Examples of a RecurringTask and using that to read property values.
@@ -50,7 +86,8 @@ Version 0.11.0
 * Additional helper application for decoding UDP packet contents in hex
   `r315 <http://sourceforge.net/p/bacpypes/code/315>`_
 
-* The 'description' property is optional, by giving it a default value it was always being created.
+* The 'description' property is optional, by giving it a default value it was
+  always being created.
   `r316 <http://sourceforge.net/p/bacpypes/code/316>`_
 
 * Spelling typo
