@@ -16,7 +16,7 @@ from appservice import StateMachineAccessPoint, ApplicationServiceAccessPoint
 from netservice import NetworkServiceAccessPoint, NetworkServiceElement
 from bvllservice import BIPSimple, BIPForeign, AnnexJCodec, UDPMultiplexer
 
-from object import Property, PropertyError, DeviceObject
+from object import Property, PropertyError, DeviceObject, registered_object_types, register_object_type
 from apdu import ConfirmedRequestPDU, SimpleAckPDU, RejectPDU, RejectReason
 from apdu import IAmRequest, ReadPropertyACK, Error
 from errors import ExecutionError
@@ -81,6 +81,7 @@ class CurrentTimeProperty(Property):
 #
 
 class LocalDeviceObject(DeviceObject, Logging):
+
     properties = \
         [ CurrentTimeProperty('localTime')
         , CurrentDateProperty('localDate')
@@ -102,6 +103,18 @@ class LocalDeviceObject(DeviceObject, Logging):
         for attr, value in LocalDeviceObject.defaultProperties.items():
             if attr not in kwargs:
                 kwargs[attr] = value
+
+        # check for registration
+        if self.__class__ not in registered_object_types.values():
+            if 'vendorIdentifier' not in kwargs:
+                raise RuntimeError("vendorId required to auto-register the LocalDeviceObject class")
+            register_object_type(self.__class__, vendor_id=kwargs['vendorIdentifier'])
+
+        # check for local time
+        if 'localDate' in kwargs:
+            raise RuntimeError("localDate is provided by LocalDeviceObject and cannot be overridden")
+        if 'localTime' in kwargs:
+            raise RuntimeError("localTime is provided by LocalDeviceObject and cannot be overridden")
 
         # proceed as usual
         DeviceObject.__init__(self, **kwargs)
