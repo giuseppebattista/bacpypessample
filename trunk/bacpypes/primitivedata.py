@@ -6,6 +6,7 @@ Primitive Data
 
 import sys
 import time
+import re
 
 from debugging import ModuleLogger
 
@@ -1122,6 +1123,8 @@ def expand_enumerations(klass):
 class Date(Atomic):
 
     _app_tag = Tag.dateAppTag
+    _date_regex = re.compile(r"^([*]|\d+)[/]([*]|\d+)[/]([*]|\d+)(?:\s([*]|\w+))?$")
+    _day_names = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
     DONT_CARE = 255
 
@@ -1134,6 +1137,42 @@ class Date(Atomic):
             self.decode(arg)
         elif isinstance(arg, types.TupleType):
             self.value = arg
+        elif isinstance(arg, types.StringTypes):
+            date_match = Date._date_regex.match(arg)
+            if not tup_match:
+                raise ValueError, "invalid date pattern"
+            date_groups = date_match.groups()
+
+            # day/month/year
+            tup_list = []
+            for s in tup_groups[:3]:
+                if s == '*':
+                    tup_list.append(255)
+                elif s in None:
+                    tup_list.append(0)
+                else:
+                    tup_list.append(int(s))
+
+            # clean up the year
+            if (tup_list[2] < 100):
+                tup_list[2] += 2000
+            tup_list[2] -= 1900
+
+            # day-of-week madness
+            dow = tup_groups[3]
+            if dow is None:
+                tup_list.append(0)
+            elif (dow == '*'):
+                tup_list.append(255)
+            elif dow.isdigit():
+                tup_list.append(int(dow))
+            else:
+                dow = dow.title()
+                if dow not in Date._day_names:
+                    raise ValueError("invalid day name")
+                tup_list.append(Date._day_names.index(dow))
+
+            self.value = tuple(tup_list)
         elif isinstance(arg, Date):
             self.value = arg.value
         else:
@@ -1190,7 +1229,7 @@ class Date(Atomic):
         if dayOfWeek == 255:
             rslt += "*)"
         else:
-            rslt += ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'][dayOfWeek] + ")"
+            rslt += Date._day_names[dayOfWeek] + ")"
 
         return rslt
 
@@ -1201,6 +1240,7 @@ class Date(Atomic):
 class Time(Atomic):
 
     _app_tag = Tag.timeAppTag
+    _time_regex = re.compile("^([*]|[0-9]+)[:]([*]|[0-9]+)(?:[:]([*]|[0-9]+)(?:[.]([*]|[0-9]+))?)?$")
 
     DONT_CARE = 255
 
@@ -1214,6 +1254,25 @@ class Time(Atomic):
             self.decode(arg)
         elif isinstance(arg, types.TupleType):
             self.value = arg
+        elif isinstance(arg, types.StringTypes):
+            tup_match = Time._time_regex.match(arg)
+            if not tup_match:
+                raise ValueError, "invalid time pattern"
+
+            tup_list = []
+            for s in tup_match:
+                if s == '*':
+                    tup_list.append(255)
+                elif s in None:
+                    tup_list.append(0)
+                else:
+                    tup_list.append(int(s))
+
+            # fix the hundredths if necessary
+            if (tup_list[3] > 0) and (tup_list[3] < 10):
+                tup_list[3] = tup_list[3] * 10
+
+            self.value = tuple(tup_list)
         elif isinstance(arg, Time):
             self.value = arg.value
         else:
